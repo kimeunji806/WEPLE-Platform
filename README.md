@@ -10,23 +10,33 @@
         <sub><b>방진영</b></sub>
       </a>
     </td>
+
     <td align="center">
       <a href="https://github.com/crescentia0011">
         <img src="https://avatars.githubusercontent.com/u/254889839?v=4" width="100px;" alt="김병완"/><br />
         <sub><b>김병완</b></sub>
       </a>
     </td>
+
     <td align="center">
       <a href="https://github.com/kimeunji806">
         <img src="https://avatars.githubusercontent.com/u/258710580?v=4" width="100px;" alt="김은지"/><br />
         <sub><b>김은지</b></sub>
       </a>
     </td>
+
     <td align="center">
-      <sub><b>김민지</b></sub>
+      <a href="https://github.com/kimminji28">
+        <img src="https://github.com/kimminji28.png" width="100px;" alt="김민지"/><br />
+        <sub><b>김민지</b></sub>
+      </a>
     </td>
+
     <td align="center">
-      <sub><b>송민규</b></sub>
+      <a href="https://github.com/smk412">
+        <img src="https://github.com/smk412.png" width="100px;" alt="송민규"/><br />
+        <sub><b>송민규</b></sub>
+      </a>
     </td>
   </tr>
 

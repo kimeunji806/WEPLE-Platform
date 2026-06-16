@@ -160,7 +160,7 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/windows,java,maven,eclipse,visualstudiocode
 
 # local settings
-application-local.properties
+application.properties
 application-local.yml
 
 # upload files

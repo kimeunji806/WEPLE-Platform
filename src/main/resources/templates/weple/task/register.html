@@ -2,12 +2,151 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{common/layouts/default_layout :: layout(~{::section})}">
 <head>
-    <title>WEPLE - 공통 관리</title>
+    <title>WEPLE - 새 일감 등록</title>
+    <style>
+        .form-container { background-color: #ffffff; padding: 30px; margin-bottom: 30px; }
+        .form-label { font-size: 14px; font-weight: bold; color: #333333; margin-bottom: 6px; }
+        .text-danger { color: #e74c3c; margin-left: 3px; } /* 필수 표시 * */
+        .form-control, .form-select { font-size: 14px; padding: 10px 12px; border: 1px solid #dcdde1; border-radius: 6px; color: #444444; }
+        .form-control::placeholder { color: #a0a0a0; }
+        .upload-zone { border: 1px dashed #b2bec3; border-radius: 8px; background-color: #f8f9fa; padding: 40px 20px; text-align: center; cursor: pointer; transition: background 0.2s; }
+        .upload-zone:hover { background-color: #f1f2f6; }
+        .upload-icon { font-size: 32px; color: #95a5a6; margin-bottom: 10px; }
+        .upload-text { font-size: 13px; color: #7f8c8d; }
+    </style>
 </head>
 <body>
 
-    <section>
-        본인 작성 내역 여기다 넣기
+    <section class="container-fluid my-4">
+        <div class="mb-4">
+            <h3 class="fw-bold" style="color: #2c3e50;">새 일감</h3>
+        </div>
+
+        <div class="form-container">
+            <form id="taskInsertForm" method="post" enctype="multipart/form-data">
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">프로젝트 <span class="text-danger">*</span></label>
+                        <select class="form-select">
+                            <option value="" disabled selected hidden>프로젝트</option>
+                            <option value="1">예담</option>
+                            <option value="2">기획</option>
+                            <option value="3">개발</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">일감 유형 <span class="text-danger">*</span></label>
+                        <select class="form-select">
+                            <option value="1">기획</option>
+                            <option value="2">개발</option>
+                            <option value="3">디자인</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <label class="form-label">제목 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" placeholder="예담 기획">
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <label class="form-label">설명</label>
+                        <textarea class="form-control" rows="5"></textarea>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">상태 <span class="text-danger">*</span></label>
+                        <select class="form-select">
+                            <option value="1">신규</option>
+                            <option value="2">진행중</option>
+                            <option value="3">완료</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">우선순위 <span class="text-danger">*</span></label>
+                        <select class="form-select">
+                            <option value="1">낮음</option>
+                            <option value="2">보통</option>
+                            <option value="3">높음</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">담당자</label>
+                        <select class="form-select">
+                            <option value="">&lt;&lt; 내게 할당 &gt;&gt;</option>
+                            <option value="admin">admin</option>
+                            <option value="user1">김철수</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">시작일</label>
+                        <input type="date" class="form-control" value="2026-06-11">
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">완료일</label>
+                        <input type="date" class="form-control" placeholder="YYYY/MM/DD">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">추정시간</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" value="0">
+                            <span class="input-group-text bg-light text-muted" style="font-size: 13px;">시간</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">진척도</label>
+                        <select class="form-select">
+                            <option value="0">0 %</option>
+                            <option value="20">20 %</option>
+                            <option value="50">50 %</option>
+                            <option value="100">100 %</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">상위일감</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0">🔍</span>
+                            <input type="text" class="form-control border-start-0" placeholder="상위일감 검색">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-5">
+                    <div class="col-12">
+                        <label class="form-label">파일</label>
+                        <div class="upload-zone" onclick="document.getElementById('fileInput').click();">
+                            <div class="upload-icon">📁</div>
+                            <div class="upload-text">파일을 선택하거나 여기로 드래그하세요 (최대 크기: 5 MB)</div>
+                            <input type="file" id="fileInput" name="files" multiple style="display: none;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" 
+                            th:onclick="|location.href='@{/task/list}'|" 
+                            class="btn btn-sm btn-light border px-4 py-2" 
+                            style="color: #555;">취소</button>
+                    <button type="submit" class="btn btn-sm btn-primary px-4 py-2 fw-bold" style="background-color: #0000ff; border-color: #0000ff;">등록</button>
+                </div>
+
+            </form>
+        </div>
     </section>
 
 </body>

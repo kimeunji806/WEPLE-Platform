@@ -4,7 +4,7 @@
 <body>
 <div th:fragment="headerFragment" class="nav_menu" style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 20px; box-sizing: border-box;">
     
-    <h1 class="header-title-left" style="margin: 0;">프로젝트 1</h1>
+    <h1 class="header-title-left" style="margin: 0;" th:styleappend="${currentMenu == 'none'} ? 'visibility: hidden;' : 'visibility: visible;'">프로젝트 1</h1>
     
     <div class="header-profile-right" style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
         

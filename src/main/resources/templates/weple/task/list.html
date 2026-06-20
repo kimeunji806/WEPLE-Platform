@@ -112,9 +112,12 @@
 	<section class="container-fluid my-4">
 		<div class="d-flex justify-content-between align-items-center mb-4">
 			<h3 class="fw-bold m-0" style="color: #2c3e50;">일감</h3>
-			<button type="button" th:onclick="|location.href='@{/task/insert}'|"
-				class="btn btn-sm text-primary fw-bold"
-				style="background: none; border: none;">+ 새 일감만들기</button>
+			<button type="button" 
+        			th:onclick="|location.href='@{/project/task/insert(projectId=${param.projectId})}'|"
+        			class="btn btn-sm text-primary fw-bold"
+        			style="background: none; border: none;">
+    			+ 새 일감만들기
+			</button>
 		</div>
 
 		<div class="filter-box shadow-sm">

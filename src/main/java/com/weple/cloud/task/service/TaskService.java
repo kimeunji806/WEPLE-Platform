@@ -3,15 +3,17 @@ package com.weple.cloud.task.service;
 import java.util.List;
 
 public interface TaskService {
-	public List<TaskVO> findAll();
+	public List<TaskVO> findAll(Long pId);
 	
-	public List<TaskTypeListVO> findType();
+	public List<TaskTypeListVO> findType(Long cId);
 	
 	public List<TaskStatusVO> findStatus();
 	
-	public List<TaskMemberVO> findMember(Integer pId);
+	public List<TaskMemberVO> findMember(Long pId);
 	
-	public List<TaskParentVO> findParent();
+	public List<TaskPriorityVO> findPriority(Long cId);
+	
+	public List<TaskParentVO> findParent(Long pId);
 	
 	public int insertTask(TaskVO taskVO);
 }

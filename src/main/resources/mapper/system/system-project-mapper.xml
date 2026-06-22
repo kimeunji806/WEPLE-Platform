@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weple.cloud.system.mapper.SystemProjectMapper">
+	<!-- 최대 projectId 조회 -->
+	<select id="selectMaxProjectId" resultType="long">
+		SELECT NVL(MAX(project_id), 0)
+		FROM project
+	</select>
+	<!-- 프로젝트 생성 -->
+	<insert id="insertInfo" parameterType="com.weple.cloud.system.service.SystemProjectVO">
+		INSERT INTO project(
+			p.project_id,
+			p.project_title,
+            p.project_describe,
+            p.project_identifier,
+            p.status,
+            c.default_describe AS project_status_name,
+            start_date,
+            finish_date,
+            created_at
+		)
+		VALUES(
+			#{projectId},
+            #{projectTitle},
+            #{projectDescribe},
+            #{projectIdentifier},
+            'j1',
+            SYSDATE - INTERVAL '9' HOUR,
+            SYSDATE - INTERVAL '9' HOUR,
+            SYSDATE - INTERVAL '9' HOUR
+		)
+	</insert>
+	<insert id="insertModuleMapping" parameterType="com.weple.cloud.system.service.SystemProjectVO">
+		INSERT INTO module_mapping(
+			module_map_id,
+			project_id,
+			module_name
+		)
+		SELECT
+			(SELECT NVL(MAX(module_map_id), 0) FROM module_mapping) + ROWNUM,
+			t.project_id,
+        	t.module_name
+         FROM (
+		<foreach collection="moduleNames" item="name" separator="UNION ALL">
+			SELECT 
+                #{projectId} AS project_id, 
+                #{name} AS module_name 
+            FROM dual
+		</foreach>
+		) t
+	</insert>
+
+</mapper>

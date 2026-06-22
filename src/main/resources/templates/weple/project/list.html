@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://thymeleaf.org"
-      th:replace="~{common/layouts/default_layout :: layout(~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org/"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
     <meta charset="UTF-8">
     <title>프로젝트 목록</title>

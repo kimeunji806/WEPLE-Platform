@@ -15,7 +15,7 @@ import lombok.ToString;
 @AllArgsConstructor
 public class TaskTypeVO {
 	private Integer typeId;
-	private Integer companyId;
+	private Long companyId;
 	private String  typeName;
 	private String  taskTypeDescribe;
 	private Integer position;

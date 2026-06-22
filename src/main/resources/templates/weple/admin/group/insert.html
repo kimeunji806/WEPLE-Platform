@@ -1,6 +1,7 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org"
-	th:replace="~{common/layouts/default_layout_setting :: layout(~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org/"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
 <title>WEPLE</title>
 <link rel="stylesheet" th:href="@{/css/groupInsert.css}" />

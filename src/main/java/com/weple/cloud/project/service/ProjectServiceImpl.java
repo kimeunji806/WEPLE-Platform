@@ -1,12 +1,10 @@
-package com.weple.cloud.project.service.impl;
+package com.weple.cloud.project.service;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.weple.cloud.project.mapper.ProjectMapper;
-import com.weple.cloud.project.service.ProjectService;
-import com.weple.cloud.project.service.ProjectVO;
 
 import lombok.RequiredArgsConstructor;
 

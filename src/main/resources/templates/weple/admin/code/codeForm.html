@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
+<head>
+    <title>WEPLE - 코드값 등록/수정</title>
+</head>
+<body>
+
+    <section>
+        <div class="code-edit-container">
+            <h2 class="page-title">새 코드값 등록</h2>
+            <div class="breadcrumb">
+                작업분류 &gt; <span class="current">새 코드값</span>
+            </div>
+
+
+            <div class="edit-card">
+                <form>
+                    <div class="form-row">
+                        <div class="form-label">
+                            <label for="codeName">이름 <span class="required">*</span></label>
+                        </div>
+                        <div class="form-input">
+                            <input type="text" id="codeName" name="codeName" placeholder="코드 이름을 입력하세요" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-label">
+                            <label>기본값</label>
+                        </div>
+                        <div class="form-input">
+                            <label class="checkbox-container">
+                                <input type="checkbox" name="isDefault">
+                                <span class="checkmark"></span>
+                                <span class="label-text">기본값으로 설정</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-label">
+                            <label>사용중</label>
+                        </div>
+                        <div class="form-input">
+                            <label class="checkbox-container">
+                                <input type="checkbox" name="isUsed" checked>
+                                <span class="checkmark"></span>
+                                <span class="label-text">사용함</span>
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">저장</button>
+                <button type="button" class="btn-cancel" onclick="history.back();">취소</button>
+            </div>
+        </div>
+
+        <style>
+            /* ===========================공통 컨테이너=========================== */
+            .code-edit-container {
+                max-width: 800px; /* 등록 폼은 약간 좁게 설정 */
+                margin: 0 auto;
+                padding: 24px;
+                font-family: "Noto Sans KR", sans-serif;
+            }
+
+            /* ===========================경로(Breadcrumb)=========================== */
+            .breadcrumb {
+                font-size: 13px;
+                color: #888;
+                margin-bottom: 12px;
+            }
+            .breadcrumb .current {
+                color: #333;
+                font-weight: 500;
+            }
+
+            /* ===========================제목=========================== */
+            .page-title {
+                font-size: 24px;
+                font-weight: 700;
+                margin-bottom: 24px;
+                color: #111;
+            }
+
+            /* ===========================카드 영역=========================== */
+            .edit-card {
+                background: #fff;
+                border: 1px solid #e5e7eb;
+                border-radius: 10px;
+                padding: 40px; /* 내부 여유공간 넉넉히 */
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            }
+
+            /* ===========================폼 레이아웃=========================== */
+            .form-row {
+                display: flex;
+                align-items: center;
+                margin-bottom: 24px;
+            }
+            .form-row:last-child {
+                margin-bottom: 0;
+            }
+
+            .form-label {
+                width: 120px; /* 라벨 너비 고정 */
+                font-size: 15px;
+                font-weight: 600;
+                color: #444;
+            }
+            .form-label .required {
+                color: #ef4444;
+                margin-left: 2px;
+            }
+
+            .form-input {
+                flex: 1;
+            }
+
+            /* 텍스트 입력창 */
+            input[type="text"] {
+                width: 100%;
+                height: 44px;
+                padding: 0 16px;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                font-size: 14px;
+                transition: border-color 0.2s;
+                outline: none;
+            }
+            input[type="text"]:focus {
+                border-color: #5c46e4;
+                box-shadow: 0 0 0 3px rgba(92, 70, 228, 0.1);
+            }
+
+            /* ===========================커스텀 체크박스=========================== */
+            .checkbox-container {
+                display: flex;
+                align-items: center;
+                cursor: pointer;
+                user-select: none;
+            }
+            .checkbox-container input {
+                display: none; /* 기본 체크박스 숨김 */
+            }
+            .checkmark {
+                width: 20px;
+                height: 20px;
+                border: 2px solid #d1d5db;
+                border-radius: 4px;
+                margin-right: 10px;
+                position: relative;
+                transition: 0.2s;
+            }
+            .checkbox-container input:checked + .checkmark {
+                background-color: #5c46e4;
+                border-color: #5c46e4;
+            }
+            .checkmark:after {
+                content: "";
+                position: absolute;
+                display: none;
+                left: 6px;
+                top: 2px;
+                width: 5px;
+                height: 10px;
+                border: solid white;
+                border-width: 0 2px 2px 0;
+                transform: rotate(45deg);
+            }
+            .checkbox-container input:checked + .checkmark:after {
+                display: block;
+            }
+            .label-text {
+                font-size: 14px;
+                color: #666;
+            }
+
+            /* ===========================하단 버튼=========================== */
+            .form-actions {
+                margin-top: 32px;
+                display: flex;
+                justify-content: center;
+                gap: 12px;
+            }
+
+            .btn-save {
+                height: 48px;
+                padding: 0 40px;
+                background: #5c46e4;
+                color: #fff;
+                border: none;
+                border-radius: 6px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            .btn-save:hover {
+                background: #4a38b8;
+            }
+
+            .btn-cancel {
+                height: 48px;
+                padding: 0 40px;
+                background: #fff;
+                color: #666;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: .2s;
+            }
+            .btn-cancel:hover {
+                background: #f9fafb;
+                border-color: #9ca3af;
+            }
+
+            /* 반응형 */
+            @media (max-width: 600px) {
+                .form-row {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 8px;
+                }
+                .form-label {
+                    width: 100%;
+                }
+                .edit-card {
+                    padding: 24px;
+                }
+                .btn-save, .btn-cancel {
+                    flex: 1;
+                }
+            }
+        </style>
+    </section>
+
+</body>
+</html>

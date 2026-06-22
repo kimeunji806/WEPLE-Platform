@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.weple.cloud.system.mapper.SystemMapper">
+<mapper namespace="com.weple.cloud.system.mapper.GroupMapper">
 	<!--/* 그룹 종류 */-->
 	<!--/* 전체조회 */-->
 	<select id="selectGroupAll" resultType="SystemGroupVO">
@@ -8,10 +8,10 @@
        		   g.company_id,
        		   g.group_name,
        		   g.created_at,
-       		    (SELECT COUNT(*)
-              	 FROM users u
-                 WHERE u.group_id = g.group_id
-                ) AS user_count
+       		   				(SELECT COUNT(*)
+              	 			 FROM users u
+                			 WHERE u.group_id = g.group_id
+                			) AS user_count
 		FROM groups g
 		
 		<where>

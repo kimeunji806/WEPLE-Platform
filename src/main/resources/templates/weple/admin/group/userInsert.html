@@ -1,6 +1,7 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org"
-	th:replace="~{common/layouts/default_layout_setting :: layout(~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org/"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,7 +16,7 @@
 
 				<div class="title-area">
 					<span class="parent-title">그룹</span> <span class="separator">&gt;&gt;</span>
-					<span class="child-title">그룹명</span>
+    				<span class="child-title" th:text="${selectedGroupName}">그룹명</span>
 				</div>
 
 				<div class="management-card">

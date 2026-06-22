@@ -65,6 +65,12 @@ public class TaskServiceImpl implements TaskService {
     public int insertTask(TaskVO taskVO) {
         return taskMapper.insertTask(taskVO);
     }
+	// 상세조회
+	@Override
+	public TaskVO findTaskDetail(String tId) {
+		return taskMapper.taskDetail(tId);
+	}
+	
 	// 전체 일감 조회
 	@Override
 	public List<TaskVO> findAllList(String tManager) {
@@ -76,6 +82,7 @@ public class TaskServiceImpl implements TaskService {
 	public List<TaskProjectSelectVO> findMyProject(String uCode) {
 		return taskMapper.myAllTasks(uCode);
 	}
+
 
 
 

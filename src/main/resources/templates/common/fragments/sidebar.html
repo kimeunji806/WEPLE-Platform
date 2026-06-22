@@ -19,7 +19,7 @@
                 <li><a th:href="@{/dashboard/calendar}"><i class="fa fa-calendar"></i> 캘린더</a></li>
                 <li><a th:href="@{/dashboard/time}"><i class="fa fa-clock-o"></i> 소요시간</a></li>
                 <li><a th:href="@{/dashboard/board}"><i class="fa fa-comments"></i> 게시판</a></li>
-                <li th:classappend="${sidebarMenu == 'system'} ? 'active' : ''"><a th:href="@{/system}"><i class="fa fa-gears"></i> 관리</a></li>
+                <li th:classappend="${sidebarMenu == 'system'} ? 'active' : ''"><a th:href="@{/system/project}"><i class="fa fa-gears"></i> 관리</a></li>
             </ul>
         </div>
     </div>

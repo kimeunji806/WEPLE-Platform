@@ -6,6 +6,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -61,10 +62,7 @@ public class TaskController {
 	@PostMapping("/project/task/insert")
 	public String taskInsertProcess(@RequestParam("projectId") Long pId,@AuthenticationPrincipal LoginUserDetails loginUser,TaskVO taskVO) {
 		String userCode = loginUser.getLoginUser().getUserCode();
-	    // 프로젝트 선택하는 부분 없어서 정적값 1로 대체
 	    taskVO.setProjectId(pId); 
-	    
-	    // 로그인한 당사자 아이디 없어서 정적값 대체 - 이개발계정 아이디
 	    taskVO.setUserCode(userCode); 
 
 	    taskService.insertTask(taskVO);
@@ -72,6 +70,15 @@ public class TaskController {
 	    System.out.println("VO 내부의 담당자(taskManager): " + taskVO.getTaskManager());
 	    
 	    return "redirect:/project/task?projectId=" + pId;
+	}
+	
+	@GetMapping("/project/task/detail/{tId}")
+	public String taskDetail(@PathVariable("tId") String tId,@AuthenticationPrincipal LoginUserDetails loginUser,Model model,TaskVO taskVO) {
+			
+		TaskVO taskDetail = taskService.findTaskDetail(tId);
+		model.addAttribute("currentMenu", "task");
+		model.addAttribute("taskDetail",taskDetail);
+		return "weple/task/detail";
 	}
 	
 	
@@ -85,6 +92,8 @@ public class TaskController {
 		return "weple/task/all-list";
 		
 	}
+	
+
 
 
 }

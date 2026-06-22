@@ -1,13 +1,314 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{common/layouts/default_layout :: layout(~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org/"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
     <title>WEPLE - 공통 관리</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
 
     <section>
-        본인 작성 내역 여기다 넣기
+        <div class="code-management-container">
+            <h2 class="page-title">코드값</h2>
+
+            <div class="code-card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        작업분류
+                    </h3>
+                    <button class="btn-add" th:onclick="|location.href='@{/codeForm}'|">+ 새 코드값</button>
+                </div>
+                <table class="code-table">
+                    <thead>
+                        <tr>
+                            <th>이름</th>
+                            <th>기본값</th>
+                            <th>사용중</th>
+                            <th class="text-center">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>기능/개발</td>
+                            <td></td>
+                            <td><span class="check-icon">✓</span></td>
+                            <td class="action-buttons">
+                                <button class="btn-action" title="순서 변경">
+                                    <i class="fa fa-arrows-v"></i>
+                                </button>
+                                <button class="btn-action" title="수정">
+                                    <i class="fa fa-pencil"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>QA/TEST</td>
+                            <td></td>
+                            <td><span class="check-icon">✓</span></td>
+                            <td class="action-buttons">
+                                <button class="btn-action" title="순서 변경">
+                                    <i class="fa fa-arrows-v"></i>
+                                </button>
+                                <button class="btn-action" title="수정">
+                                    <i class="fa fa-pencil"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>기획/디자인</td>
+                            <td></td>
+                            <td><span class="check-icon">✓</span></td>
+                            <td class="action-buttons">
+                                <button class="btn-action" title="순서 변경">
+                                    <i class="fa fa-arrows-v"></i>
+                                </button>
+                                <button class="btn-action" title="수정">
+                                    <i class="fa fa-pencil"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="code-card">
+                <div class="card-header">
+                    <h3 class="card-title">일감 우선순위</h3>
+                    <button class="btn-add">+ 새 코드값</button>
+                </div>
+                <table class="code-table">
+                    <thead>
+                        <tr>
+                            <th>이름</th>
+                            <th>기본값</th>
+                            <th>사용중</th>
+                            <th class="text-center">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="dot dot-danger"></span> 긴급</td>
+                            <td></td>
+                            <td><span class="check-icon">✓</span></td>
+                            <td class="action-buttons">
+                                <button class="btn-action" title="순서 변경">
+                                    <i class="fa fa-arrows-v"></i>
+                                </button>
+                                <button class="btn-action" title="수정">
+                                    <i class="fa fa-pencil"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="dot dot-warning"></span>높음</td>
+                            <td></td>
+                            <td><span class="check-icon">✓</span></td>
+                            <td class="action-buttons">
+                                <button class="btn-action" title="순서 변경">
+                                    <i class="fa fa-arrows-v"></i>
+                                </button>
+                                <button class="btn-action" title="수정">
+                                    <i class="fa fa-pencil"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="dot dot-success"></span>보통</td>
+                            <td><span class="check-icon check-blue">✓</span></td>
+                            <td><span class="check-icon">✓</span></td>
+                            <td class="action-buttons">
+                                <button class="btn-action" title="순서 변경">
+                                    <i class="fa fa-arrows-v"></i>
+                                </button>
+                                <button class="btn-action" title="수정">
+                                    <i class="fa fa-pencil"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><span class="dot dot-info"></span>낮음</td>
+                            <td></td>
+                            <td><span class="check-icon">✓</span></td>
+                            <td class="action-buttons">
+                                <button class="btn-action" title="순서 변경">
+                                    <i class="fa fa-arrows-v"></i>
+                                </button>
+                                <button class="btn-action" title="수정">
+                                    <i class="fa fa-pencil"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <style>
+        /* ===========================공통=========================== */
+        .code-management-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px;
+            color: #333;
+            font-family: "Noto Sans KR", sans-serif;
+        }
+
+        /* ===========================제목=========================== */
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        /* ===========================카드=========================== */
+        .code-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 28px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .04);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .card-title {
+            margin: 0;
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .sub-text {
+            margin-left: 6px;
+            color: #999;
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        /* ===========================버튼=========================== */
+        .btn-add {
+            height: 36px;
+            padding: 0 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: .2s;
+        }
+
+        .btn-add:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        /* ===========================테이블========================== */
+        .code-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .code-table thead th {
+            background: #f8fafc;
+            color: #64748b;
+            padding: 13px 16px;
+            font-weight: 600;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .code-table tbody td {
+            padding: 15px 16px;
+            border-bottom: 1px solid #eef2f7;
+            vertical-align: middle;
+        }
+
+        .code-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+        /* ==========================체크========================== */
+        .check-icon {
+            color: #22c55e;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .check-blue {
+            color: #3b82f6;
+        }
+
+        /* ===========================우선순위=========================== */
+        .dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin-right: 8px;
+            border-radius: 50%;
+            vertical-align: middle;
+        }
+
+        .dot-danger { background: #ef4444; }
+        .dot-warning { background: #f97316; }
+        .dot-success { background: #3b82f6; }
+        .dot-info { background: #cbd5e1; }
+
+        /* ===========================관리 버튼========================== */
+        .text-center {
+            text-align: center;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-action {
+            width: 34px;
+            height: 34px;
+            border: 1px solid #dbe2ea;
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #64748b;
+            transition: .2s;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-action:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        /* ===========================반응형=========================== */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 20px;
+            }
+            .code-card {
+                padding: 18px;
+            }
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .btn-add {
+                width: 100%;
+            }
+        }
+        </style>
     </section>
 
 </body>

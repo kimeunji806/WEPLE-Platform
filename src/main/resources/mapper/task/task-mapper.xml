@@ -3,6 +3,7 @@
 <mapper namespace="com.weple.cloud.task.mapper.TaskMapper">
 	<select id="selectAll" resultType="TaskVO"> 
 		SELECT
+			t.task_id AS taskId,
 			p.project_title AS projectTitle,
 			tt.type_name AS typeName,
 			cc.default_describe AS defaultDescribe,
@@ -11,7 +12,8 @@
 			t.task_progress AS taskProgress,
 			u.user_name AS taskManager, 
 			t.created_at AS createdAt,
-			t.finish_date AS finishDate
+			t.finish_date AS finishDate,
+			t.project_id AS projectId
 		FROM
 			task t
 		INNER JOIN
@@ -23,6 +25,7 @@
 		LEFT JOIN
 			users u ON t.task_manager = u.user_code
 		WHERE t.project_id = #{pId}
+		ORDER BY createdAt DESC
 	</select>
 	<select id="taskTypes" resultType="TaskTypeListVO"> <!-- 일감등록 일감유형 목록 조회 -->
 		SELECT
@@ -72,7 +75,7 @@
     (
         task_id, task_title, task_describe, task_status, priority,
         task_manager, start_date, finish_date, estimated_time, task_progress,
-        parent_task_id, spent_hours_sum, created_at, project_id,
+        parent_task_id, spent_hours_sum, created_at, milestone_id,project_id,
         user_code, type_id
     )
     SELECT
@@ -92,12 +95,39 @@
         (SELECT MAX(task_id) FROM task WHERE task_title = #{parentTaskTitle,jdbcType=VARCHAR}), <!-- 어쩌피 목록들 중복 안되지만 그래도 오류 방지로 MAX씀 -->
         0,
         SYSDATE,
+        #{milestoneId},
         #{projectId},
         #{userCode},
         (SELECT MAX(type_id) FROM task_types WHERE type_name = #{typeIdName,jdbcType=VARCHAR}) <!-- 어쩌피 목록들 중복 안되지만 그래도 오류 방지로 MAX씀 -->
     FROM DUAL
 </insert>
-		<select id="selectAllList" resultType="TaskVO"> 
+	<select id="taskDetail" resultType="TaskVO">
+		SELECT t.task_id AS taskId, 
+       		   t.task_title, 
+       		   t.task_describe AS taskDescribe, 
+       		   c.default_describe AS taskStatus,
+       		   t.priority, 
+       		   u_mgr.user_name AS taskManager,
+       		   t.start_date, 
+       		   t.finish_date, 
+       		   t.estimated_time,
+       		   t.task_progress,
+       		   t.parent_task_id,
+       		   t.spent_hours_sum,
+       		   t.created_at,
+       		   t.updated_at,
+       		   t.milestone_id,
+       		   t.project_id, 
+       		   u_writer.user_name AS taskWriter,
+       		   tt.type_name AS typeIdName
+		FROM task t
+     		   JOIN common_code c ON t.task_status = c.common_id
+     		   JOIN task_types tt ON t.type_id = tt.type_id
+     		   LEFT JOIN users u_mgr ON t.task_manager = u_mgr.user_code
+     		   LEFT JOIN users u_writer ON t.user_code = u_writer.user_code
+		WHERE t.task_id = #{tId}
+	</select>
+	<select id="selectAllList" resultType="TaskVO"> 
 		SELECT
 			p.project_title AS projectTitle,
 			tt.type_name AS typeName,
@@ -119,6 +149,7 @@
 		LEFT JOIN
 			users u ON t.task_manager = u.user_code
 		WHERE t.task_manager = #{tManager}
+		ORDER BY createdAt DESC
 	</select>
 	<select id="myAllTasks" resultType="TaskProjectSelectVO">
 		SELECT 

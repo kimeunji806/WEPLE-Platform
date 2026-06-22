@@ -55,4 +55,7 @@ public class TaskVO {
     // 등록시 필요한 필드
     private String typeIdName;      // 화면 드롭다운에서 선택된 일감 유형 한글 이름
     private String parentTaskTitle; // 화면 자동완성 검색창에 입력된 상위일감 한글 제목
+    
+    // 상세조회시 필요 필드
+    private String taskWriter;    // 일감 등록자 이름 (u_writer.user_name)
 }

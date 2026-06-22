@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://thymeleaf.org"
-      th:replace="~{common/layouts/default_layout :: layout(~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org/"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 
 <head>
     <meta charset="UTF-8">
@@ -90,7 +91,6 @@
 
         <h4 class="sub-list-title">작업내역 목록</h4>
 
-        <!-- ✅ null 제거한 유효한 목록만 추출 -->
         <th:block th:with="validLogs=${workLogList != null ? workLogList.?[#this != null and #this.actionAt != null] : T(java.util.Collections).emptyList()}">
 
             <div th:if="${validLogs.isEmpty()}" class="empty-message">

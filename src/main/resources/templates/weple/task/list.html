@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-	th:replace="~{common/layouts/default_layout :: layout(~{::section})}">
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
 <title>WEPLE</title>
-<link rel="stylesheet" th:href="@{/css/task/task-list.css}">
+	<link rel="stylesheet" th:href="@{/css/task/task-list.css}">
 </head>
 <body>
 
 	<section class="container-fluid my-4" style="padding: 20px;">
+
 		<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
 			<h3 style="color: #1e293b; font-weight: 700; margin: 0;">일감</h3>
 			<button type="button" 
@@ -60,7 +62,7 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr th:each="task, status : ${taskListinfo}">
+					<tr th:each="task, status : ${taskListinfo}"  th:onclick="|location.href='@{/project/task/detail/{id}(id=${task.taskId}, projectId=${task.projectId})}'|"  style="cursor: pointer;">
 						<td><input type="checkbox"></td>
 						<td th:text="${status.count}">1</td>
 						<td><a href="#" style="text-decoration: none; color: #3b82f6; font-weight: 500;" th:text="${task.projectTitle}">프로젝트명</a></td>
@@ -71,7 +73,7 @@
 						<td>
 							<div class="progress-container">
 								<div class="progress"><div class="progress-bar" role="progressbar" th:style="|width: ${task.taskProgress != null ? task.taskProgress : 0}%|"></div></div>
-								<span class="progress-text" th:text="${task.taskProgress != null ? task.taskProgress + '%' : '0%'}">0%</span>
+								<span class="progress-text" th:text="${task.taskProgress != null ? task.taskProgress + '%' : '0%'}"> 0%</span>
 							</div>
 						</td>
 						<td th:text="${task.taskManager != null && task.taskManager != '' ? task.taskManager : '-'}">-</td>

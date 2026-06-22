@@ -1,4 +1,4 @@
-package com.weple.cloud.system.mapper;
+package com.weple.cloud.system.service;
 
 import java.util.HashMap;
 import java.util.List;
@@ -6,8 +6,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.weple.cloud.system.service.SystemGroupUserVO;
-import com.weple.cloud.system.service.UserService;
+import com.weple.cloud.system.mapper.UserMapper;
 
 import lombok.RequiredArgsConstructor;
 

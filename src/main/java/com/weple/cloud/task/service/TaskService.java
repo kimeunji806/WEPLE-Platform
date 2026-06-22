@@ -19,6 +19,8 @@ public interface TaskService {
 	
 	public int insertTask(TaskVO taskVO);
 	
+	public TaskVO findTaskDetail(String tId);
+	
 	public List<TaskVO> findAllList(String tManager);
 	
 	public List<TaskProjectSelectVO> findMyProject(String uCode);

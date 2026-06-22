@@ -1,14 +1,164 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{common/layouts/default_layout :: layout(~{::section})}">
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
     <title>WEPLE - 공통 관리</title>
+	<link rel="stylesheet" th:href="@{/css/task/task-detail.css}">
 </head>
 <body>
 
-    <section>
-        본인 작성 내역 여기다 넣기
-    </section>
+<section>
+    
+    <div class="task-detail-container">
+            
+            <div class="task-header">
+                <div class="header-left">
+                    <span class="badge">기획</span>
+                    <h1 class="task-id">#4 진행중</h1>
+                </div>
+                
+                <div class="header-right action-buttons">
+                    <button class="btn">✏️ 수정</button>
+                    <button class="btn">⏱️ 작업시간 기록</button>
+                    <button class="btn btn-delete">🗑️</button>
+                </div>
+            </div>
+
+            <div class="task-main-card">
+                <div class="task-title-area">
+                    <p class="category-path">기획 #1: 예담 기획</p>
+                    <h2 class="task-title">예담 기획 일감</h2>
+                    <p class="task-meta">
+                        <span class="author">Redmine Admin</span>님이 일분 전에 추가함.
+                    </p>
+                </div>
+
+                <div class="task-info-grid">
+                    <div class="info-column">
+                        <div class="info-row"><span class="label">상태:</span> <span class="value bold">신규</span></div>
+                        <div class="info-row"><span class="label">우선순위:</span> <span class="value priority-tag">매우낮음</span></div>
+                        <div class="info-row"><span class="label">담당자:</span> <span class="value link-style">Redmine Admin</span></div>
+                    </div>
+                    <div class="info-column">
+                        <div class="info-row"><span class="label">시작일:</span> <span class="value">2026/06/11</span></div>
+                        <div class="info-row"><span class="label">완료일:</span> <span class="value danger-style">2026/06/12 <span class="date-sub">(기한 하루)</span></span></div>
+                        <div class="info-row flex-center">
+                            <span class="label">진척도:</span> 
+                            <div class="progress-container">
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill"></div>
+                                </div>
+                                <span class="progress-percent">60%</span>
+                            </div>
+                        </div>
+                        <div class="info-row"><span class="label">추정시간:</span> <span class="value link-style bold">4:00 시간</span></div>
+                    </div>
+                </div>
+
+                <div class="task-section description-area">
+                    <div class="section-title">설명</div>
+                    <div class="section-content">일감 내용</div>
+                </div>
+
+                <div class="task-section files-area">
+                    <div class="section-title">파일</div>
+                    <div class="section-content">
+                        <div class="file-item">
+                            <div class="file-info">
+                                <a href="#" class="file-link">📎 docker image.txt</a>
+                                <span class="file-size">(1.65 KB)</span>
+                            </div>
+                            <span class="file-date">2026/06/11 07:40</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="task-section subtasks-area">
+                    <div class="section-title">
+                        <span>하위 일감</span>
+                        <a href="#" class="btn-add">추가</a>
+                    </div>
+                    <div class="section-content">
+                        </div>
+                </div>
+
+            </div>
+
+            <div class="task-history-section">
+                <div class="tabs-header">
+                    <button onclick="openTab(event, 'tab-history')" class="tab-button active">항목 변경이력</button>
+                    <button onclick="openTab(event, 'tab-comments')" class="tab-button">댓글</button>
+                    <button onclick="openTab(event, 'tab-time')" class="tab-button">소요시간</button>
+                </div>
+
+                <div class="tab-content-box">
+                    
+                    <div id="tab-history" class="tab-content">
+                        <div class="history-list">
+                            <div class="history-item">
+                                <div class="history-top">
+                                    <div>
+                                        <strong>Redmine Admin</strong>님이 <span>약 2시간 전</span> 에 변경
+                                    </div>
+                                    <span class="history-index">#1</span>
+                                </div>
+                                <div class="history-details">
+                                    진척도물(들)을 <span>10</span>에서 <strong>40</strong>(으)로 변경되었습니다.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-comments" class="tab-content" style="display: none;">
+                        <div class="comment-input-box">
+                            <textarea placeholder="댓글 내용을 입력하세요..."></textarea>
+                            <div class="comment-submit-area">
+                                <button>댓글 등록</button>
+                            </div>
+                        </div>
+                        <div class="comment-list">
+                            <div class="comment-item">
+                                <strong>홍길동</strong> <span class="comment-date">2026-06-11 14:20</span>
+                                <p>요청하신 도커 이미지 파일 확인 후 피드백 드리겠습니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-time" class="tab-content" style="display: none;">
+                        <table class="time-table">
+                            <thead>
+                                <tr>
+                                    <th>날짜</th>
+                                    <th>사용자</th>
+                                    <th>활동</th>
+                                    <th>시간</th>
+                                }
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2026-06-11</td>
+                                    <td class="user-name">Redmine Admin</td>
+                                    <td>개발 및 설계</td>
+                                    <td class="time-value">2.00 시간</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="task-footer-actions">
+                <div class="export-box">
+                    내보내기: <a href="#" class="export-link">PDF</a>
+                </div>
+            </div>
+
+        </div>
+
+    <script th:src="@{/js/task/task-detail.js}"></script>
+</section>
 
 </body>
 </html>

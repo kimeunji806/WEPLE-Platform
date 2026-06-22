@@ -25,13 +25,25 @@
               class="add-btn"
               th:onclick="|location.href ='@{/groupInsert}'|"
             >
-              새 그룹 추가
+              + 새 그룹 추가
             </button>
           </div>
 
           <form th:action="@{/groupList}" method="get" class="search-container">
             <button type="submit" class="search-btn">
-              <i class="fa-solid fa-search search-icon"></i>
+               <svg
+            			class="search-icon"
+            			width="14"
+           				height="14"
+            			viewBox="0 0 16 16"
+            			fill="none"
+           		 		stroke="currentColor"
+            			stroke-width="1.5"
+            			aria-hidden="true">
+
+            		<circle cx="7" cy="7" r="5"></circle>
+            		<path d="M11 11l3.5 3.5"></path>
+        		</svg>
             </button>
 
             <input
@@ -86,16 +98,33 @@
       </div>
 
       <script>
-        document.querySelectorAll(".delete-btn").forEach((btn) => {
-          btn.addEventListener("click", function () {
-            const id = this.dataset.id;
-            const name = this.dataset.name;
+   		// 1. HTML을 건들지 않고, 삭제 버튼의 data-id를 활용해 행(tr) 클릭 이벤트 구현
+      	document.querySelectorAll(".delete-btn").forEach((btn) => {
+       	 const row = btn.closest("tr");
+       	 const groupId = btn.dataset.id;
 
-            if (confirm(`${name} 그룹을 정말 삭제하시겠습니까?`)) {
-              location.href = `/groupDelete?groupId=${id}`;
-            }
-          });
-        });
+       	 if (row && groupId) {
+         	 row.style.cursor = "pointer";
+          
+          	row.addEventListener("click", function () {
+         	   location.href = `/groupUserList?groupId=${groupId}`;
+         	 });
+        	}
+
+       	 // 2. 삭제 버튼 자체를 클릭했을 때의 이벤트 처리
+       	 btn.addEventListener("click", function (e) {
+         	  e.stopPropagation(); 
+        	  e.preventDefault(); 
+
+        	  const id = this.dataset.id;
+         	  const name = this.dataset.name;
+         	 if (confirm(`${name} 그룹을 정말 삭제하시겠습니까?`)) {
+        	   location.href = `/groupDelete?groupId=${id}`;
+       	   	  }
+        	});
+     	 });
+        
+        
       </script>
 
       <style>
@@ -136,7 +165,7 @@
         .main-title {
           font-size: 24px;
           font-weight: 700;
-          color: #0ea5e9;
+          color: #000000;
           margin-bottom: 24px;
         }
 

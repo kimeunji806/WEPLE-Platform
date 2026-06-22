@@ -2,9 +2,9 @@ package com.weple.cloud.system.mapper;
 
 import java.util.List;
 
-import com.weple.cloud.system.service.SystemGroupVO;
 import org.apache.ibatis.annotations.Param;
 
+import com.weple.cloud.system.service.SystemGroupVO;
 import com.weple.cloud.system.service.TaskTypeVO;
 
 public interface SystemMapper {
@@ -32,13 +32,4 @@ public interface SystemMapper {
 		
 	//삭제
 	public int deleteGroup(int groupId);
-	
-	// ---------------------------- 그룹 내 사용자 --------------------------
-	//전체조회
-	
-	//등록
-	
-	//수정
-	
-	//삭제
 }

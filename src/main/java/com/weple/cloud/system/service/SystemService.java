@@ -12,7 +12,6 @@ public interface SystemService {
 	// 일감유형 등록
 	public void addTaskType(TaskTypeVO taskTypeVO);
 	
-	
 	// 일감유형 순서 수정
 	void reorderTaskTypes(List<Integer> sortedIds);
 	
@@ -22,7 +21,7 @@ public interface SystemService {
 	// 일감유형 삭제
 	public int deleteTaskType(int typeId);
 	
-	//관리 내 그룹 종류
+	//-------------------------------그룹 종류------------------------------
 	//전체조회
 	public List<SystemGroupVO> findGroupAll(String keyword);
 			
@@ -31,14 +30,5 @@ public interface SystemService {
 			
 	//삭제
 	public Map<String, Object> removeGroup(int groupId);
-	
-	// ---------------------------- 그룹 내 사용자 --------------------------
-	//전체조회
-	
-	//등록
-	
-	//수정
-	
-	//삭제
 	
 }

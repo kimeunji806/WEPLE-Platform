@@ -1,14 +1,426 @@
-<!DOCTYPE html>
+<!doctype html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{common/layouts/default_layout :: layout(~{::section})}">
+	th:replace="~{common/layouts/default_layout_setting :: layout(~{::section})}">
 <head>
-    <title>WEPLE - 공통 관리</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<title>그룹 사용자 관리</title>
 </head>
 <body>
+	<section>
+		<div class="container">
+			<div class="content">
 
-    <section>
-        본인 작성 내역 여기다 넣기
-    </section>
+				<div class="title-area">
+					<span class="parent-title">그룹</span> <span class="separator">&gt;&gt;</span>
+					<span class="child-title">그룹명</span>
+				</div>
 
+				<div class="management-card">
+
+					<div class="card-subtitle">새 사용자 추가</div>
+
+					<form id="groupUserForm" th:action="@{/groupUserInsert}" method="post">
+
+						<div class="search-section">
+							<div class="search-title">사용자 찾기</div>
+
+							<div class="search-input-wrap">
+								<svg class="search-icon" width="14" height="14"
+									viewBox="0 0 16 16" fill="none" stroke="currentColor"
+									stroke-width="1.5" aria-hidden="true">
+            						<circle cx="7" cy="7" r="5"></circle>
+            						<path d="M11 11l3.5 3.5"></path>
+        						</svg>
+
+								<input type="text" id="userSearchInput"
+									placeholder="사용자를 입력하세요." />
+							</div>
+						</div>
+
+						<input type="hidden" name="groupId" th:value="${groupId}" />
+
+						<div class="list-section">
+
+							<div class="group-box-card">
+								<div class="group-title">현재 소속되어있는 사용자 목록</div>
+								<div class="user-grid">
+									<th:block th:each="user : ${currentGroupUsers}">
+										<label class="user-item"> <input type="checkbox"
+											name="currentUserIds" th:value="${user.userCode}" /> <span
+											class="checkbox-custom"></span> <span class="user-name"
+											th:text="${user.userName}">사용자명</span>
+										</label>
+									</th:block>
+								</div>
+							</div>
+
+							<div class="direction-arrows">
+								<svg id="btnMoveDown" xmlns="http://www.w3.org/2000/svg"
+									width="20" height="20" viewBox="0 0 24 24" fill="none"
+									stroke="currentColor" stroke-width="2" stroke-linecap="round"
+									stroke-linejoin="round">
+            						<polyline points="6 9 12 15 18 9"></polyline>
+       							</svg>
+								<svg id="btnMoveUp" xmlns="http://www.w3.org/2000/svg"
+									width="20" height="20" viewBox="0 0 24 24" fill="none"
+									stroke="currentColor" stroke-width="2" stroke-linecap="round"
+									stroke-linejoin="round">
+            						<polyline points="18 15 12 9 6 15"></polyline>
+        						</svg>
+							</div>
+
+							<div class="group-box-card">
+								<div class="group-title">추가할 사용자 목록</div>
+								<div class="user-grid">
+									<th:block th:each="user : ${availableUsers}">
+										<label class="user-item"> <input type="checkbox"
+											name="availableUserIds" th:value="${user.userCode}" /> <span
+											class="checkbox-custom"></span> <span class="user-name"
+											th:text="${user.userName}">사용자명</span>
+										</label>
+									</th:block>
+								</div>
+							</div>
+
+						</div>
+
+						<div class="bottom-action-bar">
+							<button type="button" class="btn-cancel"
+								onclick="history.back();">취소</button>
+							<button type="submit" class="btn-submit">등록</button>
+						</div>
+
+					</form>
+
+				</div>
+
+			</div>
+		</div>
+
+		<script>
+		document.addEventListener('DOMContentLoaded', () => {
+
+		    const form = document.getElementById('groupUserForm');
+
+		    // 1. 그룹명
+		    const groupNameElement = document.querySelector('.child-title');
+		    if (groupNameElement) {
+		        const groupName = groupNameElement.textContent.trim();
+		    }
+
+		    // 2. 검색
+		    const searchInput = document.getElementById('userSearchInput');
+		    if (searchInput) {
+		        searchInput.addEventListener('input', function () {
+		            const keyword = this.value.trim().toLowerCase();
+		            const targetUsers = document.querySelectorAll('.list-section .group-box-card:last-child .user-item');
+
+		            targetUsers.forEach(item => {
+		                const name = item.querySelector('.user-name').textContent.toLowerCase();
+		                item.style.display = name.includes(keyword) ? 'flex' : 'none';
+		            });
+		        });
+		    }
+
+		    // 3. 이동 기능
+		    const arrows = document.querySelectorAll('.direction-arrows svg');
+
+		    if (arrows.length >= 2) {
+
+		        const downArrow = arrows[0];
+		        const upArrow = arrows[1];
+
+		        const currentGrid = document.querySelectorAll('.user-grid')[0];
+		        const availableGrid = document.querySelectorAll('.user-grid')[1];
+
+		        downArrow.style.cursor = 'pointer';
+		        downArrow.addEventListener('click', () => {
+
+		            const checkedItems = currentGrid.querySelectorAll('.user-item input:checked');
+
+		            if (checkedItems.length === 0) {
+		                alert('이동할 사용자를 선택해주세요.');
+		                return;
+		            }
+
+		            checkedItems.forEach(checkbox => {
+		                const userItem = checkbox.closest('.user-item');
+		                checkbox.checked = false;
+		                availableGrid.appendChild(userItem);
+		            });
+		        });
+
+		        upArrow.style.cursor = 'pointer';
+		        upArrow.addEventListener('click', () => {
+
+		            const checkedItems = availableGrid.querySelectorAll('.user-item input:checked');
+
+		            if (checkedItems.length === 0) {
+		                alert('이동할 사용자를 선택해주세요.');
+		                return;
+		            }
+
+		            checkedItems.forEach(checkbox => {
+		                const userItem = checkbox.closest('.user-item');
+		                checkbox.checked = false;
+		                currentGrid.appendChild(userItem);
+		            });
+		        });
+		    }
+
+		    // 4. submit 처리 (핵심)
+		    if (form) {
+		        form.addEventListener('submit', (e) => {
+		            e.preventDefault();
+
+		            const currentGrid = document.querySelectorAll('.user-grid')[0];
+		            const finalUserIds = Array.from(
+		                currentGrid.querySelectorAll('.user-item input')
+		            ).map(cb => cb.value);
+
+		            document.querySelectorAll('input[name="currentUserIds"]').forEach(el => el.remove());
+
+		            finalUserIds.forEach(id => {
+		                const input = document.createElement('input');
+		                input.type = 'hidden';
+		                input.name = 'currentUserIds';
+		                input.value = id;
+		                form.appendChild(input);
+		            });
+
+		            setTimeout(() => {
+		                form.submit();
+		            }, 0);
+		        });
+		    }
+		});
+		</script>
+
+		<style>
+/* 레이아웃 병합 시 스타일 깨짐 방지를 위한 상위 노출 스코프 지정 */
+section .container {
+	width: 100%;
+	background-color: #fff;
+}
+
+section .content {
+	padding: 32px;
+}
+
+section .title-area {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 24px;
+}
+
+section .parent-title {
+	font-size: 20px;
+	font-weight: 700;
+	color: #000000;
+}
+
+section .separator {
+	font-size: 16px;
+	color: #64748b;
+	font-weight: 600;
+}
+
+section .child-title {
+	font-size: 20px;
+	font-weight: 700;
+	color: #111827;
+}
+
+section .management-card {
+	background: #fff;
+	border: 1px solid #e5e7eb;
+	border-radius: 12px;
+	padding: 24px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, .05);
+}
+
+section .card-subtitle {
+	font-size: 16px;
+	font-weight: 700;
+	color: #374151;
+	margin-bottom: 24px;
+}
+
+section .search-section {
+	margin-bottom: 24px;
+}
+
+section .search-title {
+	font-size: 14px;
+	font-weight: 600;
+	color: #374151;
+	margin-bottom: 8px;
+}
+
+section .search-input-wrap {
+	position: relative;
+	max-width: 320px;
+}
+
+section .search-input-wrap input {
+	width: 100%;
+	height: 42px;
+	padding: 0 14px 0 40px;
+	border: 1px solid #d1d5db;
+	border-radius: 8px;
+	outline: none;
+	color: #333;
+}
+
+section .search-input-wrap input:focus {
+	border-color: #3b82f6;
+}
+
+section .search-icon {
+	position: absolute;
+	left: 14px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: #9ca3af;
+}
+
+section .list-section {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-bottom: 32px;
+}
+
+section .group-box-card {
+	border: 1px solid #e5e7eb;
+	border-radius: 12px;
+	padding: 20px;
+	background: #fff;
+}
+
+section .group-title {
+	font-size: 14px;
+	font-weight: 700;
+	color: #1f2937;
+	margin-bottom: 16px;
+}
+
+section .user-grid {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 12px;
+}
+
+section .user-item {
+	display: flex;
+	align-items: center;
+	padding: 10px 14px;
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	background: #fff;
+	cursor: pointer;
+	min-height: 42px;
+}
+
+section .user-item:hover {
+	background: #f9fafb;
+	border-color: #d1d5db;
+}
+
+section .user-item input[type="checkbox"] {
+	display: none;
+}
+
+section .checkbox-custom {
+	position: relative;
+	width: 16px;
+	height: 16px;
+	margin-right: 10px;
+	border: 1px solid #d1d5db;
+	border-radius: 4px;
+	flex-shrink: 0;
+	display: inline-block;
+}
+
+section .user-item input:checked ~ .checkbox-custom {
+	background: #111827;
+	border-color: #111827;
+}
+
+section .checkbox-custom::after {
+	content: "";
+	position: absolute;
+	display: none;
+	left: 5px;
+	top: 2px;
+	width: 4px;
+	height: 8px;
+	border: solid #fff;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+}
+
+section .user-item input:checked ~ .checkbox-custom::after {
+	display: block;
+}
+
+section .user-name {
+	font-size: 14px;
+	color: #374151;
+	font-weight: 500;
+}
+
+section .direction-arrows {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 24px;
+	color: #6b7280;
+	margin: 10px 0;
+}
+
+section .bottom-action-bar {
+	display: flex;
+	justify-content: flex-end;
+	gap: 12px;
+}
+
+section .btn-cancel {
+	padding: 10px 24px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	background: #fff;
+	color: #334155;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+section .btn-submit {
+	padding: 10px 24px;
+	border: none;
+	border-radius: 8px;
+	background: #1d9bf0;
+	color: #fff;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+@media ( max-width : 1024px) {
+	section .user-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media ( max-width : 768px) {
+	section .user-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+</style>
+	</section>
 </body>
 </html>

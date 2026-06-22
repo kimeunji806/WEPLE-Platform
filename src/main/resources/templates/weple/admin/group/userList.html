@@ -1,14 +1,308 @@
-<!DOCTYPE html>
+<!doctype html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{common/layouts/default_layout :: layout(~{::section})}">
+	th:replace="~{common/layouts/default_layout_setting :: layout(~{::section})}">
 <head>
-    <title>WEPLE - 공통 관리</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link rel="stylesheet" th:href="@{/css/groupList.css}" />
+<title>그룹 사용자 관리</title>
 </head>
 <body>
+	<section>
+		<div class="container">
+			<div class="header-bar"></div>
+			<div class="content">
 
-    <section>
-        본인 작성 내역 여기다 넣기
-    </section>
+				<div class="title-area">
+					<span class="parent-title">그룹</span> <span class="separator">&gt;&gt;</span>
+    				<span class="child-title">[[ ${selectedGroupName} ]]</span>
+				</div>
+										
+				<div class="action-bar">
+					<button type="button" class="add-user-btn"
+						th:onclick="|location.href='@{/groupUserInsert(groupId=${groupId})}'|">
+						+ 사용자 추가
+					</button>
+				</div>
 
+				<table class="data-table">
+					<thead>
+						<tr>
+							<th>NO</th>
+							<th>아이디</th>
+							<th>이름</th>
+							<th>이메일</th>
+							<th>역할</th>
+							<th>STATUS</th>
+						</tr>
+					</thead>
+					<tbody>
+						<th:block th:each="info, sts : ${systemGroupUserList}">
+							<tr>
+								<td>[[ ${sts.count} ]]</td>
+								<td>[[ ${info.loginId} ]]</td>
+								<td>[[ ${info.userName} ]]</td>
+								<td>[[ ${info.email} ]]</td>
+								<td>[[ ${info.roleName} ]]</td>
+								<td>
+									<button type="button" class="delete-btn"
+										th:data-id="${info.loginId}" th:data-name="${info.userName}">
+										삭제</button>
+								</td>
+							</tr>
+						</th:block>
+					</tbody>
+				</table>
+
+				<div class="pagination-wrap">
+					<a href="#" class="page-btn text-btn">이전</a> <a href="#"
+						class="page-btn active">1</a> <a href="#" class="page-btn">2</a> <a
+						href="#" class="page-btn">3</a> <a href="#" class="page-btn">4</a>
+					<a href="#" class="page-btn text-btn">다음</a>
+				</div>
+			</div>
+		</div>
+
+		<script>
+        document.querySelectorAll(".delete-btn").forEach((btn) => {
+          btn.addEventListener("click", function () {
+            const id = this.dataset.id;
+            const name = this.dataset.name;
+
+            if (id && name && confirm(`${name} 사용자를 정말 삭제하시겠습니까?`)) {
+                location.href = `/groupUserDelete?userCode=${id}`;
+              }
+          });
+        });
+      </script>
+
+		<style>
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+		"Noto Sans KR", sans-serif;
+	background: #f5f6fa;
+	display: flex;
+	justify-content: flex-start;
+	align-items: stretch;
+	min-height: 100vh;
+	padding: 0;
+}
+
+.container {
+	width: 100%;
+	min-height: 100vh;
+	background: #fff;
+	border-radius: 0;
+	box-shadow: none;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.content {
+	padding: 40px;
+	flex: 1;
+}
+
+/* [1번] 타이틀 스타일 */
+.title-area {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.parent-title {
+	font-size: 20px;
+	font-weight: 700;
+	color: #000000;
+}
+
+.separator {
+	font-size: 16px;
+	color: #333;
+	font-weight: 600;
+}
+
+.child-title {
+	font-size: 20px;
+	font-weight: 700;
+	color: #000;
+}
+
+/* [3번] 우측 상단 사용자 추가 버튼 영역 */
+.action-bar {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 35px;
+}
+
+.add-user-btn {
+	padding: 8px 14px;
+	border: none;
+	border-radius: 5px;
+	background: #1976d2;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	transition: 0.2s;
+}
+
+.add-user-btn:hover {
+	background: #116699;
+}
+
+/* [2번] 테이블 구조 리디자인 */
+.data-table {
+	width: 100%;
+	border-collapse: collapse;
+	border: 1px solid #ebdada;
+	border-radius: 12px;
+	border-style: hidden;
+	box-shadow: 0 0 0 1px #e5e7eb;
+	overflow: hidden;
+}
+
+.data-table th {
+	background: #ffffff;
+	color: #333333;
+	font-size: 14px;
+	font-weight: 700;
+	padding: 18px;
+	border-bottom: 1px solid #e5e7eb;
+	text-align: center;
+}
+
+.data-table td {
+	padding: 18px;
+	border-bottom: 1px solid #e5e7eb;
+	color: #4b5563;
+	font-size: 14px;
+	text-align: center;
+}
+
+.data-table tbody tr:hover {
+	background: #fafafa;
+}
+
+/* 테이블 가로 너비(%) 균형 분배 구조 */
+.data-table th:nth-child(1), .data-table td:nth-child(1) {
+	width: 8%;
+}
+
+.data-table th:nth-child(2), .data-table td:nth-child(2) {
+	width: 18%;
+}
+
+.data-table th:nth-child(3), .data-table td:nth-child(3) {
+	width: 18%;
+}
+
+.data-table th:nth-child(4), .data-table td:nth-child(4) {
+	width: 26%;
+}
+
+.data-table th:nth-child(5), .data-table td:nth-child(5) {
+	width: 15%;
+}
+
+.data-table th:nth-child(6), .data-table td:nth-child(6) {
+	width: 15%;
+}
+
+/* [2번] 이미지 매칭 파스텔톤 삭제 버튼 스타일 */
+.delete-btn {
+	background-color: #fde2e2 !important;
+	border: none !important;
+	border-radius: 6px !important;
+	color: #f87171 !important;
+	padding: 6px 30px !important;
+	font-size: 13px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.2s;
+}
+
+.delete-btn:hover {
+	background-color: #fee2e2 !important;
+	color: #ef4444 !important;
+}
+
+/* [4번] 이미지 매칭 페이지네이션 CSS */
+.pagination-wrap {
+	display: flex !important;
+	justify-content: center;
+	align-items: center;
+	gap: 16px;
+	margin-top: 50px;
+	width: 100%;
+}
+
+.page-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 32px;
+	height: 32px;
+	text-decoration: none;
+	font-size: 14px;
+	font-weight: 500;
+	color: #4b5563;
+	border: none;
+	background: transparent;
+	transition: all 0.2s ease;
+}
+
+.page-btn.text-btn {
+	color: #3b82f6;
+	font-weight: 500;
+	padding: 0 4px;
+}
+
+.page-btn.active {
+	border-radius: 8px;
+	background: #3b82f6;
+	color: #fff;
+	font-weight: 600;
+}
+
+.page-btn:hover:not(.active) {
+	color: #2563eb;
+}
+
+/* 반응형 */
+@media ( max-width : 768px) {
+	.content {
+		padding: 20px;
+	}
+	.action-bar {
+		justify-content: center; /* 또는 생략 */
+    	width: 100%;
+	}
+	.add-user-btn {
+		width: 100%;
+		justify-content: center;
+	}
+	.data-table {
+		font-size: 12px;
+	}
+	.delete-btn {
+		padding: 6px 15px !important;
+	}
+}
+</style>
+	</section>
 </body>
 </html>

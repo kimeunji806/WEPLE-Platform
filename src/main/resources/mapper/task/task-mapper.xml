@@ -61,6 +61,12 @@
 		FROM task_priority
 		WHERE company_id  = #{cId}  AND using_yn = 'Y'
 	</select>
+	<select id="taskMilestones" resultType="TaskMilestoneVO"><!-- 일감등록 마일스톤 목록 -->
+		SELECT milestone_id, milestone_title
+		FROM milestone
+		WHERE project_id = #{pId} AND milestone_status = 'g1'
+	</select>
+	
 <insert id="insertTask" parameterType="TaskVO">
     INSERT INTO task
     (

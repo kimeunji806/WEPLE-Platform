@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 import com.weple.cloud.task.service.TaskMemberVO;
+import com.weple.cloud.task.service.TaskMilestoneVO;
 import com.weple.cloud.task.service.TaskParentVO;
 import com.weple.cloud.task.service.TaskPriorityVO;
 import com.weple.cloud.task.service.TaskProjectSelectVO;
@@ -24,6 +25,8 @@ public interface TaskMapper {
 	public List<TaskPriorityVO> taskPriorities(@Param("cId") long cId);
 	
 	public List<TaskParentVO> taskParents(@Param("pId") long pId);
+	
+	public List<TaskMilestoneVO> taskMilestones(@Param("pId") long pId);
 	
     public int insertTask(TaskVO taskVO);
     

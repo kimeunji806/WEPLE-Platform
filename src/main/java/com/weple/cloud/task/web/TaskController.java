@@ -53,6 +53,8 @@ public class TaskController {
 	    model.addAttribute("priorityList",taskService.findPriority(companyId));
 	    //부모 일감 리스트 (상위 일감 선택용)
 	    model.addAttribute("parentTaskList", taskService.findParent(pId));
+	    
+	    model.addAttribute("milestoneList", taskService.findMilestone(pId));
         return "weple/task/register";
     }
 	

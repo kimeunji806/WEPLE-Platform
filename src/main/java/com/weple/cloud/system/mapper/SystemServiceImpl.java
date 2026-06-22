@@ -56,12 +56,14 @@ public class SystemServiceImpl implements SystemService {
 		return 0;
 	}
 
-// =---------------그룹-------------
+	//-------------------------------그룹 종류------------------------------
+	//그룹 전체조회
 	@Override
 	public List<SystemGroupVO> findGroupAll(String keyword) {
 		return systemMapper.selectGroupAll(keyword);
 	}
 
+	//그룹 등록
 	@Override
 	public int addGroup(SystemGroupVO systemGroupVO) {
 		// 임시 테스트용 회사 ID
@@ -71,6 +73,7 @@ public class SystemServiceImpl implements SystemService {
 		return result == 1 ? systemGroupVO.getGroupId() : -1;
 	}
 
+	//그룹 삭제
 	@Override
 	public Map<String, Object> removeGroup(int groupId) {
 		Map<String, Object> map = new HashMap<>();
@@ -81,6 +84,4 @@ public class SystemServiceImpl implements SystemService {
 		return map;
 	}
 	
-	
-
 }

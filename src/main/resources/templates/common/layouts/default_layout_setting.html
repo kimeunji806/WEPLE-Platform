@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(content)">
 <head>
@@ -14,10 +15,9 @@
 
         <div class="right_col" role="main" style="padding: 0 !important; margin-left: 230px;">
             
-            <div class="top_nav" th:replace="~{common/fragments/header :: headerFragment}"></div>
+            <div class="top_nav" th:replace="~{common/fragments/headerSetting :: headerSettingFragment}"></div>
             
-            <div class="sub_menu_nav" th:replace="~{common/fragments/navbarSetting :: navbarSettingFragment}"></div>
-
+			<div class="sub_menu_nav" th:replace="~{common/fragments/navbarSetting :: navbarSettingFragment}"></div>
             <div class="clearfix"></div>
             
             <div class="main_white_canvas_container">

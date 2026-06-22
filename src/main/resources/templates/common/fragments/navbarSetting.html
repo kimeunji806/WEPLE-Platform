@@ -12,7 +12,7 @@
             <a th:href="@{/userList}" 
                th:class="${menu == 'user'} ? 'active' : ''">사용자</a>
         </li>
-        <li th:classappend="${currentMenu == 'group'} ? 'active' : ''">
+       <li>
             <a th:href="@{/groupList}" 
                th:class="${menu == 'group'} ? 'active' : ''">그룹</a>
         </li>
@@ -29,8 +29,8 @@
                th:class="${menu == 'issueStatus'} ? 'active' : ''">일감 상태</a>
         </li>
         <li>
-            <a th:href="@{/codeList}" 
-               th:class="${menu == 'code'} ? 'active' : ''">코드값</a>
+            <a th:href="@{/codeValueList}" 
+               th:class="${menu == 'codeValue'} ? 'active' : ''">코드값</a>
         </li>
         <li th:if="${canApproveSignup}">
             <a th:href="@{/approvalList}" 

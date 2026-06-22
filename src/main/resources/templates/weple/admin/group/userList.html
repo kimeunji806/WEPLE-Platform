@@ -65,7 +65,7 @@
 		</div>
 
 		<script>
-        // 1. 기존 삭제 로직 유지 (오류 변수 수정 반영)
+        // 1. 기존 삭제 로직 유지
         document.querySelectorAll(".delete-btn").forEach((btn) => {
           btn.addEventListener("click", function () {
             const id = this.dataset.id;
@@ -78,7 +78,7 @@
           });
         });
 
-        // 2. 💡 [새로 추가] 프론트엔드 10개씩 페이징 처리 로직
+        // 2. 프론트엔드 10개씩 페이징 처리 로직
         let currentPage = 1;
         const rowPerPage = 10;
 

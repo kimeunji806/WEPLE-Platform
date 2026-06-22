@@ -1,10 +1,13 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org/"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
 <title>WEPLE</title>
 <link rel="stylesheet" th:href="@{/css/groupInsert.css}" />
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 	<section>
@@ -25,7 +28,8 @@
 						</div>
 
 						<div class="form-actions">
-							<button type="button" class="btn btn-light" onclick="history.back();">취소</button>
+							<button type="reset" class="btn btn-light custom-btn-cancel"
+								onclick="history.back();">취소</button>
 							<button type="submit" class="btn btn-primary custom-btn-submit">등록</button>
 						</div>
 					</form>
@@ -33,25 +37,36 @@
 			</div>
 		</div>
 		<script>
-			document.querySelector('form[name="groupForm"]').addEventListener(
-					"submit",
+			document.querySelector('form[name="groupForm"]').addEventListener("submit",
 					function(event) {
 						event.preventDefault();
 
 						const formTag = event.currentTarget;
-						let nameTag = formTag
-								.querySelector('[name="groupName"]');
-						if (nameTag.value == "") {
-							alert("그룹명을 입력하세요.");
-							nameTag.focus();
-							return;
-						}
+						let nameTag = formTag.querySelector('[name="groupName"]');
+						if (nameTag.value.trim() == "") {
+			                Swal.fire({
+			                    icon: 'warning',
+			                    title: '입력 오류',
+			                    text: '그룹명을 입력하세요.',
+			                    confirmButtonColor: '#0EA5E9'
+			                });
+			                nameTag.focus();
+			                return;
+			            }
 
-						alert("정상적으로 등록되었습니다.");
-						formTag.submit();
-					});
+						Swal.fire({
+			                icon: 'success',
+			                title: '등록 완료',
+			                text: '정상적으로 등록되었습니다.',
+			                confirmButtonColor: '#0EA5E9'
+			            }).then((result) => {
+			                // 사용자가 확인을 누르면 실제 폼 제출 수행
+			                if (result.isConfirmed) {
+			                    formTag.submit();
+			                }
+			            });
+			        });
 		</script>
-
 		<style>
 .custom-card {
 	border: 1px solid #E5E7EB;

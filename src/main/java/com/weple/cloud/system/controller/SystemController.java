@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.weple.cloud.auth.service.LoginUserDetails;
 import com.weple.cloud.system.service.CodeValueService;
+import com.weple.cloud.system.service.CodeValueVO;
 import com.weple.cloud.system.service.GroupService;
 import com.weple.cloud.system.service.SystemGroupUserVO;
 import com.weple.cloud.system.service.SystemGroupVO;
@@ -43,19 +44,23 @@ public class SystemController {
 	public String systemGroupList(@RequestParam(required = false) String keyword, Model model) {
 		List<SystemGroupVO> list = groupService.findGroupAll(keyword);
 		model.addAttribute("systemGroupList", list);
-		model.addAttribute("keyword", keyword);
+		model.addAttribute("keyword", keyword); // 검색어(그룹명)를 화면에 유지하기 위해 전달
 		model.addAttribute("menu", "group");
+		model.addAttribute("sidebarMenu", "system");
 		return "weple/admin/group/list";
 	}
 
 	// 등록
 	@GetMapping("groupInsert")
-	public String groupInsertForm() {
+	public String groupInsertForm(Model model) {
+		model.addAttribute("menu", "group");
+		model.addAttribute("sidebarMenu", "system");
 		return "weple/admin/group/insert";
 	}
 
 	@PostMapping("groupInsert")
 	public String groupInsertProcess(SystemGroupVO systemGroupVO) {
+		// 임시로 회사 ID를 1로 세팅
 		systemGroupVO.setCompanyId(1);
 		int gno = groupService.addGroup(systemGroupVO);
 		return "redirect:groupList";
@@ -67,20 +72,20 @@ public class SystemController {
 		groupService.removeGroup(groupId);
 		return "redirect:groupList";
 	}
-	
-
 
 	// ---------------------------- 그룹 내 사용자 --------------------------
 	// 전체조회
 	@GetMapping("groupUserList")
 	public String systemGroupUserList(@RequestParam(value = "groupId", required = false) Integer groupId, Model model) {
-		List<SystemGroupUserVO> allList = userService.findGroupUserAll();
-		List<SystemGroupUserVO> list = (groupId != null)
-				? allList.stream().filter(user -> groupId.equals(user.getGroupId())).toList()
-				: allList;
-		model.addAttribute("systemGroupUserList", list);
-		model.addAttribute("currentGroupUsers", list);
+		List<SystemGroupUserVO> allList = userService.findGroupUserAll(); // 전체 사용자 목록 가져오기
+		List<SystemGroupUserVO> list = (groupId != null) // 그룹 ID가 있다면
+				? allList.stream().filter(user -> groupId.equals(user.getGroupId())).toList() // 해당 그룹 사용자만 필터링
+				: allList; // 없으면 전체 목록 사용
+		model.addAttribute("systemGroupUserList", list); // 필터링된 목록을 화면에 전달
+		model.addAttribute("currentGroupUsers", list); // 현재 보고 있는 그룹명 표시
 		model.addAttribute("groupId", groupId);
+		model.addAttribute("menu", "group");
+		model.addAttribute("sidebarMenu", "system");
 		model.addAttribute("selectedGroupName", getGroupNameDefault(groupId));
 		return "weple/admin/group/userList";
 	}
@@ -88,28 +93,33 @@ public class SystemController {
 	// 그룹 내 사용자 등록 폼
 	@GetMapping("groupUserInsert")
 	public String groupUserInsertForm(@RequestParam(value = "groupId", required = false) Integer groupId, Model model) {
-		List<SystemGroupUserVO> allList = userService.findGroupUserAll();
-		List<SystemGroupUserVO> currentGroupUsers = (groupId != null)
+		List<SystemGroupUserVO> allList = userService.findGroupUserAll(); // 전체 사용자 목록을 DB에서 가져옴 (allList 변수에 담음)
+		List<SystemGroupUserVO> currentGroupUsers = (groupId != null) // 현재 선택된 그룹에 속한 사용자들만 뽑아냄
+				// groupId가 있다면 그 그룹 ID와 일치하는 유저만 필터링, 없으면 빈 목록(ArrayList)을 생성
 				? allList.stream().filter(user -> groupId.equals(user.getGroupId())).toList()
 				: new ArrayList<>();
+		// 어느 그룹에도 속하지 않은(groupId가 null인) 사용자들만 뽑아냄
 		List<SystemGroupUserVO> availableUsers = allList.stream().filter(user -> user.getGroupId() == null).toList();
-		model.addAttribute("currentGroupUsers", currentGroupUsers);
-		model.addAttribute("availableUsers", availableUsers);
-		model.addAttribute("groupId", groupId);
-		model.addAttribute("selectedGroupName", getGroupNameDefault(groupId));
+		model.addAttribute("currentGroupUsers", currentGroupUsers); // 이미 배정된 유저 리스트
+		model.addAttribute("availableUsers", availableUsers); // 배정 가능한 유저 리스트
+		model.addAttribute("groupId", groupId); // 현재 선택된 그룹 ID
+		model.addAttribute("selectedGroupName", getGroupNameDefault(groupId)); // 화면에 보여줄 그룹 이름
+		model.addAttribute("menu", "group");
+		model.addAttribute("sidebarMenu", "system");
 		return "weple/admin/group/userInsert";
 	}
 
 	// 그룹 내 사용자 등록 처리
 	@PostMapping("groupUserInsert")
 	public String groupUserInsertProcess(
+			// 화면에서 사용자가 선택한 사용자들의 ID 목록을 받아옴 / 값이 없어도 통과 가능
 			@RequestParam(value = "currentUserIds", required = false) List<String> currentUserIds,
 			@RequestParam("groupId") Integer groupId, HttpSession session) {
 
-		Integer companyId = (Integer) session.getAttribute("companyId");
+		Integer companyId = (Integer) session.getAttribute("companyId"); // 세션에서 회사 ID를 가져옴
 
-		List<String> userIds = (currentUserIds != null) ? currentUserIds : List.of();
-		List<SystemGroupUserVO> allList = userService.findGroupUserAll();
+		List<String> userIds = (currentUserIds != null) ? currentUserIds : List.of(); // 화면에서 선택한 유저 리스트 생성
+		List<SystemGroupUserVO> allList = userService.findGroupUserAll(); // 전체 사용자 목록 가져옴
 
 		for (SystemGroupUserVO user : allList) {
 			String userCode = user.getUserCode();
@@ -117,12 +127,12 @@ public class SystemController {
 			vo.setUserCode(userCode);
 			vo.setCompanyId(companyId);
 
-			if (userIds.contains(userCode)) {
-				vo.setGroupId(groupId);
-				userService.addGroupUser(vo);
-			} else if (groupId.equals(user.getGroupId())) {
-				vo.setGroupId(0);
-				userService.modefyGroupUser(vo);
+			if (userIds.contains(userCode)) {// 선택된 유저라면
+				vo.setGroupId(groupId);// 현재 그룹 ID 할당
+				userService.addGroupUser(vo);// DB 업데이트
+			} else if (groupId.equals(user.getGroupId())) { // 기존엔 포함됐으나 이번에 해제된 유저라면
+				vo.setGroupId(0);// 그룹에서 제외(ID를 0으로 변경)
+				userService.modefyGroupUser(vo);// DB 업데이트
 			}
 		}
 		return "redirect:/groupList";
@@ -168,9 +178,9 @@ public class SystemController {
 	}
 
 	// -------------------------------일감유형------------------------------
-	
+
 	private final TaskTypeService taskTypeService;
-	
+
 	// 전체조회
 	@GetMapping("/system/taskType")
 	public String systemTaskTypeList(@AuthenticationPrincipal LoginUserDetails loginUser, Model model) {
@@ -217,7 +227,7 @@ public class SystemController {
 		taskTypeService.updateTaskType(taskTypeVO);
 		return "redirect:/system/taskType";
 	}
-	
+
 	// 삭제하기
 	@PostMapping("/system/taskType/Delete/{typeId}")
 	@ResponseBody
@@ -271,52 +281,80 @@ public class SystemController {
 		return "redirect:/approvalList";
 	}
 
-
 	// -------------------------------코드값------------------------------
 	// 전체조회
 	@GetMapping("codeValueList")
 	public String codeValueList(Model model) {
 
-	    model.addAttribute("menu", "code");
+		model.addAttribute("menu", "code");
+		model.addAttribute("sidebarMenu", "system");
 
-	    return "weple/admin/code/list";
+		return "weple/admin/code/list";
 	}
-	
-	@GetMapping("/codeForm") 
-    public String showFormPage(Model model) {
-        return "weple/admin/code/codeForm";
-    }
-	
+
+	// 등록 양식
+	@GetMapping("/codeInsert")
+	public String codeInsertForm(Model model) {
+		model.addAttribute("menu", "code");
+		model.addAttribute("sidebarMenu", "system");
+		return "weple/admin/code/codeForm";
+	}
+
+	// 등록 처리
+	@PostMapping("codeInsert")
+	public String codeInsertProcess(CodeValueVO codeValueVO) {
+		int cno = codeValueService.addCodeValue(codeValueVO);
+		return "redirect:codeValueList";
+	}
+
+//	// 수정 양식
+//	@GetMapping("codeUpdate")
+//	public String codeUpdateForm(int cno, Model model) {
+//		CodeValueVO codeValue = codeValueService.modifyCodeValue(codeValueVO);
+//		model.addAttribute("codeValue", codeValue);
+//		model.addAttribute("menu", "code");
+//		model.addAttribute("sidebarMenu", "system");
+//
+//		return "weple/admin/code/codeUpdateForm";
+//	}
+//
+//	// 수정 처리
+//	@PostMapping("codeUpdate")
+//	public String codeUpdateProcess(CodeValueVO codeValueVO) {
+//		int result = codeValueService.modifyCodeValue(codeValueVO);
+//
+//		return "redirect:codeValueList";
+//	}
+
 	// -------------------------------프로젝트------------------------------
 	// 프로젝트 생성
 	@Autowired
 	private SystemProjectService systemProjectService;
-	
+
 	@GetMapping("/system/project")
 	public String projectCreateForm(Model model) {
-		
+
 		model.addAttribute("sidebarMenu", "system");
 		model.addAttribute("currentMenu", "systemproject");
-		
+
 		return "weple/system/projectCreate";
 	}
-	
+
 	@PostMapping("/system/project")
 	public String projectCreateProcess(SystemProjectVO projectVO, Model model) {
 		int result = systemProjectService.createProject(projectVO);
-		
-		if(result > 0) {
+
+		if (result > 0) {
 			return "redirect:/project";
-		}else {
+		} else {
 			model.addAttribute("errorMessage", "프로젝트 생성에 실패했습니다.");
 			model.addAttribute("sidebarMenu", "system");
 			model.addAttribute("currentMenu", "systemproject");
-			
-			
+
 			return "weple/system/projectCreate";
 		}
 	}
-	
+
 	// 등록
 
 	// 수정

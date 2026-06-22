@@ -37,7 +37,7 @@
 		BY u.user_code ASC
 	</select>
 
-	<!--/* 등록 */ -->
+	<!--/* 등록 : 상황에 따라 신규 등록을 할지 기존 데이터 업데이트를 할지 결정*/ -->
 	<insert id="insertGroupUser" parameterType="SystemGroupUserVO">
 		MERGE INTO users u
     	USING DUAL
@@ -56,7 +56,7 @@
         			)
 	</insert>
 
-	<!--/* 수정 */ -->
+	<!--/* 수정 : 기존 소속 정보를 확실하게 지우고, 필요하면 새 그룹으로 강제 설정*/ -->
 	<update id="updateGroupUser" parameterType="SystemGroupUserVO">
 		DECLARE
 		BEGIN

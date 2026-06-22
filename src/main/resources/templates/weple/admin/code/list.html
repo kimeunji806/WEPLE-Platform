@@ -3,7 +3,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
-    <title>WEPLE - 공통 관리</title>
+    <title>WEPLE</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
@@ -17,7 +17,7 @@
                     <h3 class="card-title">
                         작업분류
                     </h3>
-                    <button class="btn-add" th:onclick="|location.href='@{/codeForm}'|">+ 새 코드값</button>
+                    <button class="btn-add" th:onclick="|location.href='@{/codeInsert}'|">+ 새 코드값</button>
                 </div>
                 <table class="code-table">
                     <thead>
@@ -214,10 +214,11 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
+            border: 1px solid #e5e7eb;
         }
 
         .code-table thead th {
-            background: #f8fafc;
+            background: #F7F6F2;
             color: #64748b;
             padding: 13px 16px;
             font-weight: 600;

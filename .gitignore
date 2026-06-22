@@ -165,3 +165,6 @@ uploads/
 # intellij
 .idea/
 *.iml
+
+# application-secret
+application-secret.properties

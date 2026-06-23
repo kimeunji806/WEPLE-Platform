@@ -421,7 +421,7 @@ public class SystemController {
 	    int result = systemProjectService.createProject(projectVO);
 	    
 		if(result > 0) {
-			return "redirect:/project";
+			return "redirect:/system/project/list";
 		}else {
 			model.addAttribute("errorMessage", "프로젝트 생성에 실패했습니다.");
 			model.addAttribute("sidebarMenu", "system");
@@ -433,10 +433,6 @@ public class SystemController {
 	}
 		
 
-	// 등록
-
-	// 수정
-	
 	// 프로젝트 삭제
 	@PostMapping("/system/project/delete")
 	public String deleteProject(
@@ -460,6 +456,7 @@ public class SystemController {
 	public String roleList(@ModelAttribute("toastMessage") String toastMessage,
 							Model model) {
 		model.addAttribute("roleList", roleService.selectRoleList());
+		
 		model.addAttribute("sidebarMenu", "system");
 	    model.addAttribute("currentMenu", "systemrole");
 	    return "weple/system/roleList";

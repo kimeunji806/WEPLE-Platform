@@ -407,10 +407,6 @@ public class SystemController {
 	}
 
 	@PostMapping("/system/project")
-	public String projectCreateProcess(SystemProjectVO projectVO, Model model) {
-		int result = systemProjectService.createProject(projectVO);
-
-		if (result > 0) {
 	public String projectCreateProcess(SystemProjectVO projectVO, RedirectAttributes redirectAttributes, Model model) {
 		 // 식별자 중복 체크
 	    if (systemProjectService.existsByIdentifier(projectVO.getProjectIdentifier())) {
@@ -426,14 +422,16 @@ public class SystemController {
 	    
 		if(result > 0) {
 			return "redirect:/project";
-		} else {
+		}else {
 			model.addAttribute("errorMessage", "프로젝트 생성에 실패했습니다.");
 			model.addAttribute("sidebarMenu", "system");
 			model.addAttribute("currentMenu", "systemproject");
-
+			
+			
 			return "weple/system/projectCreate";
 		}
 	}
+		
 
 	// 등록
 

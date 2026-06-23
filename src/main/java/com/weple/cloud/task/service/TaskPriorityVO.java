@@ -11,8 +11,8 @@ import lombok.ToString;
 @Setter
 @ToString
 public class TaskPriorityVO {
-	private Integer taskPriorityId;
-	private Integer companyId;
+	private Long taskPriorityId;
+	private Long companyId;
 	private String priorityName;
 	private String defaultYn;
 	private String usingYn;

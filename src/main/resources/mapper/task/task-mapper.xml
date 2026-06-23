@@ -71,61 +71,111 @@
 	</select>
 	
 <insert id="insertTask" parameterType="TaskVO">
-    INSERT INTO task
-    (
+    <selectKey keyProperty="taskId" resultType="string" order="BEFORE">
+        SELECT 'TSK-' || TO_CHAR(SYSDATE, 'YYMMDD') || '_' || 
+               (SELECT NVL(MAX(TO_NUMBER(SUBSTR(task_id, 12))), 0) + 1
+                FROM task 
+                WHERE task_id LIKE 'TSK-' || TO_CHAR(SYSDATE, 'YYMMDD') || '_%')
+        FROM DUAL
+    </selectKey>
+
+    INSERT INTO task (
         task_id, task_title, task_describe, task_status, priority,
         task_manager, start_date, finish_date, estimated_time, task_progress,
-        parent_task_id, spent_hours_sum, created_at, milestone_id,project_id,
+        parent_task_id, spent_hours_sum, created_at, milestone_id, project_id,
         user_code, type_id
-    )
-    SELECT
-        'TSK-' || TO_CHAR(SYSDATE, 'YYMMDD') || '_' || 
-        (SELECT NVL(MAX(TO_NUMBER(SUBSTR(task_id, 12))), 0) + 1  <!-- 날짜넘어 갈때마다 시퀀스 초기화 -->
-         FROM task 
-         WHERE task_id LIKE 'TSK-' || TO_CHAR(SYSDATE, 'YYMMDD') || '_%'),
-        #{taskTitle},
-        #{taskDescribe, jdbcType=VARCHAR}, <!--null 허용인 값들 타입 jdbctype varchar로 알려주기 -->
-        #{taskStatus},
+    ) VALUES (
+        #{taskId}, 
+        #{taskTitle}, 
+        #{taskDescribe, jdbcType=VARCHAR}, 
+        #{taskStatus}, 
         #{priority},
-        #{taskManager, jdbcType=VARCHAR},
-        #{startDate, jdbcType=DATE},
+        #{taskManager, jdbcType=VARCHAR}, 
+        #{startDate, jdbcType=DATE}, 
         #{finishDate, jdbcType=DATE},
-        #{estimatedTime},
+        #{estimatedTime}, 
         #{taskProgress},
-        (SELECT MAX(task_id) FROM task WHERE task_title = #{parentTaskTitle,jdbcType=VARCHAR}), <!-- 어쩌피 목록들 중복 안되지만 그래도 오류 방지로 MAX씀 -->
-        0,
-        SYSDATE,
-        #{milestoneId},
-        #{projectId},
+        (SELECT MAX(task_id) FROM task WHERE task_title = #{parentTaskTitle, jdbcType=VARCHAR}),
+        0, 
+        SYSDATE + 9/24, 
+        #{milestoneId}, 
+        #{projectId}, 
         #{userCode},
-        (SELECT MAX(type_id) FROM task_types WHERE type_name = #{typeIdName,jdbcType=VARCHAR}) <!-- 어쩌피 목록들 중복 안되지만 그래도 오류 방지로 MAX씀 -->
-    FROM DUAL
+        (SELECT MAX(type_id) FROM task_types WHERE type_name = #{typeIdName, jdbcType=VARCHAR})
+    )
 </insert>
-	<select id="taskDetail" resultType="TaskVO">
-		SELECT t.task_id AS taskId, 
-       		   t.task_title, 
-       		   t.task_describe AS taskDescribe, 
-       		   c.default_describe AS taskStatus,
-       		   t.priority, 
-       		   u_mgr.user_name AS taskManager,
-       		   t.start_date, 
-       		   t.finish_date, 
-       		   t.estimated_time,
-       		   t.task_progress,
-       		   t.parent_task_id,
-       		   t.spent_hours_sum,
-       		   t.created_at,
-       		   t.updated_at,
-       		   t.milestone_id,
-       		   t.project_id, 
-       		   u_writer.user_name AS taskWriter,
-       		   tt.type_name AS typeIdName
-		FROM task t
-     		   JOIN common_code c ON t.task_status = c.common_id
-     		   JOIN task_types tt ON t.type_id = tt.type_id
-     		   LEFT JOIN users u_mgr ON t.task_manager = u_mgr.user_code
-     		   LEFT JOIN users u_writer ON t.user_code = u_writer.user_code
-		WHERE t.task_id = #{tId}
+
+<resultMap id="taskDetailMap" type="TaskVO">
+    <id property="taskId" column="taskId"/>
+    <result property="taskTitle" column="taskTitle"/>
+    <result property="taskDescribe" column="taskDescribe"/>
+    <result property="taskStatus" column="taskStatus"/> <result property="priority" column="priority"/>
+    <result property="taskManager" column="taskManager"/> <result property="startDate" column="startDate"/>
+    <result property="finishDate" column="finishDate"/>
+    <result property="estimatedTime" column="estimatedTime"/>
+    <result property="taskProgress" column="taskProgress"/>
+    <result property="parentTaskId" column="parentTaskId"/>
+    <result property="spentHoursSum" column="spentHoursSum"/>
+    <result property="createdAt" column="createdAt"/>
+    <result property="updatedAt" column="updatedAt"/>
+    <result property="milestoneTitle" column="milestoneTitle"/>
+    <result property="projectId" column="projectId"/>
+    <result property="taskWriter" column="taskWriter"/>
+    <result property="typeIdName" column="typeIdName"/>
+    
+    <result property="milestoneId" column="milestoneId"/>
+    <result property="parentTaskTitle" column="parentTaskTitle"/>
+    <result property="taskStatusId" column="taskStatusId"/>
+    <result property="taskManagerId" column="taskManagerId"/>
+    
+    <collection property="fileList" ofType="TaskFileVO">
+        <result property="logicalName" column="logicalName"/>
+        <result property="fileSize" column="fileSize"/> 
+        <result property="uploadedAt" column="uploadedAt"/>
+    </collection>
+</resultMap>
+
+<select id="taskDetail" resultMap="taskDetailMap">
+    SELECT t.task_id AS taskId, 
+           t.task_title AS taskTitle, 
+           t.task_describe AS taskDescribe, 
+           c.default_describe AS taskStatus,          
+           t.task_status AS taskStatusId,             
+           t.priority, 
+           u_mgr.user_name AS taskManager,            
+           t.task_manager AS taskManagerId,           
+           t.start_date AS startDate, 
+           t.finish_date AS finishDate, 
+           t.estimated_time AS estimatedTime,
+           t.task_progress AS taskProgress,
+           t.parent_task_id AS parentTaskId,
+           p.task_title AS parentTaskTitle,           
+           t.spent_hours_sum AS spentHoursSum,
+           t.created_at AS createdAt,
+           t.updated_at  AS updatedAt,
+           t.milestone_id AS milestoneId,             
+           m.milestone_title AS milestoneTitle,
+           t.project_id AS projectId, 
+           u_writer.user_name AS taskWriter,
+           tt.type_name AS typeIdName,
+           f.logical_name AS logicalName,
+           fv.file_size AS fileSize ,
+           fv.uploaded_at  AS uploadedAt
+      FROM task t
+      	JOIN common_code c ON t.task_status = c.common_id
+      	JOIN task_types tt ON t.type_id = tt.type_id
+      	LEFT JOIN task p ON t.parent_task_id = p.task_id        
+      	LEFT JOIN milestone m ON t.milestone_id = m.milestone_id
+      	LEFT JOIN users u_mgr ON t.task_manager = u_mgr.user_code
+      	LEFT JOIN users u_writer ON t.user_code = u_writer.user_code
+      	LEFT JOIN files f ON t.task_id = f.task_id
+      	LEFT JOIN file_versions fv ON f.file_id = fv.file_id 
+     WHERE t.task_id = #{tId}
+</select>
+	<select id="childTask" resultType="TaskVO">			
+		SELECT task_title , task_id
+		FROM task
+		WHERE parent_task_id = #{tId}
 	</select>
 	<select id="selectAllList" resultType="TaskVO"> 
 		SELECT
@@ -158,5 +208,26 @@
 			members m JOIN project p ON m.project_id = p.project_id
 		WHERE m.user_code = #{uCode}
 	</select>
+<update id="updateTask" parameterType="TaskVO">
+    UPDATE task
+       SET type_id = (SELECT MAX(type_id) FROM task_types WHERE type_name = #{typeIdName, jdbcType=VARCHAR}),
+           task_title = #{taskTitle},
+           task_describe = #{taskDescribe, jdbcType=VARCHAR},
+           task_status = #{taskStatus},
+           priority  = #{priority},
+           task_manager = #{taskManager, jdbcType=VARCHAR},
+           start_date = #{startDate, jdbcType=DATE},
+           finish_date = #{finishDate, jdbcType=DATE},
+           estimated_time = #{estimatedTime},
+           task_progress = #{taskProgress},
+           milestone_id = #{milestoneId, jdbcType=VARCHAR},
+           updated_at = SYSDATE + 9/24,
+           parent_task_id = #{parentTaskId, jdbcType=VARCHAR}
+     WHERE task_id = #{taskId}
+</update>
+
+<delete id="deleteTask">
+	DELETE FROM task WHERE task_id = #{tId} <!-- 권한에 따라 사용자는 삭제 버튼 안보이게 하던가 아니면 연결된 권한 쪽 확인해서 일감 삭제 권한 있는지 확인하고 해당 쿼리 실행할수 있도록 -->
+</delete>
 
 </mapper>

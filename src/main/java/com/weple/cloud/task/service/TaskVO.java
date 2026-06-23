@@ -2,12 +2,13 @@ package com.weple.cloud.task.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.weple.cloud.file.TaskFileVO;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,19 +34,19 @@ public class TaskVO {
     @JsonFormat(pattern = "yyyy.MM.dd", timezone = "Asia/Seoul")
     private LocalDate finishDate;  
     
-    private Integer estimatedTime; 
-    private Integer taskProgress;
+    private Long estimatedTime; 
+    private Long taskProgress;
     private String parentTaskId; 
-    private Integer spentHoursSum;
+    private Long spentHoursSum;
     
     @JsonFormat(pattern = "yyyy.MM.dd", timezone = "Asia/Seoul")
     private LocalDateTime createdAt;
     @JsonFormat(pattern = "yyyy.MM.dd", timezone = "Asia/Seoul")
     private LocalDateTime updatedAt; 
-    private Integer milestoneId; 
+    private Long milestoneId; 
     private Long projectId;   
     private String userCode; 
-    private Integer typeId;
+    private Long typeId;
     
     // 조인용 필드
     private String projectTitle;
@@ -57,5 +58,13 @@ public class TaskVO {
     private String parentTaskTitle; // 화면 자동완성 검색창에 입력된 상위일감 한글 제목
     
     // 상세조회시 필요 필드
-    private String taskWriter;    // 일감 등록자 이름 (u_writer.user_name)
+    private String taskWriter;    // 일감 등록자 이름 
+    private String milestoneTitle;
+    
+    
+    private List<TaskFileVO> fileList; // 파일 크기 + 제목 목록
+    
+    private String taskStatusId;
+    private String taskManagerId;
+
 }

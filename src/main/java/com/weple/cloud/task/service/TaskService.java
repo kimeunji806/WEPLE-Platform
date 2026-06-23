@@ -2,6 +2,8 @@ package com.weple.cloud.task.service;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 public interface TaskService {
 	public List<TaskVO> findAll(Long pId);
 	
@@ -17,11 +19,17 @@ public interface TaskService {
 	
 	public List<TaskMilestoneVO> findMilestone(Long pId);
 	
-	public int insertTask(TaskVO taskVO);
+	public int insertTask(TaskVO taskVO , List<MultipartFile> files)throws Exception;
 	
 	public TaskVO findTaskDetail(String tId);
+	
+	public List<TaskVO> findChildTask(String tId);
 	
 	public List<TaskVO> findAllList(String tManager);
 	
 	public List<TaskProjectSelectVO> findMyProject(String uCode);
+	
+	public void updateTask(TaskVO taskVO, List<MultipartFile> files) throws Exception;
+	
+	public void deleteTask(String tId);
 }

@@ -11,6 +11,6 @@ import lombok.ToString;
 @Setter
 @ToString
 public class TaskTypeListVO {
-	private Integer typeId;
+	private Long typeId;
 	private String typeName;
 }

@@ -80,6 +80,8 @@
 	border-radius: 12px;
 	padding: 20px;
 	box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+	overflow-x: auto;
+	padding-bottom: 70px;
 }
 
 .custom-table th {
@@ -129,4 +131,72 @@
 	border: 1px solid #e2e8f0;
 	border-radius: 6px;
 	padding: 6px 16px;
+}
+/* 미니 팝업 전체 감싸는 곳 */
+.dropdown-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+/* ••• 버튼 자체 스타일 (클릭 반경 확대) */
+.more-options-btn {
+    cursor: pointer;
+    color: #94a3b8;
+    padding: 6px 12px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+/* 마우스 올렸을 때 피드백을 주어 오클릭 방지 */
+.more-options-btn:hover {
+    color: #475569;
+    background-color: #f1f5f9;
+}
+
+/* 기본적으로 숨겨둘 편집/삭제 박스 */
+.dropdown-menu-box {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: #ffffff;
+    min-width: 90px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    z-index: 100;
+    padding: 4px 0;
+}
+
+/* 이 클래스가 붙으면 팝업이 나타남 */
+.dropdown-menu-box.show {
+    display: block;
+}
+
+/* 팝업 내부 버튼 공통 */
+.dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 8px 14px;
+    text-align: left;
+    background: none;
+    border: none;
+    font-size: 13px;
+    color: #334155;
+    cursor: pointer;
+    font-family: sans-serif;
+}
+
+.dropdown-item:hover {
+    background-color: #f8fafc;
+}
+
+/* 삭제 버튼은 강조색 부여 */
+.dropdown-item.delete-btn {
+    color: #ef4444;
+}
+.dropdown-item.delete-btn:hover {
+    background-color: #fef2f2;
 }

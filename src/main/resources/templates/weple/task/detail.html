@@ -19,7 +19,7 @@
             </div>
             
             <div class="header-right action-buttons">
-                <button class="btn btn-edit">✏️ 수정</button>
+                <button class="btn btn-edit" th:onclick="|location.href='@{/project/task/update/{id}(id=*{taskId}, projectId=${projectId})}'|">✏️ 수정</button>
                 <button class="btn btn-log">⏱️ 작업시간 기록</button>
                 <button class="btn btn-delete">🗑️</button>
             </div>
@@ -27,8 +27,8 @@
 
         <div class="task-main-card">
             <div class="task-title-area">
-                <p class="category-path" th:text="'마일스톤 : ' + *{milestoneTitle}"></p>
-                <h2 class="task-title" th:text="*{taskTitle}"></h2>
+                <p class="category-path"  th:if="*{milestoneTitle} != null" th:text="'마일스톤 : ' + *{milestoneTitle}"></p>
+                <h2 class="task-title" th:text="*{taskTitle} "></h2>
                 <p class="task-meta">
                     <span class="author" th:text="*{taskWriter}"></span>
                 </p>
@@ -65,17 +65,21 @@
             </div>
 
             <div class="task-section files-area">
-                <div class="section-title">파일</div>
-                <div class="section-content">
-                    <div class="file-item">
-                        <div class="file-info">
-                            <a href="#" class="file-link">📎 docker image.txt</a>
-                            <span class="file-size">(1.65 KB)</span>
-                        </div>
-                        <span class="file-date">2026/06/11 07:40</span>
-                    </div>
-                </div>
+    <div class="section-title">파일</div>
+    <div class="section-content">
+        <div class="file-item" th:each="file : *{fileList}">
+            <div class="file-info">
+                <a href="#" class="file-link" th:text="${file.logicalName}"></a>
+                <span class="file-size" th:text="${file.fileSize} + ' bytes'"></span>
             </div>
+            <span class="file-date" th:text="${#dates.format(file.uploadedAt, 'yyyy.MM.dd HH:mm')}"></span>
+        </div>
+        
+        <div th:if="*{fileList == null or fileList.isEmpty()}">
+            <span style="color: #999; font-size: 14px;">첨부된 파일이 없습니다.</span>
+        </div>
+    </div>
+</div>
 
             <div class="task-section subtasks-area">
     <div class="section-title">

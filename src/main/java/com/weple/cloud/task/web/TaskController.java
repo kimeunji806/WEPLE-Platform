@@ -5,10 +5,12 @@ import java.util.List;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.weple.cloud.auth.service.LoginUserDetails;
 import com.weple.cloud.task.service.TaskProjectSelectVO;
@@ -62,12 +64,12 @@ public class TaskController {
     }
 	
 	@PostMapping("/project/task/insert")
-	public String taskInsertProcess(@RequestParam("projectId") Long pId,@AuthenticationPrincipal LoginUserDetails loginUser,TaskVO taskVO) {
+	public String taskInsertProcess(@RequestParam("projectId") Long pId,@AuthenticationPrincipal LoginUserDetails loginUser,TaskVO taskVO,@RequestParam(value = "files", required = false) List<MultipartFile> files)throws Exception {
 		String userCode = loginUser.getLoginUser().getUserCode();
 	    taskVO.setProjectId(pId); 
 	    taskVO.setUserCode(userCode); 
 
-	    taskService.insertTask(taskVO);
+	    taskService.insertTask(taskVO, files);
 
 	    
 	    return "redirect:/project/task?projectId=" + pId;
@@ -97,7 +99,64 @@ public class TaskController {
 		
 	}
 	
+	// 1. 수정 페이지 이동 (GET)
+	@GetMapping("/project/task/update/{tId}")
+	public String taskUpdateForm(@PathVariable("tId") String tId, @RequestParam("projectId") Long pId, @AuthenticationPrincipal LoginUserDetails loginUser, Model model) {
+		
+		String userCode = loginUser.getLoginUser().getUserCode();
+	    Long companyId = loginUser.getLoginUser().getCompanyId();
+	    
+	    TaskVO taskDetail = taskService.findTaskDetail(tId);
+	    
+	    //nav 일감 돌아가기 위해서 projectId 넘김
+	    model.addAttribute("currentMenu", "task");
+	    model.addAttribute("projectId",pId);
+	    model.addAttribute("taskDetail",taskDetail);
+	    model.addAttribute("loginUserCode",userCode);
+		
+		// 일감유형
+		model.addAttribute("typeList", taskService.findType(companyId));
+	    //일감상태
+	    model.addAttribute("statusList", taskService.findStatus());
+	    //프로젝트 참여 인원
+	    model.addAttribute("memberList", taskService.findMember(pId)); 
+	    //우선순위
+	    model.addAttribute("priorityList",taskService.findPriority(companyId));
+	    //부모 일감 리스트 (상위 일감 선택용)
+	    model.addAttribute("parentTaskList", taskService.findParent(pId));
+	    
+	    model.addAttribute("milestoneList", taskService.findMilestone(pId));
+	    
+	    System.out.println(taskDetail);
+	    
+	    return "weple/task/fragment-edit"; // 생성한 수정 페이지 HTML 경로
+	}
 
+	// 2. 수정 처리 (POST)
+	@PostMapping("/project/task/update")
+	public String taskUpdateProcess(@RequestParam("projectId") Long pId,
+	                                @AuthenticationPrincipal LoginUserDetails loginUser,
+	                                TaskVO taskVO,
+	                                @RequestParam(value = "files", required = false) List<MultipartFile> files) throws Exception {
+	    
+	    // 프로젝트 ID 설정
+		String userCode = loginUser.getLoginUser().getUserCode();
+	    taskVO.setProjectId(pId);
+	    taskVO.setUserCode(userCode); 
+
+
+	    // 수정 처리 서비스 호출 (VO 내부에 taskId가 hidden으로 담겨서 넘어옵니다)
+	    taskService.updateTask(taskVO, files);
+	    
+	    // 수정 완료 후 해당 일감의 상세조회 페이지로 리다이렉트
+	    return "redirect:/project/task/detail/" + taskVO.getTaskId() + "?projectId=" + pId;
+	}
+	
+	@DeleteMapping("/project/task/delete")
+	public String taskDeleteProcess(@RequestParam("projectId") Long pId,@PathVariable("tId") String tId) {
+		return "redirect:/project/task" + "?projectId=" +pId;
+		
+	}
 
 
 }

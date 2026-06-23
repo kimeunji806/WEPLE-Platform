@@ -37,5 +37,9 @@ public interface TaskMapper {
     public List<TaskVO>childTask(@Param("tId") String tId);
     
     public List<TaskProjectSelectVO> myAllTasks(@Param("uCode") String uCode);
+    
+    public int updateTask(TaskVO taskVO);
+    
+    public void deleteTask(@Param("tId") String tId);
 
 }

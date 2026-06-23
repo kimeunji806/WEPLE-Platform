@@ -81,3 +81,36 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 });
+
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const fileListDisplay = document.getElementById('fileListDisplay');
+    
+    // 이전에 표시되던 목록 초기화
+    fileListDisplay.innerHTML = '';
+    
+    // 선택된 파일들을 가져옴
+    const files = e.target.files;
+    
+    if(files.length > 0) {
+        // 파일 목록을 감쌀 ul 태그 생성
+        const ul = document.createElement('ul');
+        ul.style.listStyle = 'none';
+        ul.style.paddingLeft = '5px';
+        
+        for(let i = 0; i < files.length; i++) {
+            const li = document.createElement('li');
+            
+            // 파일 크기를 KB 단위를 환산하여 보기 좋게 표시
+            const fileSizeKB = (files[i].size / 1024).toFixed(1); 
+            
+            li.innerHTML = `📄 <strong>${files[i].name}</strong> (${fileSizeKB} KB)`;
+            li.style.marginBottom = '5px';
+            ul.appendChild(li);
+        }
+        
+        fileListDisplay.appendChild(ul);
+    } else {
+        fileListDisplay.innerHTML = '<span style="color: #999;">선택된 파일이 없습니다.</span>';
+    }
+});

@@ -1,10 +1,16 @@
 package com.weple.cloud.task.service.impl;
 
+import java.io.File;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.weple.cloud.file.FileInfoVO;
+import com.weple.cloud.file.FileVO;
+import com.weple.cloud.file.mapper.FileMapper;
 import com.weple.cloud.task.mapper.TaskMapper;
 import com.weple.cloud.task.service.TaskMemberVO;
 import com.weple.cloud.task.service.TaskMilestoneVO;
@@ -17,12 +23,16 @@ import com.weple.cloud.task.service.TaskTypeListVO;
 import com.weple.cloud.task.service.TaskVO;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @RequiredArgsConstructor
 public class TaskServiceImpl implements TaskService {
-	
+	private final FileMapper fileMapper;
 	private final TaskMapper taskMapper;
+	
+	@Value("${file.upload.task-dir}")
+    private String uploadDir;
 	
 	//내부 일감 전체 조회
 	@Override
@@ -61,10 +71,62 @@ public class TaskServiceImpl implements TaskService {
 	}
 	// 등록 쿼리
 	@Override
-	@Transactional
-    public int insertTask(TaskVO taskVO) {
-        return taskMapper.insertTask(taskVO);
+    @Transactional
+    public int insertTask(TaskVO taskVO, List<MultipartFile> files) throws Exception {
+        
+        // 1. 일감 DB 등록
+        int result = taskMapper.insertTask(taskVO);
+        String currentTaskId = taskVO.getTaskId();
+
+        // 2. 파일 체크
+        if (files == null || files.isEmpty()) {
+            return result;
+        }
+
+        // 💡 3. 주입받은 uploadDir 경로 사용
+        File dir = new File(uploadDir);
+        if (!dir.exists()) {
+            dir.mkdirs(); // 폴더 생성 (EC2에서는 이 폴더에 대한 쓰기 권한이 필요할 수 있습니다)
+        }
+
+        // 4. 파일 저장 및 DB INSERT 로직 (이전과 동일)
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+
+            String originalFileName = file.getOriginalFilename();
+            String savedName = UUID.randomUUID().toString() + "_" + originalFileName;
+            
+            // 💡 경로 조합 시 안전하게 File.separator 사용 권장
+            String filePath = uploadDir + savedName; 
+            long fileSize = file.getSize();
+
+            // 실제 파일 저장
+            File dest = new File(filePath);
+            file.transferTo(dest);
+
+            // DB 파일 중복 조회
+            Long fileId = fileMapper.findFileId(currentTaskId, originalFileName);
+
+            if (fileId == null) {
+                FileVO fileVO = new FileVO();
+                fileVO.setTaskId(currentTaskId);
+                fileVO.setFileName(originalFileName);
+                fileMapper.insertFile(fileVO);
+                fileId = fileVO.getFileId();
+            }
+
+            FileInfoVO fileInfoVO = new FileInfoVO();
+            fileInfoVO.setFileId(fileId);
+            fileInfoVO.setFilePath(filePath);
+            fileInfoVO.setFileSize(fileSize);
+            fileInfoVO.setUploader(taskVO.getUserCode()); 
+            fileInfoVO.setSavedName(savedName);
+            
+            fileMapper.insertFileInfo(fileInfoVO);
+        }
+        return result;
     }
+
 	// 상세조회
 	@Override
 	public TaskVO findTaskDetail(String tId) {
@@ -88,9 +150,31 @@ public class TaskServiceImpl implements TaskService {
 		return taskMapper.myAllTasks(uCode);
 	}
 
-
-
-
-
+	
+	@Transactional(rollbackFor = Exception.class)
+	@Override
+	public void updateTask(TaskVO taskVO, List<MultipartFile> files) throws Exception {
+	    // 1. 일감 기본 정보 업데이트
+	    int result = taskMapper.updateTask(taskVO);
+	    
+	    if (result > 0) {
+	        // 2. 파일이 새로 업로드된 경우 파일 저장 및 DB Insert 로직 진행
+	        if (files != null && !files.isEmpty()) {
+	            for (MultipartFile file : files) {
+	                if (!file.isEmpty()) {
+	                    // [기존 insertTask와 동일한 파일 업로드 로직 구현]
+	                    // FileVO fileVO = fileUtils.uploadFile(file);
+	                    // fileVO.setTaskId(taskVO.getTaskId());
+	                    // taskMapper.insertFile(fileVO);
+	                }
+	            }
+	        }
+	    }
+	}
+	// 삭제
+	@Override
+	public void deleteTask(String tId) {
+		taskMapper.deleteTask(tId);
+	}
 
 }

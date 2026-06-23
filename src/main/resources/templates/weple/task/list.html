@@ -80,19 +80,19 @@
 						<td th:text="${#temporals.format(task.createdAt, 'yyyy.MM.dd')}">2023.09.12</td>
 						<td th:text="${#temporals.format(task.finishDate, 'yyyy.MM.dd')}">2024.01.27</td>
 						<td style="position: relative; text-align: center;" onclick="event.stopPropagation();">
-    <div class="dropdown-wrapper">
-        <span class="more-options-btn" onclick="toggleDropdown(this)">•••</span>
+   					<div class="dropdown-wrapper">
+        					<span class="more-options-btn" onclick="toggleDropdown(this)">•••</span>
         
-        <div class="dropdown-menu-box">
-            <button type="button" class="dropdown-item edit-btn" >
-                ✏️ 편집
-            </button>
-            <button type="button" class="dropdown-item delete-btn" >
-                🗑️ 삭제
-            </button>
-        </div>
-    </div>
-</td>
+        					<div class="dropdown-menu-box">
+            					<button type="button" class="dropdown-item edit-btn" th:onclick="|location.href='@{/project/task/update/{id}(id=*{taskId}, projectId=${projectId})}'|">
+                					✏️ 편집
+            					</button>
+            					<button type="button" class="dropdown-item delete-btn" >
+               					 🗑️ 삭제
+            					</button>
+        					</div>
+    					</div>
+					</td>
 					</tr>
 					<tr th:if="${#lists.isEmpty(taskListinfo)}"><td colspan="12" style="color: #94a3b8; padding: 40px 0;">등록된 일감이 존재하지 않습니다.</td></tr>
 				</tbody>

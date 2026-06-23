@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.weple.cloud.file.mapper.FileMapper">
+<select id="findFileId" resultType="Long">
+        SELECT file_id 
+        FROM files 
+        WHERE task_id = #{taskId} 
+          AND logical_name = #{fileName} 
+          AND is_deleted = 'N'
+    </select>
+
+    <insert id="insertFile" parameterType="FileVO">
+        <selectKey keyProperty="fileId" resultType="Long" order="BEFORE">
+            SELECT NVL(MAX(file_id), 0) + 1 FROM files
+        </selectKey>
+        INSERT INTO files (
+            file_id, task_id, logical_name, is_deleted, created_at
+        ) VALUES (
+            #{fileId}, #{taskId}, #{fileName}, 'N', SYSDATE
+        )
+    </insert>
+
+    <insert id="insertFileInfo" parameterType="FileInfoVO">
+        <selectKey keyProperty="versionId" resultType="Long" order="BEFORE">
+            SELECT NVL(MAX(version_id), 0) + 1 FROM file_versions
+        </selectKey>
+        INSERT INTO file_versions (
+            version_id, file_id, version_number, file_path, 
+            file_size, uploader, uploaded_at, saved_name
+        ) VALUES (
+            #{versionId}, 
+            #{fileId}, 
+            (SELECT NVL(MAX(version_number), 0) + 1 FROM file_versions WHERE file_id = #{fileId}), 
+            #{filePath}, 
+            #{fileSize}, 
+            #{uploader}, 
+            SYSDATE, 
+            #{savedName}
+        )
+    </insert>
+</mapper>

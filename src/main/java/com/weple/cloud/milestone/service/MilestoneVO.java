@@ -21,8 +21,8 @@ import lombok.ToString;
 @Builder
 @AllArgsConstructor
 public class MilestoneVO {
-	private Integer milestoneId;
-	private Integer projectId;
+	private Long milestoneId;
+	private Long projectId;
 	private String  userCode;
 	private String  milestoneTitle;
 	private String  milestoneDescribe;

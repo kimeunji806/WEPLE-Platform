@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.weple.cloud.milestone.mapper.MilestoneMapper;
+import com.weple.cloud.milestone.service.MilestoneListVO;
 import com.weple.cloud.milestone.service.MilestoneService;
 import com.weple.cloud.milestone.service.MilestoneVO;
 
@@ -17,12 +18,12 @@ public class MilestoneServiceImpl implements MilestoneService {
 	private final MilestoneMapper milestoneMapper;
 	
 	@Override
-	public List<MilestoneVO> selectMilestoneAll() {
-		return milestoneMapper.selectMilestoneAll();
+	public List<MilestoneListVO> selectMilestoneAll(Long projectId) {
+		return milestoneMapper.selectMilestoneAll(projectId);
 	}
 
 	@Override
-	public MilestoneVO selectMilestoneById(Integer milestoneId) {
+	public MilestoneVO selectMilestoneById(Long milestoneId) {
 		return milestoneMapper.selectMilestoneById(milestoneId);
 	}
 
@@ -39,7 +40,7 @@ public class MilestoneServiceImpl implements MilestoneService {
 	}
 
 	@Override
-	public int deleteMilestone(int milestoneId) {
+	public int deleteMilestone(Long milestoneId) {
 		return milestoneMapper.deleteMilestone(milestoneId);
 	}
 

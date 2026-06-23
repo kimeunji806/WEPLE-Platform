@@ -6,7 +6,7 @@
     <ul>
         <li th:classappend="${currentMenu == 'overview'} ? 'active' : ''"><a href="#">개요</a></li>
         <li th:classappend="${currentMenu == 'worklog'} ? 'active' : ''"><a th:href="@{/project/worklog(projectId=${projectId})}">작업내역</a></li>
-        <li><a href="#">마일스톤</a></li>
+        <li th:classappend="${currentMenu == 'milestone'} ? 'active' : ''"><a th:href="@{/project/milestone(projectId=${projectId})}">마일스톤</a></li>
         <li th:classappend="${currentMenu == 'task'} ? 'active' : ''"><a th:href="@{/project/task(projectId=${projectId})}">일감</a></li>
         <li><a href="#">소요시간</a></li>
         <li><a href="#">간트차트</a></li>

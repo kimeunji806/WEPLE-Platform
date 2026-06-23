@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
+<head>
+<meta charset="UTF-8">
+<title>새 마일스톤 등록</title>
+<link rel="stylesheet" th:href="@{/css/milestone/milestone-insert.css}">
+</head>
+<body>
+
+<section class="container-fluid my-4" style="padding: 20px;">
+	<div class="mb-4" style="margin-bottom: 25px;">
+		<h3 class="fw-bold" style="color: #1e293b; font-weight: 700;">새 마일스톤</h3>
+	</div>
+	
+	<div class="form-container">
+		<form id="milestoneInsertForm" method="post" enctype="multipart/form-data"
+			th:action="@{/project/milestone/insert(projectId=${param.projectId})}">
+			
+			
+
+			<div class="row" style="margin-bottom: 20px;">
+				<div class="col-md-12">
+					<label class="form-label">마일스톤 이름 <span class="text-danger">*</span></label>
+					<input type="text" class="form-control" name="milestoneTitle" placeholder="마일스톤 이름을 입력해주세요" required>
+				</div>
+			</div>
+
+			<div class="row" style="margin-bottom: 20px;">
+				<div class="col-md-12">
+					<label class="form-label">설명</label>
+					<textarea class="form-control" name="milestoneDescribe" rows="5" placeholder="마일스톤에 대한 설명을 입력해주세요."></textarea>
+				</div>
+			</div>
+
+			<div class="row" style="margin-bottom: 20px;">
+				<div class="col-md-6">
+					<label class="form-label">목표 완료일</label> 
+					<input type="date" class="form-control" name="finishDate">
+				</div>
+			</div>
+			
+
+			<div style="display: flex; justify-content: flex-end; gap: 10px;">
+				<button type="button" th:onclick="|location.href='@{/milestone/list}'|" class="btn-insert-cancel">취소</button>
+				<button type="submit" class="btn-insert-submit">등록</button>
+			</div>
+		</form>
+	</div>
+
+	
+</section>
+</body>
+</html>

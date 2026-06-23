@@ -1,5 +1,8 @@
 package com.weple.cloud.web;
 
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -7,6 +10,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import com.weple.cloud.repository.service.RepositoryService;
+import com.weple.cloud.system.mapper.SystemProjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityModelAdvice {
 
     private final RepositoryService repositoryService;
+    private final SystemProjectMapper systemProjectMapper;
 
     // 상단 메뉴에서 가입승인 탭을 노출할 수 있는지 판단합니다.
     @ModelAttribute("canApproveSignup")
@@ -43,5 +48,18 @@ public class SecurityModelAdvice {
             }
         }
         return repositoryService.hasRepository(currentProjectId);
+    }
+    
+    // 선택한 모듈만 노출 - 은지
+    @ModelAttribute("moduleNames")
+    public List<String> moduleNames(HttpServletRequest request){
+    	String projectId = request.getParameter("projectId");
+    	if(projectId == null)
+    		return Collections.emptyList();
+    	try {
+    		return systemProjectMapper.selectModuleNames(Long.valueOf(projectId));
+    	} catch (NumberFormatException e) {
+    		return Collections.emptyList();
+    	}
     }
 }

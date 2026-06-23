@@ -1,0 +1,142 @@
+.role-page {
+    padding: 20px 25px;
+    min-height: 100vh;
+}
+
+.role-card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 30px;
+    border: 1px solid #edf1f7;
+    box-shadow: 0 2px 10px rgba(0,0,0,.03);
+}
+
+.role-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.role-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #222;
+}
+
+.role-create-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    height: 36px;
+    border-radius: 8px;
+    background: #4d84ff;
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    transition: .2s;
+}
+
+.role-create-btn:hover {
+    background: #3970eb;
+    color: #fff;
+    text-decoration: none;
+}
+
+.role-table-wrap {
+    border: 1px solid #e6ecf5;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.role-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.role-table thead {
+    background: #f8faff;
+}
+
+.role-table th {
+    height: 54px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #5d6b87;
+    text-align: center;
+    border-bottom: 1px solid #e9edf5;
+}
+
+.role-table td {
+    height: 64px;
+    padding: 0 15px;
+    border-top: 1px solid #edf1f7;
+    color: #374151;
+    font-size: 13px;
+    text-align: center;
+}
+
+.role-table td.text-left {
+    text-align: left;
+    padding-left: 20px;
+}
+
+.role-table tbody tr:hover {
+    background: #fafcff;
+}
+
+.role-link {
+    color: #4d84ff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.role-link:hover {
+    color: #3970eb;
+}
+
+.delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: #ffe9ec;
+    color: #ef4444;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background: #ffd8de;
+}
+
+.empty-message {
+    padding: 60px !important;
+    text-align: center !important;
+    color: #adb5bd;
+    font-size: 14px;
+}
+
+.toast-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #222;
+    color: #fff;
+    padding: 16px 30px;
+    border-radius: 12px;
+    z-index: 999999;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    white-space: nowrap;
+}

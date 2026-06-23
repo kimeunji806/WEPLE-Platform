@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weple.cloud.milestone.mapper.MilestoneMapper">
+
+    <resultMap id="MilestoneResultMap" type="MilestoneVO">
+        <id property="milestoneId" column="milestone_id"/>
+        <result property="projectId" column="project_id"/>
+        <result property="userCode" column="user_code"/> 
+        <result property="milestoneTitle" column="milestone_title"/>
+        <result property="milestoneDescribe" column="milestone_describe"/>
+        <result property="finishDate" column="finish_date"/>
+        <result property="milestoneStatus" column="milestone_status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="MilestoneListResultMap" type="MilestoneListVO" extends="MilestoneResultMap">
+        <result property="totalTaskCount" column="total_task_count"/>
+        <result property="closedTaskCount" column="closed_task_count"/>
+        <result property="progressPercentage" column="progress_percentage"/>
+        
+        <collection property="recentTasks" ofType="TaskVO">
+            <id property="taskId" column="task_id"/>
+            <result property="taskTitle" column="task_title"/>
+            <result property="taskProgress" column="task_progress"/>
+            <result property="finishDate" column="task_finish_date"/>
+            <result property="taskManager" column="task_manager_name"/>
+            <result property="typeName" column="type_name"/>
+            <result property="defaultDescribe" column="default_describe"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectMilestoneAll" parameterType="long" resultMap="MilestoneListResultMap">
+    SELECT 
+        m.milestone_id, 
+        m.project_id, 
+        m.user_code, 
+        m.milestone_title, 
+        m.milestone_describe, 
+        m.finish_date, 
+        CASE 
+            WHEN NVL(stats.avg_progress, 0) = 100 THEN 'g2'
+            ELSE m.milestone_status 
+        END AS milestone_status,
+        m.created_at,
+        m.updated_at,
+        NVL(stats.total_count, 0) AS total_task_count,
+        NVL(stats.closed_count, 0) AS closed_task_count,
+        NVL(stats.avg_progress, 0) AS progress_percentage,
+        t.task_id, 
+        t.task_title, 
+        t.task_progress, 
+        t.finish_date AS task_finish_date,
+        u.user_name AS task_manager_name,
+        tt.type_name AS type_name,
+        cc.default_describe AS default_describe
+    FROM milestone m
+    LEFT JOIN (
+        SELECT 
+            milestone_id,
+            COUNT(*) AS total_count,
+            COUNT(CASE WHEN task_progress = 100 THEN 1 END) AS closed_count,
+            ROUND(AVG(NVL(task_progress, 0))) AS avg_progress
+        FROM task
+        GROUP BY milestone_id
+    ) stats ON m.milestone_id = stats.milestone_id
+    LEFT JOIN (
+        SELECT tk.*,
+               ROW_NUMBER() OVER (PARTITION BY milestone_id ORDER BY created_at DESC) AS rn
+        FROM task tk
+    ) t ON m.milestone_id = t.milestone_id AND t.rn &lt;= 5
+    LEFT JOIN users u ON t.task_manager = u.user_code
+    LEFT JOIN task_types tt ON t.type_id = tt.type_id
+    LEFT JOIN common_code cc ON t.task_status = cc.common_id
+    WHERE m.project_id = #{projectId}
+    ORDER BY m.created_at DESC, t.created_at DESC
+</select>
+
+
+    <select id="selectMilestoneById" parameterType="long" resultMap="MilestoneResultMap">
+        SELECT 
+            milestone_id, 
+            project_id, 
+            user_code, 
+            milestone_title, 
+            milestone_describe, 
+            finish_date, 
+            milestone_status, 
+            created_at,
+            updated_at
+        FROM milestone
+        WHERE milestone_id = #{milestoneId}
+    </select>
+
+    <insert id="insertMilestone" parameterType="MilestoneVO">
+    <selectKey resultType="Long" keyProperty="milestoneId" order="BEFORE">
+        SELECT 
+            NVL(MAX(milestone_id), 0) + 1 AS milestoneId
+        FROM milestone
+    </selectKey>
+        INSERT INTO milestone (
+            milestone_id, 
+            project_id, 
+            user_code, 
+            milestone_title, 
+            milestone_describe, 
+            finish_date,
+            milestone_status, 
+            created_at,
+            updated_at
+        ) VALUES (
+            #{milestoneId}, 
+            #{projectId},
+            #{userCode}, 
+            #{milestoneTitle},
+            #{milestoneDescribe},
+            #{finishDate, jdbcType=DATE},
+            #{milestoneStatus},
+            SYSDATE,
+            NULL
+        )
+    </insert>
+
+    <update id="updateMilestone" parameterType="MilestoneVO">
+        UPDATE milestone
+        SET 
+            milestone_title = #{milestoneTitle},
+            milestone_describe = #{milestoneDescribe},
+            finish_date = #{finishDate, jdbcType=DATE},
+            milestone_status = #{milestoneStatus},
+            updated_at = SYSDATE
+        WHERE milestone_id = #{milestoneId}
+    </update>
+
+    <delete id="deleteMilestone" parameterType="long">
+        DELETE FROM milestone
+        WHERE milestone_id = #{milestoneId}
+    </delete>
+    
+</mapper>

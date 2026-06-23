@@ -20,13 +20,24 @@ public class ProjectController {
 		this.projectService = projectService;
 	}
 	
-	// 프로젝트 목록 조회 : projectList, project/list.html
+	// 프로젝트 목록 조회
 	@GetMapping("/project")
-	public String projectList(@RequestParam(value = "keyword", required = false) String keyword, Model model) {
-		List<ProjectVO> list = projectService.findAll(keyword);
-		model.addAttribute("projects", list);
+	public String projectList(
+			@RequestParam(value = "keyword", required = false) String keyword,
+			@RequestParam(value = "page", defaultValue = "1") int page,
+			Model model) {
 		
+		int pageSize = 10;
+		int offset = (page-1) * pageSize;
+		
+		List<ProjectVO> list = projectService.findAll(keyword, offset, pageSize);
+		int totalCount = projectService.countAll(keyword);
+		int totalPages = (int) Math.ceil((double) totalCount / pageSize);
+		
+		model.addAttribute("projects", list);
 		model.addAttribute("keyword", keyword);
+		model.addAttribute("currentPage", page);
+		model.addAttribute("totalPages", totalPages);
 		model.addAttribute("sidebarMenu", "project");
 		model.addAttribute("currentMenu", "none");
 		return "weple/project/list";

@@ -20,13 +20,17 @@ public class ProjectWorkLogServiceImpl implements ProjectWorkLogService {
             String startDate,
             String endDate,
             String userCode,
-            List<String> typeNames){
+            List<String> typeNames,
+            int offset,
+            int pageSize){
 		
 		return projectWorkLogMapper.selectProjectWorkLog(
-                projectId,
-                startDate,
-                endDate,
-                userCode,
-                typeNames);
+				projectId, startDate, endDate, userCode, typeNames, offset, pageSize);
+	}
+
+	@Override
+	public int countAll(String projectId, String startDate, String endDate, String userCode, List<String> typeNames) {
+		return projectWorkLogMapper.countProjectWorkLog(
+                projectId, startDate, endDate, userCode, typeNames);
 	}
 }

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
+<head>
+    <meta charset="UTF-8">
+    <title>역할 등록</title>
+    <link rel="stylesheet" href="/css/system/role-create.css">
+</head>
+<body>
+<section class="role-create-page">
+    <div class="role-create-card">
+
+        <div class="role-create-toolbar">
+            <h3 class="role-create-title">역할 등록</h3>
+        </div>
+
+        <form id="roleForm" method="post" th:action="@{/system/role/create}">
+
+            <!-- 역할 이름 -->
+            <div class="form-group-row">
+                <label class="form-label required">역할 이름</label>
+                <input type="text" name="roleName" class="form-input-text"
+                       placeholder="역할 이름을 입력하세요." required>
+            </div>
+
+            <!-- 권한 설정 -->
+            <div th:each="tag : ${permissionList.![permissionTag].toSet()}"
+                 class="permission-section">
+
+                <div class="permission-tag-title" th:text="${tag}"></div>
+
+                <div class="permission-items">
+                    <label th:each="perm : ${permissionList}"
+                           th:if="${perm.permissionTag == tag}"
+                           class="permission-item">
+                        <input type="checkbox"
+                               name="permissionCodes"
+                               th:value="${perm.permissionCode}">
+                        <span th:text="${perm.permissionName}"></span>
+                    </label>
+                </div>
+
+            </div>
+
+            <div class="button-group-right">
+                <button type="button" class="page-btn btn-cancel"
+                        onclick="history.back()">취소</button>
+                <button type="submit" class="page-btn btn-submit active">등록</button>
+            </div>
+
+        </form>
+    </div>
+</section>
+</body>
+</html>

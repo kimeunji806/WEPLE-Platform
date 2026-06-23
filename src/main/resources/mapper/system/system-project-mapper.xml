@@ -1,53 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.weple.cloud.system.mapper.SystemProjectMapper">
-	<!-- 최대 projectId 조회 -->
-	<select id="selectMaxProjectId" resultType="long">
-		SELECT NVL(MAX(project_id), 0)
-		FROM project
-	</select>
-	<!-- 프로젝트 생성 -->
-	<insert id="insertInfo" parameterType="com.weple.cloud.system.service.SystemProjectVO">
-		INSERT INTO project(
-			p.project_id,
-			p.project_title,
-            p.project_describe,
-            p.project_identifier,
-            p.status,
-            c.default_describe AS project_status_name,
+
+    <!-- 프로젝트 목록 조회 (검색 + 페이징) -->
+    <select id="selectProjectList"
+            parameterType="com.weple.cloud.system.service.SystemProjectVO"
+            resultType="com.weple.cloud.system.service.SystemProjectVO">
+        SELECT * FROM (
+            SELECT
+                inner_q.PROJECT_ID,
+                inner_q.PROJECT_TITLE,
+                inner_q.PROJECT_DESCRIBE,
+                inner_q.PROJECT_IDENTIFIER,
+                inner_q.STATUS,
+                inner_q.START_DATE,
+                inner_q.FINISH_DATE,
+                inner_q.CREATED_AT,
+                ROWNUM AS RN
+            FROM (
+                SELECT
+                    p.PROJECT_ID,
+                    p.PROJECT_TITLE,
+                    p.PROJECT_DESCRIBE,
+                    p.PROJECT_IDENTIFIER,
+                    c.DEFAULT_DESCRIBE AS STATUS,
+                    p.START_DATE,
+                    p.FINISH_DATE,
+                    p.CREATED_AT
+                FROM PROJECT p
+                LEFT JOIN COMMON_CODE c
+                    ON p.STATUS = c.COMMON_ID
+                   AND c.COMMON_CODE = '0J'
+                <where>
+                    <if test="keyword != null and keyword != ''">
+                        p.PROJECT_TITLE LIKE '%' || #{keyword} || '%'
+                    </if>
+                </where>
+                ORDER BY p.PROJECT_ID DESC
+            ) inner_q
+            WHERE ROWNUM &lt;= #{offset} + #{pageSize}
+        )
+        WHERE RN &gt; #{offset}
+    </select>
+
+    <!-- 전체 건수 -->
+    <select id="selectProjectCount"
+            parameterType="com.weple.cloud.system.service.SystemProjectVO"
+            resultType="int">
+        SELECT COUNT(*)
+        FROM PROJECT p
+        <where>
+            <if test="keyword != null and keyword != ''">
+                p.PROJECT_TITLE LIKE '%' || #{keyword} || '%'
+            </if>
+        </where>
+    </select>
+
+    <!-- 식별자 중복 체크 -->
+    <select id="countByIdentifier" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM project
+        WHERE project_identifier = #{projectIdentifier}
+    </select>
+
+    <!-- 프로젝트 모듈 목록 조회 -->
+    <select id="selectModuleNames" parameterType="long" resultType="string">
+        SELECT module_name
+        FROM module_mapping
+        WHERE project_id = #{projectId}
+    </select>
+
+    <!-- 프로젝트 생성 -->
+    <insert id="insertInfo" parameterType="com.weple.cloud.system.service.SystemProjectVO">
+        <selectKey keyProperty="projectId" resultType="long" order="BEFORE">
+            SELECT project_id_seq.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO project(
+            project_id,
+            project_title,
+            project_describe,
+            project_identifier,
+            status,
             start_date,
             finish_date,
             created_at
-		)
-		VALUES(
-			#{projectId},
+        )
+        VALUES(
+            #{projectId},
             #{projectTitle},
             #{projectDescribe},
             #{projectIdentifier},
-            'j1',
-            SYSDATE - INTERVAL '9' HOUR,
-            SYSDATE - INTERVAL '9' HOUR,
+            #{status},
+            #{startDate},
+            #{finishDate},
             SYSDATE - INTERVAL '9' HOUR
-		)
-	</insert>
-	<insert id="insertModuleMapping" parameterType="com.weple.cloud.system.service.SystemProjectVO">
-		INSERT INTO module_mapping(
-			module_map_id,
-			project_id,
-			module_name
-		)
-		SELECT
-			(SELECT NVL(MAX(module_map_id), 0) FROM module_mapping) + ROWNUM,
-			t.project_id,
-        	t.module_name
-         FROM (
-		<foreach collection="moduleNames" item="name" separator="UNION ALL">
-			SELECT 
-                #{projectId} AS project_id, 
-                #{name} AS module_name 
+        )
+    </insert>
+
+    <!-- 프로젝트 모듈 매핑 일괄 등록 -->
+    <insert id="insertModuleMapping" parameterType="com.weple.cloud.system.service.SystemProjectVO">
+        INSERT INTO module_mapping(
+            module_map_id,
+            project_id,
+            module_name
+        )
+        SELECT
+            (SELECT NVL(MAX(module_map_id), 0) FROM module_mapping) + ROWNUM,
+            t.project_id,
+            t.module_name
+        FROM (
+        <foreach collection="moduleNames" item="name" separator="UNION ALL">
+            SELECT
+                #{projectId} AS project_id,
+                #{name} AS module_name
             FROM dual
-		</foreach>
-		) t
-	</insert>
+        </foreach>
+        ) t
+    </insert>
+
+    <!-- 프로젝트 삭제 -->
+    <delete id="deleteProject">
+        DELETE
+        FROM PROJECT
+        WHERE PROJECT_ID = #{projectId}
+    </delete>
 
 </mapper>

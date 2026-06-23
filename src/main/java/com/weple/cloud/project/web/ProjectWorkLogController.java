@@ -1,5 +1,7 @@
 package com.weple.cloud.project.web;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
@@ -27,20 +29,32 @@ public class ProjectWorkLogController {
             @RequestParam(required = false) String endDate,
             @RequestParam(required = false) String userCode,
             @RequestParam(required = false) List<String> typeNames,
+            @RequestParam(value = "page", defaultValue = "1") int page,
             Model model) {
+    	
+        if (startDate == null || startDate.isEmpty()) {
+            LocalDate today = LocalDate.now();
+            endDate = today.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
+            startDate = today.minusDays(4).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
+        }
+        
+        int pageSize = 10;
+        int offset = (page - 1) * pageSize;
 
-        List<WorkLogVO> list =
-                projectWorkLogService.findAll(
-                        projectId,
-                        startDate,
-                        endDate,
-                        userCode,
-                        typeNames);
+        List<WorkLogVO> list = projectWorkLogService.findAll(
+                projectId, startDate, endDate, userCode, typeNames, offset, pageSize);
+
+        int totalCount = projectWorkLogService.countAll(
+                projectId, startDate, endDate, userCode, typeNames);
+
+        int totalPages = (int) Math.ceil((double) totalCount / pageSize);
         
         ProjectVO project = projectService.findById(projectId);
+        List<String> moduleNames = projectService.findModuleNames(Long.parseLong(projectId));
 
         model.addAttribute("workLogList", list);
         model.addAttribute("project", project);
+        model.addAttribute("moduleNames", moduleNames);
 
         model.addAttribute("projectId", projectId);
         model.addAttribute("startDate", startDate);

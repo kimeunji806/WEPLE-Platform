@@ -34,7 +34,7 @@
         </div>
 
         <div class="form-container shadow-sm">
-            <form th:action="${taskType != null} ? @{/system/taskTypeUpdate} : @{/system/taskTypeInsert}"
+            <form th:action="${taskType != null} ? @{/system/taskType/update} : @{/system/taskType/insert}"
                   th:method="${taskType != null} ? 'put' : 'post'">
             
             	<input type="hidden" name="typeId" th:if="${taskType != null}" th:value="${taskType.typeId}">

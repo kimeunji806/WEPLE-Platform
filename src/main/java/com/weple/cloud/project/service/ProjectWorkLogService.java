@@ -10,5 +10,14 @@ public interface ProjectWorkLogService {
             String startDate,
             String endDate,
             String userCode,
-            List<String> typeNames);
+            List<String> typeNames,
+            int offset,
+            int pageSize);
+	
+	 int countAll(
+	            String projectId,
+	            String startDate,
+	            String endDate,
+	            String userCode,
+	            List<String> typeNames);
 }

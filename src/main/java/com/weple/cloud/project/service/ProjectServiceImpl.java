@@ -14,12 +14,27 @@ public class ProjectServiceImpl implements ProjectService {
 	private final ProjectMapper projectMapper;
 	
 	@Override
-	public List<ProjectVO> findAll(String keyword){
-		return projectMapper.selectAll(keyword);
+	public List<ProjectVO> findAll(String keyword, int offset, int pageSize){
+		return projectMapper.selectAll(keyword, offset, pageSize);
+	}
+
+	@Override
+	public int countAll(String keyword) {
+		return projectMapper.countAll(keyword);
 	}
 
 	@Override
 	public ProjectVO findById(String projectId) {
 		return projectMapper.selectById(projectId);
+	}
+
+	@Override
+	public List<ProjectVO> findAll(String keyword) {
+		return projectMapper.selectAllNoPage(keyword);
+	}
+
+	@Override
+	public List<String> findModuleNames(Long projectId) {
+		return projectMapper.selectModuleNames(projectId);
 	}
 }

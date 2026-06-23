@@ -1,0 +1,330 @@
+.project-page {
+    padding: 20px;
+}
+
+.project-toolbar-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.project-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+}
+
+.project-card {
+    background: #fff;
+    border: 1px solid #e1e4e6;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.form-group-row {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4b525a;
+}
+
+.required::after {
+    content: " *";
+    color: #e53e3e;
+    font-weight: bold;
+}
+
+.form-input-text {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    font-size: 14px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background-color: #fff;
+    transition: border-color 0.2s;
+}
+
+.form-input-text:focus,
+.form-textarea:focus {
+    border-color: #4a90e2;
+    outline: none;
+}
+
+.form-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    height: 120px;
+    padding: 12px 14px;
+    font-size: 14px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    resize: none;
+}
+
+.identifier-input-wrap {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.module-box-container {
+    border: 1px solid #e1e4e6;
+    padding: 24px 16px;
+    border-radius: 6px;
+    background-color: #fcfdfe;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.module-flex-layout {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.module-item-wrapper {
+    flex: 0 0 25%;
+    max-width: 25%;
+    box-sizing: border-box;
+    padding: 10px 8px;
+}
+
+.checkbox-inline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+    width: auto;
+}
+
+.checkbox-inline input[type="checkbox"] {
+    display: none;
+}
+
+.custom-check-box {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    display: inline-block;
+    position: relative;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.module-text {
+    white-space: nowrap;
+    word-break: keep-all;
+    display: inline-block;
+    line-height: 18px;
+    text-align: left;
+}
+
+.checkbox-inline input[type="checkbox"]:checked + .custom-check-box {
+    background: #007bff;
+    border-color: #007bff;
+}
+
+.checkbox-inline input[type="checkbox"]:checked + .custom-check-box::after {
+    content: "✓";
+    position: absolute;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.button-group-right {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+    border-top: 1px solid #f1f3f5;
+    padding-top: 20px;
+}
+
+.page-btn {
+    padding: 10px 24px;
+    font-size: 14px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #ced4da;
+    background: #fff;
+    color: #495057;
+    transition: all 0.2s;
+}
+
+.page-btn.active {
+    background: #007bff;
+    border-color: #007bff;
+    color: #fff;
+}
+
+.page-btn:hover {
+    opacity: 0.9;
+}
+
+/* ===== 날짜 영역 ===== */
+.date-row {
+    display: flex;
+    gap: 16px;
+    flex: 1;
+}
+
+.date-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.date-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #8a99b5;
+}
+
+.date-label.required::after {
+    content: ' *';
+    color: #e53935;
+}
+
+.date-input {
+    width: 100%;
+    box-sizing: border-box;
+    height: 38px;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #d9e1f2;
+    border-radius: 8px;
+    transition: border-color 0.2s;
+}
+
+/* 등록일자 - readonly 회색 */
+.date-input[readonly] {
+    background-color: #f8faff;
+    color: #adb5bd;
+    cursor: not-allowed;
+    border-color: #e6ecf5;
+}
+
+/* 마감일자 - 흰색 활성 */
+.date-input:not([readonly]) {
+    background-color: #fff;
+    color: #222;
+    cursor: pointer;
+    border-color: #d9e1f2;
+}
+
+.date-input.flatpickr-input {
+    background-color: #fff !important;
+    color: #222 !important;
+}
+
+.date-input:not([readonly]):focus {
+    border-color: #4d84ff;
+    outline: none;
+}
+
+/* ===== flatpickr 캘린더 UI (작업내역 동일) ===== */
+.flatpickr-calendar { width: 240px !important; max-width: 240px !important; padding: 8px !important; }
+.flatpickr-calendar.arrowTop:before, .flatpickr-calendar.arrowTop:after { display: none; }
+.flatpickr-months { align-items: center; margin-bottom: 8px; }
+.flatpickr-months .flatpickr-month { height: 36px; color: #222; }
+.flatpickr-current-month,
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month input.cur-year { font-size: 14px; font-weight: 700; color: #222 !important; background: transparent; border-radius: 6px; padding: 0; }
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; fill: #8a99b5; }
+.flatpickr-months .flatpickr-prev-month:hover,
+.flatpickr-months .flatpickr-next-month:hover { background: #eef4ff; }
+.flatpickr-months .flatpickr-prev-month:hover svg,
+.flatpickr-months .flatpickr-next-month:hover svg { fill: #4d84ff; }
+.flatpickr-weekdays { margin-bottom: 4px; }
+span.flatpickr-weekday { font-size: 11px; font-weight: 700; color: #9aa8c4; }
+.dayContainer { width: 224px !important; min-width: 224px !important; }
+.flatpickr-days { width: 224px !important; }
+.flatpickr-day { width: 30px !important; max-width: 30px !important; height: 30px !important; line-height: 30px !important; font-size: 12px !important; border-radius: 6px !important; }
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay { color: #7a8aa8; }
+.flatpickr-day:hover { background: #eef4ff; border-color: #eef4ff; color: #4d84ff; }
+.flatpickr-day.today { background: #eef4ff !important; color: #4d84ff !important; border: none !important; border-radius: 8px !important; }
+.flatpickr-day.today:hover { background: #eef4ff !important; border-color: #4d84ff !important; border-radius: 8px !important; color: #4d84ff !important; }
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover { background: #4d84ff !important; border-color: #4d84ff !important; color: #fff !important; font-weight: 700 !important; border-radius: 8px !important; }
+.flatpickr-day.inRange { background: #eef4ff !important; border-color: #eef4ff !important; box-shadow: -5px 0 0 #eef4ff, 5px 0 0 #eef4ff !important; color: #4d84ff !important; }
+.numInputWrapper:hover { background: transparent; }
+/* ===== 토스트 ===== */
+.toast-wrap {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%); 
+    z-index: 9999;
+    animation: toastFadeOut 3.5s forwards;
+}
+.toast-msg {
+    padding: 13px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast-error { background-color: #e53e3e; }
+.toast-success { background-color: #38a169; }
+
+@keyframes toastFadeOut {
+    0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    75%  { opacity: 1; }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+}
+
+.module-select-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px; 
+}
+
+.module-ctrl-btn {
+    padding: 5px 14px;
+    font-size: 13px;
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    background: #fff;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.module-ctrl-btn:hover {
+    background: #007bff;
+    border-color: #007bff;
+    color: #fff;
+}
+
+.module-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;  
+}

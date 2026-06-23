@@ -21,6 +21,7 @@ public class SystemProjectVO {
 	private String projectTitle;
 	private String projectDescribe;
 	private String projectIdentifier;
+	private String status;
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	private Date startDate;
 	@DateTimeFormat(pattern = "yyyy-MM-dd")
@@ -29,4 +30,11 @@ public class SystemProjectVO {
 	private Date createdAt;
 	
 	private List<String> moduleNames;
+	
+	// 검색/페이징
+	private String keyword;
+    private int page;
+    private int pageSize;
+    private int offset;
+    private int totalCount;
 }

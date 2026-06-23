@@ -1,0 +1,124 @@
+.role-create-page {
+    padding: 20px 25px;
+    min-height: 100vh;
+}
+
+.role-create-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 30px;
+    border: 1px solid #e1e4e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,.02);
+}
+
+.role-create-toolbar {
+    margin-bottom: 24px;
+}
+
+.role-create-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.form-group-row {
+    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4b525a;
+}
+
+.required::after {
+    content: " *";
+    color: #e53e3e;
+}
+
+.form-input-text {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    font-size: 14px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+}
+
+.form-input-text:focus {
+    border-color: #4a90e2;
+    outline: none;
+}
+
+/* 권한 섹션 */
+.permission-section {
+    margin-bottom: 20px;
+    border: 1px solid #e1e4e6;
+    border-radius: 8px;
+    padding: 16px 20px;
+    background: #fcfdfe;
+}
+
+.permission-tag-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #4b525a;
+    margin-bottom: 12px;
+}
+
+.permission-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+}
+
+.permission-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+}
+
+.permission-item input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    accent-color: #4d84ff;
+}
+
+/* 버튼 */
+.button-group-right {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+    border-top: 1px solid #f1f3f5;
+    padding-top: 20px;
+}
+
+.page-btn {
+    padding: 10px 24px;
+    font-size: 14px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid #ced4da;
+    background: #fff;
+    color: #495057;
+}
+
+.page-btn.active {
+    background: #4d84ff;
+    border-color: #4d84ff;
+    color: #fff;
+}
+
+.page-btn:hover {
+    opacity: 0.9;
+}

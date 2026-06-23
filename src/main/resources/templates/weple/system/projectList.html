@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>프로젝트 목록</title>
+    <link rel="stylesheet" href="/css/system/project-list.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+<section class="project-page">
+
+    <div class="project-card">
+
+        <!-- 상단 -->
+        <div class="project-toolbar">
+            <h3 class="project-title">프로젝트</h3>
+            <a th:href="@{/system/project}" class="project-create-btn">
+                <i class="fas fa-folder"></i>
+                <span>프로젝트 생성</span>
+            </a>
+        </div>
+
+        <!-- 검색 -->
+        <form method="get" th:action="@{/system/project/list}" class="filter-toolbar">
+		    <div class="project-search">
+		        <i class="fas fa-search"></i>
+		        <input type="text" name="keyword"
+		               th:value="${keyword}"
+		               placeholder="프로젝트명을 입력하세요."
+		               onchange="this.form.submit()">
+		    </div>
+		</form>
+
+        <!-- 테이블 -->
+        <div class="project-table-wrap">
+            <table class="project-table">
+                <thead>
+                    <tr>
+                        <th>NO</th>
+                        <th>프로젝트명</th>
+                        <th>설명</th>
+                        <th>등록일</th>
+                        <th>마감일</th>
+                        <th>상태</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(projectList)}">
+                        <td colspan="7" class="empty-message">등록된 프로젝트가 없습니다.</td>
+                    </tr>
+                    <tr th:each="project, stat : ${projectList}">
+                        <td th:text="${(currentPage - 1) * 10 + stat.count}"></td>
+                        <td th:text="${project.projectTitle}"></td>
+                        <td th:text="${project.projectDescribe}"></td>
+                        <td th:text="${project.createdAt != null ? #dates.format(project.createdAt,'yyyy-MM-dd') : '-'}"></td>
+                        <td th:text="${project.finishDate != null ? #dates.format(project.finishDate,'yyyy-MM-dd') : '-'}"></td>
+                        <td>
+						    <span class="status-badge"
+						          th:classappend="${project.status == '신규'} ? 'type-new'
+						                          : (${project.status == '진행 중'} ? 'type-progress'
+						                          : (${project.status == '완료'} ? 'type-done'
+						                          : 'type-default'))"
+						          th:text="${project.status != null and project.status != ''} ? ${project.status} : '-'">
+						    </span>
+						</td>
+                        <td>
+                            <form th:action="@{/system/project/delete}" method="post" class="delete-form">
+                                <input type="hidden" name="projectId" th:value="${project.projectId}">
+                                <button type="button" class="delete-btn delete-project-btn">삭제</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 페이징 -->
+		<div class="pagination-wrap">
+		    <a th:href="@{/system/project/list(page=${currentPage - 1}, keyword=${keyword})}"
+		       th:classappend="${currentPage <= 1} ? 'disabled' : ''"
+		       class="page-btn">&lt; 이전</a>
+		
+		    <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+		       th:href="@{/system/project/list(page=${i}, keyword=${keyword})}"
+		       th:text="${i}"
+		       th:classappend="${i == currentPage} ? 'active' : ''"
+		       class="page-btn"></a>
+		
+		    <a th:href="@{/system/project/list(page=${currentPage + 1}, keyword=${keyword})}"
+		       th:classappend="${currentPage >= totalPages} ? 'disabled' : ''"
+		       class="page-btn">다음 &gt;</a>
+		</div>
+
+    </div>
+
+    <!-- 삭제 확인 모달 -->
+    <div id="confirmModal"
+         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.35);
+                justify-content:center; align-items:center; z-index:9999;">
+        <div style="width:360px; background:#fff; border-radius:16px; padding:28px;
+                    box-shadow:0 10px 40px rgba(0,0,0,.15); text-align:center;">
+            <h4 style="margin:0 0 12px; font-size:18px; font-weight:700;">프로젝트 삭제</h4>
+            <p style="margin:0; color:#6b7280; font-size:14px;">프로젝트를 삭제하시겠습니까?</p>
+            <div style="display:flex; gap:10px; margin-top:24px;">
+                <button type="button" onclick="closeModal()"
+                        style="flex:1; height:42px; border:none; border-radius:10px;
+                               cursor:pointer; font-weight:600; background:#f3f4f6; color:#374151;">
+                    취소
+                </button>
+                <button type="button" onclick="submitDelete()"
+                        style="flex:1; height:42px; border:none; border-radius:10px;
+                               cursor:pointer; font-weight:600; background:#ff6b6b; color:#fff;">
+                    삭제
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 -->
+    <div id="toast" class="toast-message" th:text="${toastMessage}"></div>
+
+    <!-- scriptFragment 이후에 실행되도록 defer 사용 -->
+    <script defer>
+        function initProjectList() {
+            let deleteForm = null;
+
+            document.querySelectorAll(".delete-project-btn").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    deleteForm = this.closest("form");
+                    document.getElementById("confirmModal").style.display = "flex";
+                });
+            });
+
+            window.closeModal = function () {
+                document.getElementById("confirmModal").style.display = "none";
+            };
+
+            window.submitDelete = function () {
+                if (deleteForm) {
+                    document.getElementById("confirmModal").style.display = "none";
+                    deleteForm.submit();
+                }
+            };
+
+            // 토스트
+            const toast = document.getElementById("toast");
+            const toastText = toast ? toast.textContent.trim() : "";
+            if (toast && toastText !== "") {
+                toast.style.opacity = "1";
+                toast.style.visibility = "visible";
+                setTimeout(function () {
+                    toast.style.opacity = "0";
+                    toast.style.visibility = "hidden";
+                }, 3000);
+            }
+        }
+
+        // scriptFragment 로드 완료 후 실행 보장
+        if (document.readyState === "complete") {
+            initProjectList();
+        } else {
+            window.addEventListener("load", initProjectList);
+        }
+    </script>
+
+</section>
+</body>
+</html>

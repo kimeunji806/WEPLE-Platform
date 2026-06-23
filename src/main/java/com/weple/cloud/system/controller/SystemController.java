@@ -9,15 +9,18 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.weple.cloud.auth.service.LoginUserDetails;
 import com.weple.cloud.system.service.CodeValueService;
 import com.weple.cloud.system.service.GroupService;
+import com.weple.cloud.system.service.RoleService;
 import com.weple.cloud.system.service.SystemGroupUserVO;
 import com.weple.cloud.system.service.SystemGroupVO;
 import com.weple.cloud.system.service.SystemProjectService;
@@ -288,10 +291,43 @@ public class SystemController {
     }
 	
 	// -------------------------------프로젝트------------------------------
-	// 프로젝트 생성
+	
 	@Autowired
 	private SystemProjectService systemProjectService;
 	
+	// 프로젝트 조회
+	@GetMapping("/system/project/list")
+	public String projectList(
+			@RequestParam(defaultValue = "1") int page,
+	        @RequestParam(required = false) String keyword,
+	        @ModelAttribute("toastMessage") String toastMessage,
+	        Model model) {
+		
+		int pageSize = 10;
+		
+		SystemProjectVO vo = new SystemProjectVO();
+	    vo.setPage(page);
+	    vo.setPageSize(pageSize);
+	    vo.setKeyword(keyword);
+	    
+	    List<SystemProjectVO> projectList = systemProjectService.selectProjectList(vo);
+	    int totalCount = systemProjectService.selectProjectCount(vo);
+
+	    int totalPages = (int) Math.ceil((double) totalCount / pageSize);
+
+	    model.addAttribute("projectList",projectList);
+	    model.addAttribute("totalCount", totalCount);
+	    model.addAttribute("totalPages", totalPages);
+	    model.addAttribute("currentPage", page);
+	    model.addAttribute("keyword", keyword);
+	    
+	    model.addAttribute("sidebarMenu", "system");
+	    model.addAttribute("currentMenu", "systemproject");
+
+	    return "weple/system/projectList";
+	}
+	
+	// 프로젝트 생성
 	@GetMapping("/system/project")
 	public String projectCreateForm(Model model) {
 		
@@ -302,9 +338,19 @@ public class SystemController {
 	}
 	
 	@PostMapping("/system/project")
-	public String projectCreateProcess(SystemProjectVO projectVO, Model model) {
-		int result = systemProjectService.createProject(projectVO);
-		
+	public String projectCreateProcess(SystemProjectVO projectVO, RedirectAttributes redirectAttributes, Model model) {
+		 // 식별자 중복 체크
+	    if (systemProjectService.existsByIdentifier(projectVO.getProjectIdentifier())) {
+	        redirectAttributes.addFlashAttribute("toastError",
+	            "이미 존재하는 식별자입니다: " + projectVO.getProjectIdentifier());
+	        return "redirect:/system/project";
+	    }
+	    
+	    // 상태 기본값 세팅
+	    projectVO.setStatus("j1");
+	    
+	    int result = systemProjectService.createProject(projectVO);
+	    
 		if(result > 0) {
 			return "redirect:/project";
 		}else {
@@ -317,7 +363,37 @@ public class SystemController {
 		}
 	}
 	
-	// 등록
-
-	// 수정
+	// 프로젝트 삭제
+	@PostMapping("/system/project/delete")
+	public String deleteProject(
+			@RequestParam String projectId,
+			RedirectAttributes redirectAttributes) {
+		
+		int result = systemProjectService.deleteProject(projectId);
+		
+		if(result > 0) {
+			redirectAttributes.addFlashAttribute("toastMessage", "프로젝트가 삭제되었습니다.");
+		}
+		return "redirect:/system/project/list";
+	}
+	
+	// -------------------------------역할 및 권한------------------------------
+	@Autowired
+	private RoleService roleService;
+	
+	// 역할 목록
+	@GetMapping("/system/role")
+	public String roleList(@ModelAttribute("toastMessage") String toastMessage,
+							Model model) {
+		model.addAttribute("roleList", roleService.selectRoleList());
+		model.addAttribute("sidebarMenu", "system");
+	    model.addAttribute("currentMenu", "systemrole");
+	    return "weple/system/roleList";
+	}
+	
+	// 역할 등록
+	
+	// 역할 등록 처리
+	
+	// 역할 삭제
 }

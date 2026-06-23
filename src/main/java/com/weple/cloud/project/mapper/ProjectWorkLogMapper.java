@@ -14,5 +14,14 @@ public interface ProjectWorkLogMapper {
 			@Param("startDate") String startDate,
             @Param("endDate") String endDate,
             @Param("userCode") String userCode,
-            @Param("typeNames") List<String> typeNames);
+            @Param("typeNames") List<String> typeNames,
+            @Param("offset") int offset,
+            @Param("pageSize") int pageSize);
+		    
+	int countProjectWorkLog(
+		    @Param("projectId") String projectId,
+		    @Param("startDate") String startDate,
+		    @Param("endDate") String endDate,
+		    @Param("userCode") String userCode,
+		    @Param("typeNames") List<String> typeNames);
 }

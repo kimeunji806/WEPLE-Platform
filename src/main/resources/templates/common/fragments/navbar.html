@@ -4,19 +4,61 @@
 <body>
 <div th:fragment="navbarFragment" class="sub_menu_nav" th:if="${currentMenu != 'none' and sidebarMenu != 'system'}">
     <ul>
-        <li th:classappend="${currentMenu == 'overview'} ? 'active' : ''"><a href="#">개요</a></li>
-        <li th:classappend="${currentMenu == 'worklog'} ? 'active' : ''"><a th:href="@{/project/worklog(projectId=${projectId})}">작업내역</a></li>
-        <li><a href="#">마일스톤</a></li>
-        <li th:classappend="${currentMenu == 'task'} ? 'active' : ''"><a th:href="@{/project/task(projectId=${projectId})}">일감</a></li>
-        <li><a href="#">소요시간</a></li>
-        <li><a href="#">간트차트</a></li>
-        <li><a href="#">테스트</a></li>
-        <li><a href="#">위키</a></li>
-        <li><a href="#">파일관리</a></li>
-        <li th:if="${hasRepository}" th:classappend="${currentMenu == 'repository'} ? 'active' : ''"><a th:href="@{/repository/list(projectId=${projectId})}">저장소</a></li>
-        <li><a href="#">칸반보드</a></li>
-        <li><a href="#">캘린더</a></li>
-        <li><a th:href="@{/repository/management(projectId=${projectId})}">설정</a></li>
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b1')}"
+        	th:classappend="${currentMenu == 'overview'} ? 'active' : ''">
+        	<a href="#">개요</a>
+        </li>
+        
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b2')}"
+        	th:classappend="${currentMenu == 'worklog'} ? 'active' : ''">
+        	<a th:href="@{/project/worklog(projectId=${projectId})}">작업내역</a>
+        </li>
+        
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b3')}">
+        	<a href="#">마일스톤</a>
+        </li>
+        
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b4')}"
+        	th:classappend="${currentMenu == 'task'} ? 'active' : ''">
+        	<a th:href="@{/project/task(projectId=${projectId})}">일감</a>
+        </li>
+        
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b5')}">
+        	<a href="#">소요시간</a>
+        </li>
+        
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b6')}">
+        	<a href="#">간트차트</a>
+        </li>
+        
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b12')}">
+        	<a href="#">테스트</a>
+        </li>
+        
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b7')}">
+        	<a href="#">위키</a>
+        </li>
+        
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b8')}">
+        	<a href="#">파일관리</a>
+        </li>
+        
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b8') and hasRepository}"
+        	th:classappend="${currentMenu == 'repository'} ? 'active' : ''">
+        	<a th:href="@{/repository/list(projectId=${projectId})}">저장소</a>
+        </li>
+        
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b9')}">
+        	<a href="#">칸반보드</a>
+        </li>
+        
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b10')}">
+        	<a href="#">캘린더</a>
+        </li>
+        
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b11')}">
+        	<a th:href="@{/repository/management(projectId=${projectId})}">설정</a>
+        </li>
     </ul>
 </div>
 </body>

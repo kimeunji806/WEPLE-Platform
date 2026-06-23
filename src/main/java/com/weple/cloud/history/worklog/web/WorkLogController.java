@@ -1,5 +1,7 @@
 package com.weple.cloud.history.worklog.web;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,25 +36,38 @@ public class WorkLogController {
             @RequestParam(required = false) String endDate,
             @RequestParam(required = false) String userCode,
             @RequestParam(required = false) List<String> typeNames,
+            @RequestParam(value = "page", defaultValue = "1") int page,
 			Model model) {
 		
-		List<WorkLogVO> list = workLogService.findAll(
-				projectId,
-                startDate,
-                endDate,
-                userCode,
-                typeNames);
+		 // 날짜 기본값: 최근 5일
+        if (startDate == null || startDate.isEmpty()) {
+            LocalDate today = LocalDate.now();
+            endDate = today.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
+            startDate = today.minusDays(4).format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
+        }
+
+        int pageSize = 10;
+        int offset = (page - 1) * pageSize;
 		
-		model.addAttribute("workLogList", list);
+        List<WorkLogVO> list = workLogService.findAll(
+                projectId, startDate, endDate, userCode, typeNames, offset, pageSize);
+
+        int totalCount = workLogService.countAll(
+                projectId, startDate, endDate, userCode, typeNames);
+
+        int totalPages = (int) Math.ceil((double) totalCount / pageSize);
 		
 		List<ProjectVO> projectList = projectService.findAll("");
 		model.addAttribute("projects", projectList);
 		
+		model.addAttribute("workLogList", list);
 		model.addAttribute("projectId", projectId);
 		model.addAttribute("startDate", startDate);
 		model.addAttribute("endDate", endDate);
 		model.addAttribute("userCode", userCode);
 		model.addAttribute("typeNames", typeNames);
+		model.addAttribute("currentPage", page);      
+		model.addAttribute("totalPages", totalPages); 
 		
 		model.addAttribute("sidebarMenu", "work-history");
 		model.addAttribute("currentMenu", "none");

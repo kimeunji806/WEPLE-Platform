@@ -5,13 +5,14 @@
 <head>
     <meta charset="UTF-8">
     <title>프로젝트 목록</title>
+    <link rel="stylesheet" href="/css/project/project.css">
 </head>
 <body>
-	
+
 <section class="project-page">
-        <h3 class="project-title">프로젝트 목록</h3>
+    <h3 class="project-title">프로젝트 목록</h3>
     <div class="project-card">
-        
+
         <div class="project-toolbar">
             <form id="searchForm" method="get" th:action="@{/project}">
                 <div class="project-search">
@@ -19,7 +20,9 @@
                     <input type="text" name="keyword" th:value="${keyword}" placeholder="프로젝트명을 입력하세요.">
                 </div>
             </form>
-            <button type="button" th:onclick="|location.href='@{/project/insert}'|" class="project-create-btn"> <i class="fa fa-folder"></i> 프로젝트 생성</button>
+            <a th:href="@{/system/project}" class="project-create-btn">
+                <i class="fa fa-folder"></i> 프로젝트 생성
+            </a>
         </div>
 
         <div class="project-table-wrap">
@@ -35,22 +38,23 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="project, stat : ${projects}" th:classappend="${project?.status == '완료'} ? 'project-dim' : ''">
-                        <td th:text="${stat.count}"></td>
-                        <td class="text-left">
-							<a class="project-link" 
-							   th:href="@{/project/worklog(projectId=${project.projectId})}" 
-							   th:text="${project.projectTitle}">
-							</a>
-						</td>
-                        <td class="text-left" th:text="${project?.projectDescribe}"></td>
+                    <tr th:each="project, stat : ${projects}"
+                        th:classappend="${project?.status == '완료'} ? 'project-dim' : ''">
+                        <td th:text="${(currentPage - 1) * 10 + stat.count}"></td>
+                        <td>
+                            <a class="project-link"
+                               th:href="@{/project/worklog(projectId=${project.projectId})}"
+                               th:text="${project.projectTitle}">
+                            </a>
+                        </td>
+                        <td th:text="${project?.projectDescribe}"></td>
                         <td th:text="${project?.createdAt != null ? #dates.format(project.createdAt,'yyyy-MM-dd') : '-'}"></td>
                         <td th:text="${project?.finishDate != null ? #dates.format(project.finishDate,'yyyy-MM-dd') : '-'}"></td>
                         <td>
                             <span th:if="${project?.status == '신규'}" class="status-badge status-new">신규</span>
-                            <span th:if="${project?.status == '진행중' or project?.status == '진행 중'}" class="status-badge status-progress">진행중</span>
+                            <span th:if="${project?.status == '진행 중'}" class="status-badge status-progress">진행 중</span>
                             <span th:if="${project?.status == '완료'}" class="status-badge status-done">완료</span>
-                            <span th:if="${project?.status == null || project?.status == ''}">-</span>
+                            <span th:if="${project?.status == null or project?.status == ''}">-</span>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(projects)}">
@@ -60,284 +64,37 @@
             </table>
         </div>
 
-        <div class="pagination-wrap">
-   			<a href="#" class="page-btn disabled">&lt; 이전</a>
-    		<a href="#" class="page-btn active">1</a>
-    		<a href="#" class="page-btn">2</a>
-    		<a href="#" class="page-btn">3</a>
-    		<a href="#" class="page-btn">4</a>
-    		<a href="#" class="page-btn">다음 &gt;</a>
-		</div>
+        <!-- 페이징 -->
+        <div class="pagination-wrap" th:if="${totalPages > 0}">
+            <a th:href="${currentPage > 1} ? @{/project(page=${currentPage - 1}, keyword=${keyword})} : '#'"
+               th:classappend="${currentPage <= 1} ? 'disabled' : ''"
+               class="page-btn">&lt; 이전</a>
+
+            <th:block th:each="i : ${#numbers.sequence(1, totalPages)}">
+                <a th:href="@{/project(page=${i}, keyword=${keyword})}"
+                   th:text="${i}"
+                   th:classappend="${i == currentPage} ? 'active' : ''"
+                   class="page-btn"></a>
+            </th:block>
+
+            <a th:href="${currentPage < totalPages} ? @{/project(page=${currentPage + 1}, keyword=${keyword})} : '#'"
+               th:classappend="${currentPage >= totalPages} ? 'disabled' : ''"
+               class="page-btn">다음 &gt;</a>
+        </div>
+
     </div>
-    
-    
-    
-        <style>
-		.right_col{
-		    background:#f5f6fa !important;
-		}
-		
-		.container-fluid{
-		    padding:0 !important;
-		}
-		
-		.project-page{
-		    padding:20px 25px;
-		    min-height:100vh;
-		}
-		
-		.project-card{
-		    width:100%;
-		    background:#ffffff;
-		    border-radius:24px;
-		    padding:30px;
-		    border:1px solid #edf1f7;
-		    box-shadow:0 2px 10px rgba(0,0,0,.03);
-		}
-	
-		.project-title{
-		    margin:0 0 24px;
-		    font-size:24px;
-		    font-weight:700;
-		    color:#222;
-		    letter-spacing:-0.5px;
-		}
-		
-		.project-toolbar{
-	    display:flex;
-	    justify-content:space-between;
-	    align-items:center;
-	    width:100%;
-	    margin-bottom:20px;
-		}
-		
-		.project-toolbar form{
-		    margin:0;
-		}
-		
-		.project-search{
-		    width:280px;
-		    height:42px;
-		    display:flex;
-		    align-items:center;
-		    padding:0 14px;
-		    border:1px solid #d9e1f2;
-		    border-radius:12px;
-		    background:#fff;
-		}
-		
-		.project-search i{
-		    color:#9aa8c4;
-		    margin-right:10px;
-		}
-		
-		.project-search input{
-		    width:100%;
-		    border:none;
-		    outline:none;
-		    background:transparent;
-		    font-size:13px;
-		    color:#495057;
-		}
-		
-		.project-search input::placeholder{
-		    color:#adb5bd;
-		}
-		
-		.project-create-btn{
-		    display:flex;
-		    align-items:center;
-		    justify-content:center;
-		    gap:6px;
-		    width:150px;
-		    height:40px;
-		    margin-top:0;
-		    border:none;
-		    border-radius:10px;
-		    background:#4d84ff;
-		    color:#fff;
-		    font-size:13px;
-		    font-weight:600;
-		    cursor:pointer;
-		    transition:.2s;
-		}
-		
-		.project-create-btn:hover{
-		    background:#3970eb;
-		}
-			
-		.project-table-wrap{
-		    margin-top:15px;
-		    border:1px solid #e6ecf5;
-		    border-radius:14px;
-		    overflow:hidden;
-		    background:#fff;
-		    margin-bottom:40px;
-		    overflow-x: auto; 
-		}
-		
-		.project-table{
-		    width:100%;
-		    border-collapse:collapse;
-		    table-layout: auto; 
-		    min-width: 900px; 
-		}
-		
-		.project-table thead{
-		    background:#f8faff;
-		}
-		
-		.project-table th{
-		    height:54px;
-		    font-size:13px;
-		    font-weight:700;
-		    color:#5d6b87;
-		    border-bottom:1px solid #e9edf5;
-		    text-align:center;
-		    white-space: nowrap; 
-		}
-		
-		.project-table th:nth-child(2),
-		.project-table th:nth-child(3){
-		    text-align:left;
-		    padding-left:20px;
-		}
-		
-		.project-table td{
-		    height:64px;
-		    padding:0 15px;
-		    border-top:1px solid #edf1f7;
-		    color:#374151;
-		    font-size:13px;
-		    text-align:center;
-		    white-space: nowrap; 
-		}
-		
-		.project-table td:nth-child(2),
-		.project-table td:nth-child(3){
-		    text-align:left;
-		    padding-left:20px;
-		    white-space: normal; 
-		}
-		
-		.project-table tbody tr:hover{
-		    background:#fafcff;
-		}
 
-		.project-link{
-		    color:#4d84ff;
-		    text-decoration:none;
-		    font-weight:600;
-		}
-		
-		.project-link:hover{
-		    color:#2f6eff;
-		    text-decoration:none;
-		}
-		
-		.status-badge{
-		    display:inline-flex;
-		    align-items:center;
-		    justify-content:center;
-		    min-width:78px;
-		    height:32px;
-		    border-radius:999px;
-		    font-size:12px;
-		    font-weight:700;
-		}
-		
-		.status-new{
-		    background:#eef4ff;
-		    color:#4d84ff;
-		}
-		
-		.status-progress{
-		    background:#eef4ff;
-		    color:#4d84ff;
-		}
-		
-		.status-done{
-		    background:#f1f3f7;
-		    color:#9ea7b8;
-		}
-
-		.project-dim{
-		    opacity:.55;
-		}
-		
-		.empty-message{
-		    padding:60px !important;
-		    text-align:center !important;
-		    color:#adb5bd;
-		    font-size:14px;
-		}
-		
-		.pagination-wrap{
-		    display:flex;
-		    justify-content:center;
-		    align-items:center;
-		    gap:8px;
-		    margin-top:10px;
-		    margin-bottom:10px;
-		}
-		
-		.page-btn{
-		    display:flex;
-		    align-items:center;
-		    justify-content:center;
-		    min-width:34px;
-		    height:34px;
-		    text-decoration:none;
-		    font-size:13px;
-		    font-weight:500;
-		    color:#5d6b87;
-		    border:none;
-		    background:transparent;
-		    transition:all .2s ease;
-		}
-		
-		.page-btn.active{
-		    width:34px;
-		    height:34px;
-		    border-radius:8px;
-		    background:#4d84ff;
-		    color:#fff;
-		    font-weight:700;
-		}
-		
-		.page-btn.disabled{
-		    opacity:.4;
-		    pointer-events:none;
-		}
-		
-		.page-btn:hover:not(.active):not(.disabled){
-		    color:#4d84ff;
-		}
-
-		@media(max-width:1200px){
-		    .project-card{
-		        padding:20px;
-		    }
-		    
-		    .project-search{
-		        width:240px;
-		    }
-		}
-		
-    </style>
-    
-    <!-- list.html 맨 아래 </section> 직전에 추가 -->
-	<script>
-    window.addEventListener('DOMContentLoaded', function() {
-        const navigationEntries = performance.getEntriesByType('navigation');
-        if (navigationEntries.length > 0 && navigationEntries[0].type === 'reload') {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('keyword')) {
-                window.location.href = '/project';
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            const navigationEntries = performance.getEntriesByType('navigation');
+            if (navigationEntries.length > 0 && navigationEntries[0].type === 'reload') {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('keyword')) {
+                    window.location.href = '/project';
+                }
             }
-        }
-   	 });
-	</script>
+        });
+    </script>
 </section>
 
 </body>

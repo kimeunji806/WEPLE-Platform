@@ -5,7 +5,7 @@
 <div th:fragment="navbarSettingFragment" class="sub_menu_nav" th:if="${sidebarMenu == 'system'}">
     <ul>
         <li th:classappend="${currentMenu == 'systemproject'} ? 'active' : ''">
-            <a th:href="@{/system/project}" 
+            <a th:href="@{/system/project/list}" 
                th:class="${menu == 'project' || menu == null} ? 'active' : ''">프로젝트</a>
         </li>
         <li>
@@ -17,7 +17,7 @@
                th:class="${menu == 'group'} ? 'active' : ''">그룹</a>
         </li>
         <li>
-            <a th:href="@{/roleList}" 
+            <a th:href="@{/system/role}" 
                th:class="${menu == 'role'} ? 'active' : ''">역할 및 권한</a>
         </li>
         <li>

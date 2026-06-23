@@ -17,9 +17,6 @@ public class SystemProjectServiceImpl implements SystemProjectService {
 	@Override
 	@Transactional
 	public int createProject(SystemProjectVO projectVO) {
-		long nextProjectid = systemProjectMapper.selectMaxProjectId()+1;
-		projectVO.setProjectId(nextProjectid);
-		
 		int result = systemProjectMapper.insertInfo(projectVO);
 		
 		// 프로젝트 등록 성공 시 선택된 모듈 리스트 매핑 등록
@@ -31,6 +28,28 @@ public class SystemProjectServiceImpl implements SystemProjectService {
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public boolean existsByIdentifier(String projectIdentifier) {
+		return systemProjectMapper.countByIdentifier(projectIdentifier) > 0;
+	}
+
+	@Override
+	@Transactional
+	public int deleteProject(String projectId) {
+		return systemProjectMapper.deleteProject(projectId);
+	}
+
+	@Override
+	public List<SystemProjectVO> selectProjectList(SystemProjectVO vo) {
+		vo.setOffset((vo.getPage() - 1) * vo.getPageSize());
+	    return systemProjectMapper.selectProjectList(vo);
+	}
+
+	@Override
+	public int selectProjectCount(SystemProjectVO vo) {
+		return systemProjectMapper.selectProjectCount(vo);
 	}
 	
 }

@@ -19,7 +19,7 @@ CREATE TABLE modules (module_id VARCHAR2(50) PRIMARY KEY, module_name VARCHAR2(1
 CREATE TABLE role_permissions (role_id NUMBER REFERENCES roles(role_id) ON DELETE CASCADE, permission_code VARCHAR2(50) REFERENCES permissions(permission_code) ON DELETE CASCADE, PRIMARY KEY (role_id, permission_code));
 CREATE TABLE project_manage_setting (project_manage_id NUMBER PRIMARY KEY, company_id NUMBER NOT NULL REFERENCES companies(company_id) ON DELETE CASCADE, type_id NUMBER NOT NULL REFERENCES task_types(type_id) ON DELETE CASCADE, module_name VARCHAR2(100));
 CREATE TABLE module_mapping (module_map_id NUMBER, project_id NUMBER NOT NULL REFERENCES project(project_id) ON DELETE CASCADE, module_name VARCHAR2(100), PRIMARY KEY (module_map_id, project_id));
-CREATE TABLE users (user_code VARCHAR2(50) PRIMARY KEY, company_id NUMBER NOT NULL REFERENCES companies(company_id) ON DELETE CASCADE, login_id VARCHAR2(50) UNIQUE NOT NULL, password VARCHAR2(100) NOT NULL, user_name VARCHAR2(50) NOT NULL, email VARCHAR2(100) NOT NULL, phone_number VARCHAR2(50) NOT NULL, approval VARCHAR2(1) DEFAULT '0', create_date DATE DEFAULT SYSDATE, status VARCHAR2(50) NOT NULL, profile_image VARCHAR2(255), owner_yn NUMBER(1) NOT NULL, admin_yn NUMBER(1), web_notification_yn VARCHAR2(1) DEFAULT 'Y', email_notification_yn VARCHAR2(1) DEFAULT 'N', notification_area VARCHAR2(50) DEFAULT 'ALL', last_login_time DATE, group_id NUMBER REFERENCES groups(group_id) ON DELETE SET NULL);
+CREATE TABLE users (user_code VARCHAR2(50) PRIMARY KEY, company_id NUMBER NOT NULL REFERENCES companies(company_id) ON DELETE CASCADE, login_id VARCHAR2(50) UNIQUE NOT NULL, password VARCHAR2(100) NOT NULL, user_name VARCHAR2(50) NOT NULL, email VARCHAR2(100) NOT NULL, phone_number VARCHAR2(50) NOT NULL, approval VARCHAR2(1) DEFAULT '0', create_date DATE DEFAULT SYSDATE, signup_requested_at DATE, status VARCHAR2(50) NOT NULL, profile_image VARCHAR2(255), owner_yn NUMBER(1) NOT NULL, admin_yn NUMBER(1), web_notification_yn VARCHAR2(1) DEFAULT 'Y', email_notification_yn VARCHAR2(1) DEFAULT 'N', notification_area VARCHAR2(50) DEFAULT 'ALL', last_login_time DATE, group_id NUMBER REFERENCES groups(group_id) ON DELETE SET NULL);
 
 -- 4단계: 업무 기능
 CREATE TABLE milestone (milestone_id NUMBER, project_id NUMBER NOT NULL REFERENCES project(project_id) ON DELETE CASCADE, login_id VARCHAR2(50) REFERENCES users(user_code) ON DELETE SET NULL, milestone_title VARCHAR2(100) UNIQUE, milestone_describe VARCHAR2(1000) NOT NULL, finish_date DATE, milestone_status VARCHAR2(50), created_at DATE DEFAULT SYSDATE, PRIMARY KEY (milestone_id, project_id));
@@ -400,6 +400,12 @@ select * from companies;
 select * from work_classification;
 select * from task_priority;
 
+DELETE FROM work_classification WHERE task_classification_id = 47;
+DELETE FROM task_priority WHERE task_priority_id = 43;
+
+commit;
+
+
 select * from companies;
 select * from permissions;
 select * from role_permissions;
@@ -456,3 +462,76 @@ SELECT task_classification_id,
 SELECT t.task_priority_id, t.company_id, t.priority_name, t.default_yn, t.using_yn
 FROM task_priority t
 JOIN companies c ON c.company_id = t.company_id;
+
+DROP SEQUENCE SEQ_DAY_SEQ;
+
+
+
+CREATE SEQUENCE SET_DAY_SEQ
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NOCACHE
+    NOCYCLE;
+
+DESC work_time;
+select * from work_time;
+select * from project;
+select * from users;
+select * from work_classification;
+select * from task;
+
+SELECT wt.work_id
+       , p.project_id
+       , t.task_id
+       , u.user_code
+       , wc.work_name   AS work_name_label
+       , wt.work_date
+       , wt.spent_content
+       , wt.spent_hour
+       , wt.created_at
+       , wt.updated_at
+FROM work_time wt
+LEFT JOIN project P ON wt.project_id = p.project_id
+LEFT JOIN users u ON u.user_code = wt.user_code
+LEFT JOIN work_classification wc ON wc.work_name = TO_CHAR(wt.work_name)
+LEFT JOIN task t ON t.task_id = wt.task_id
+ORDER BY wt.work_id;
+
+INSERT INTO work_time (
+                        work_id
+                        , project_id
+                        , task_id
+                        , user_code
+                        , work_name
+                        , work_date
+                        , spent_content
+                        , spent_hour
+                        , created_at
+                        , updated_at
+                       )
+VALUES (
+        ATE_DAY_SEQ.NEXTVAL
+        , 1
+        , 'TSK-260623_8'
+        , 'USR-260621-003'
+        , 10
+        , SYSDATE
+        , '전체 소요시간 데이터 조회 테스트'
+        , 2
+        , SYSDATE
+        , SYSDATE
+);
+
+COMMIT; -- 변경사항 저장
+SELECT column_name, data_type 
+FROM user_tab_columns 
+WHERE table_name = 'WORK_TIME'
+ORDER BY column_id;
+
+CREATE SEQUENCE ATE_DAY_SEQ
+    START WITH 1
+    INCREMENT BY 1
+    MINVALUE 1
+    NOCACHE
+    NOCYCLE;

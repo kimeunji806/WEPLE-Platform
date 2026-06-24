@@ -30,9 +30,13 @@ public class GithubRepositoryReader {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // 상세 화면 최초 진입 시 메타데이터, 브랜치, 폴더, 최근 커밋을 한 번에 준비함.
+    private static final int COMMIT_PAGE_SIZE = 10;
+    private static final int COMMIT_PAGE_BLOCK_SIZE = 10;
+
+    // 상세 화면 최초 진입 시 메타데이터, 브랜치, 폴더, 선택 페이지의 커밋을 한 번에 준비함.
     public GithubRepositoryInfo readRepository(String repositoryUrl, String requestedBranch,
-                                               String requestedDirectory, String requestedFilePath) {
+                                               String requestedDirectory, String requestedFilePath,
+                                               int requestedCommitPage) {
         String repositoryPath = toRepositoryPath(repositoryUrl);
         JsonNode repository = getJson(GITHUB_API + repositoryPath);
 
@@ -43,18 +47,25 @@ public class GithubRepositoryReader {
                 ? info.getDefaultBranch() : requestedBranch);
         info.setCurrentDirectory(requestedDirectory == null ? "" : requestedDirectory);
         info.setParentDirectory(parentDirectory(info.getCurrentDirectory()));
+        info.setCommitPage(Math.max(requestedCommitPage, 1));
 
         // 서로 의존하지 않는 GitHub 조회는 병렬로 실행해 상세 화면 대기 시간을 줄입니다.
         CompletableFuture<List<String>> branchesFuture = CompletableFuture.supplyAsync(
                 () -> readBranchesOrDefault(repositoryPath, info.getDefaultBranch()));
         CompletableFuture<List<GithubFileInfo>> filesFuture = CompletableFuture.supplyAsync(
                 () -> readFilesOrEmpty(repositoryPath, info.getSelectedBranch(), info.getCurrentDirectory()));
-        CompletableFuture<List<GithubCommitInfo>> commitsFuture = CompletableFuture.supplyAsync(
-                () -> readCommitsOrEmpty(repositoryPath, info.getSelectedBranch()));
+        CompletableFuture<GithubCommitPage> commitsFuture = CompletableFuture.supplyAsync(
+                () -> readCommitsOrEmpty(repositoryPath, info.getSelectedBranch(), info.getCommitPage()));
 
         info.setBranches(branchesFuture.join());
         info.setFiles(filesFuture.join());
-        info.setCommits(commitsFuture.join());
+        GithubCommitPage commitPage = commitsFuture.join();
+        info.setCommits(commitPage.getCommits());
+        info.setTotalCommitPages(commitPage.getTotalPages());
+        info.setHasNextCommitPage(commitPage.isHasNextPage());
+        info.setStartCommitPage(((info.getCommitPage() - 1) / COMMIT_PAGE_BLOCK_SIZE) * COMMIT_PAGE_BLOCK_SIZE + 1);
+        info.setEndCommitPage(Math.min(info.getStartCommitPage() + COMMIT_PAGE_BLOCK_SIZE - 1,
+                info.getTotalCommitPages()));
 
         // 파일 본문은 사용자가 선택했을 때만 요청해 초기 진입을 가볍게 합니다.
         if (requestedFilePath == null || requestedFilePath.isBlank()) {
@@ -178,12 +189,12 @@ public class GithubRepositoryReader {
         }
     }
 
-    // 커밋 목록 실패도 상세 화면 전체 실패로 번지지 않게 빈 목록으로 처리함.
-    private List<GithubCommitInfo> readCommitsOrEmpty(String repositoryPath, String branch) {
+    // 커밋 목록 실패도 상세 화면 전체 실패로 번지지 않게 빈 페이지 정보로 처리함.
+    private GithubCommitPage readCommitsOrEmpty(String repositoryPath, String branch, int page) {
         try {
-            return readCommits(repositoryPath, branch);
+            return readCommits(repositoryPath, branch, page);
         } catch (IllegalStateException ex) {
-            return List.of();
+            return new GithubCommitPage(List.of(), page, false);
         }
     }
 
@@ -197,9 +208,11 @@ public class GithubRepositoryReader {
         return branchNames;
     }
 
-    // /commits API에서 최근 10개만 가져옴. 상세 화면 표에는 최근 내역만 필요함.
-    private List<GithubCommitInfo> readCommits(String repositoryPath, String branch) {
-        JsonNode commits = getJson(GITHUB_API + repositoryPath + "/commits?sha=" + encodeQueryValue(branch) + "&per_page=10");
+    // /commits API의 Link 헤더에서 다음·마지막 페이지를 확인해 10개 단위 페이징에 사용함.
+    private GithubCommitPage readCommits(String repositoryPath, String branch, int page) {
+        GithubApiResponse response = getJsonResponse(GITHUB_API + repositoryPath + "/commits?sha="
+                + encodeQueryValue(branch) + "&per_page=" + COMMIT_PAGE_SIZE + "&page=" + page);
+        JsonNode commits = response.getBody();
         List<GithubCommitInfo> commitInfos = new ArrayList<>();
         for (JsonNode commit : commits) {
             GithubCommitInfo commitInfo = new GithubCommitInfo();
@@ -212,7 +225,10 @@ public class GithubRepositoryReader {
             commitInfo.setCommittedAt(commit.path("commit").path("author").path("date").asText("-"));
             commitInfos.add(commitInfo);
         }
-        return commitInfos;
+        String linkHeader = response.getLinkHeader();
+        boolean hasNextPage = linkHeader.contains("rel=\"next\"");
+        int totalPages = extractLastPage(linkHeader, page, hasNextPage);
+        return new GithubCommitPage(commitInfos, totalPages, hasNextPage);
     }
 
     // /contents API 사용함. 빈 directory는 루트, 값이 있으면 해당 폴더의 직계 항목을 조회함.
@@ -267,8 +283,13 @@ public class GithubRepositoryReader {
         }
     }
 
-    // 모든 GitHub GET 요청 공통 처리부임. 토큰이 있으면 rate limit 확장용 Authorization 헤더도 붙임.
+    // JSON 본문만 필요한 GitHub API 요청에서 공통 응답 처리부를 재사용합니다.
     private JsonNode getJson(String url) {
+        return getJsonResponse(url).getBody();
+    }
+
+    // GitHub의 Link 헤더까지 필요한 커밋 페이징을 위해 본문과 헤더를 함께 반환합니다.
+    private GithubApiResponse getJsonResponse(String url) {
         try {
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(URI.create(url))
                     .header("Accept", "application/vnd.github+json")
@@ -283,12 +304,26 @@ public class GithubRepositoryReader {
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
                 throw new GithubApiException(response.statusCode(), "GitHub 저장소 정보를 조회할 수 없습니다.");
             }
-            return objectMapper.readTree(response.body());
+            return new GithubApiResponse(
+                    objectMapper.readTree(response.body()),
+                    response.headers().firstValue("Link").orElse(""));
         } catch (GithubApiException ex) {
             throw ex;
         } catch (Exception ex) {
             throw new IllegalStateException("GitHub 저장소 정보를 조회할 수 없습니다.");
         }
+    }
+
+    // Link 헤더의 rel="last" URL에서 마지막 페이지 번호를 읽습니다.
+    private int extractLastPage(String linkHeader, int currentPage, boolean hasNextPage) {
+        java.util.regex.Matcher matcher = java.util.regex.Pattern
+                .compile("[?&]page=(\\d+)[^>]*>;\\s*rel=\\\"last\\\"")
+                .matcher(linkHeader);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        // 마지막 페이지 정보가 생략된 경우에도 다음 이동은 가능하도록 한 페이지를 더 노출합니다.
+        return hasNextPage ? currentPage + 1 : currentPage;
     }
 
     // HTTP 상태 코드를 보존해 404와 인증·요청 제한 오류를 서로 다르게 처리하기 위한 예외임.
@@ -303,6 +338,52 @@ public class GithubRepositoryReader {
 
         private int getStatusCode() {
             return statusCode;
+        }
+    }
+
+    // GitHub 응답 본문과 Link 헤더를 함께 보관하는 내부 전달 객체입니다.
+    private static class GithubApiResponse {
+
+        private final JsonNode body;
+        private final String linkHeader;
+
+        private GithubApiResponse(JsonNode body, String linkHeader) {
+            this.body = body;
+            this.linkHeader = linkHeader;
+        }
+
+        private JsonNode getBody() {
+            return body;
+        }
+
+        private String getLinkHeader() {
+            return linkHeader;
+        }
+    }
+
+    // 커밋 목록과 페이지 이동에 필요한 정보만 묶어 상세 화면에 전달하는 내부 객체입니다.
+    private static class GithubCommitPage {
+
+        private final List<GithubCommitInfo> commits;
+        private final int totalPages;
+        private final boolean hasNextPage;
+
+        private GithubCommitPage(List<GithubCommitInfo> commits, int totalPages, boolean hasNextPage) {
+            this.commits = commits;
+            this.totalPages = totalPages;
+            this.hasNextPage = hasNextPage;
+        }
+
+        private List<GithubCommitInfo> getCommits() {
+            return commits;
+        }
+
+        private int getTotalPages() {
+            return totalPages;
+        }
+
+        private boolean isHasNextPage() {
+            return hasNextPage;
         }
     }
 

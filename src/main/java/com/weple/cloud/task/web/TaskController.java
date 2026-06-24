@@ -17,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.weple.cloud.auth.service.LoginUserDetails;
 import com.weple.cloud.task.service.TaskCommentVO;
+import com.weple.cloud.project.service.ProjectService;
+import com.weple.cloud.history.task.service.TaskHistoryService;
 import com.weple.cloud.task.service.TaskProjectSelectVO;
 import com.weple.cloud.task.service.TaskService;
 import com.weple.cloud.task.service.TaskVO;
@@ -29,12 +31,17 @@ import lombok.RequiredArgsConstructor;
 public class TaskController {
     
 	private final TaskService taskService;
+	private final ProjectService projectService;
+	private final TaskHistoryService taskHistoryService; // 작업내역 일감 불러오기-은지
 	
 	@GetMapping("/project/task")
     public String projectTaskList(@RequestParam("projectId") Long pId,Model model) {
 		
 
 		List<TaskVO> list = taskService.findAll(pId);
+		model.addAttribute("projectId", pId);
+		model.addAttribute("project", projectService.findById(String.valueOf(pId)));
+		model.addAttribute("sidebarMenu", "project");
 		model.addAttribute("currentMenu", "task");
 		model.addAttribute("taskListinfo",list);
         return "weple/task/list";
@@ -77,7 +84,13 @@ public class TaskController {
 	    taskVO.setUserCode(userCode); 
 
 	    taskService.insertTask(taskVO, files);
-
+	    
+	    // 작업내역 등록 - 은지
+	    taskHistoryService.insertHistory(
+	    	    taskVO.getTaskId(), userCode, "CREATE",
+	    	    null, taskVO.getTaskTitle(),   
+	    	    null, taskVO.getTypeIdName()
+	    	);
 	    
 	    return "redirect:/project/task?projectId=" + pId;
 	}
@@ -157,6 +170,21 @@ public class TaskController {
 
 	    taskService.updateTask(taskVO, files, deletedFileIds);
 	    
+	    // 수정 전 값 먼저 조회-은지
+	    TaskVO before = taskService.findTaskDetail(taskVO.getTaskId());
+	    String oldTitle = before.getTaskTitle();
+	    String oldTypeName = before.getTypeIdName();
+	    
+	    // 수정 처리 서비스 호출 (VO 내부에 taskId가 hidden으로 담겨서 넘어옵니다)
+	    taskService.updateTask(taskVO, files);
+ 
+	    // 작업내역 저장-은지
+	    taskHistoryService.insertHistory(
+	    	  taskVO.getTaskId(), userCode, "UPDATE",
+	    	  oldTitle, taskVO.getTaskTitle(),      
+	    	  oldTypeName, taskVO.getTypeIdName()  
+	    	);
+	    
 	    // 수정 완료 후 해당 일감의 상세조회 페이지로 리다이렉트
 	    return "redirect:/project/task/detail/" + taskVO.getTaskId() + "?projectId=" + pId;
 	}
@@ -164,6 +192,31 @@ public class TaskController {
 	@PostMapping("/project/task/delete/{tId}")
 	public String taskDeleteProcess(@RequestParam("projectId") Long pId,@PathVariable("tId") String tId) {
 		taskService.deleteTask(tId);
+	@DeleteMapping("/project/task/delete")
+	public String taskDeleteProcess(
+			@RequestParam("projectId") Long pId,
+			@RequestParam("tId") String tId,
+			@AuthenticationPrincipal LoginUserDetails loginUser) {
+		
+		// userCode 가져와야 누가 삭제했는지 저장 가능-은지
+		String userCode = loginUser.getLoginUser().getUserCode();
+		
+		// 삭제 전 값 먼저 조회-은지
+		TaskVO before = taskService.findTaskDetail(tId);
+		String oldTitle = before.getTaskTitle();
+	    String oldTypeName = before.getTypeIdName();
+	    
+	    // 소프트 딜리트-은지
+	    taskService.deleteTask(tId);
+	    
+	 // 삭제 이력 저장-은지
+	    taskHistoryService.insertHistory(
+	        tId, userCode, "DELETE",
+	        oldTitle, null,   
+	        oldTypeName, null  
+	    );
+	    
+		
 		return "redirect:/project/task" + "?projectId=" +pId;
 		
 	}

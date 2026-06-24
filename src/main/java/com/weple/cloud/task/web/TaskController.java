@@ -187,9 +187,10 @@ public class TaskController {
 	}
 	
 	@PostMapping("/project/task/delete/{tId}")
-	public void taskDeleteProcess(@RequestParam("projectId") Long pId,@PathVariable("tId") String tId) {
-		taskService.deleteTask(tId);
-	}
+    public String taskDeleteProcess(@RequestParam("projectId") Long pId, @PathVariable("tId") String tId) {
+        taskService.deleteTask(tId);
+        return "redirect:/project/task" + "?projectId=" + pId;
+    }
 	
 		
 	@DeleteMapping("/project/task/delete")

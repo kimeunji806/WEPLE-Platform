@@ -29,6 +29,7 @@ import com.weple.cloud.system.service.SystemProjectVO;
 import com.weple.cloud.system.service.TaskTypeService;
 import com.weple.cloud.system.service.TaskTypeVO;
 import com.weple.cloud.system.service.UserService;
+import com.weple.cloud.system.service.UserManagementService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -247,10 +248,25 @@ public class SystemController {
 	@GetMapping("/approvalList")
 	public String approvalList(
 			@org.springframework.security.core.annotation.AuthenticationPrincipal com.weple.cloud.auth.service.LoginUserDetails loginUser,
+			@RequestParam(defaultValue = "1") int page,
 			Model model) {
+		int pageSize = 10;
+		int pageBlockSize = 10;
+		int totalCount = signupApprovalService.countPendingUsers(loginUser.getLoginUser().getCompanyId());
+		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / pageSize));
+		int currentPage = Math.min(Math.max(page, 1), totalPages);
+		int offset = (currentPage - 1) * pageSize;
+		int startPage = ((currentPage - 1) / pageBlockSize) * pageBlockSize + 1;
+		int endPage = Math.min(startPage + pageBlockSize - 1, totalPages);
 		List<com.weple.cloud.system.service.SignupApprovalUserVO> pendingUsers = signupApprovalService
-				.findPendingUsers(loginUser.getLoginUser().getCompanyId());
+				.findPendingUsers(loginUser.getLoginUser().getCompanyId(), offset, pageSize);
 		model.addAttribute("pendingUsers", pendingUsers);
+		model.addAttribute("totalCount", totalCount);
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("currentPage", currentPage);
+		model.addAttribute("pageSize", pageSize);
+		model.addAttribute("startPage", startPage);
+		model.addAttribute("endPage", endPage);
 		// /system/project와 같은 관리 전용 헤더·사이드바 상태를 사용합니다.
 		model.addAttribute("sidebarMenu", "system");
 		// 프로젝트 탭이 활성화되지 않도록 현재 관리 메뉴를 가입승인으로 지정합니다.
@@ -264,6 +280,7 @@ public class SystemController {
 	public String approveSignupRequest(
 			@org.springframework.security.core.annotation.AuthenticationPrincipal com.weple.cloud.auth.service.LoginUserDetails loginUser,
 			@org.springframework.web.bind.annotation.PathVariable String userCode,
+			@RequestParam(defaultValue = "1") int page,
 			org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
 		try {
 			signupApprovalService.approvePendingUser(loginUser.getLoginUser().getCompanyId(), userCode);
@@ -271,7 +288,7 @@ public class SystemController {
 		} catch (IllegalArgumentException ex) {
 			redirectAttributes.addFlashAttribute("approvalError", ex.getMessage());
 		}
-		return "redirect:/approvalList";
+		return "redirect:/approvalList?page=" + Math.max(page, 1);
 	}
 
 	// 취소한 승인 대기 가입 요청은 USERS 테이블에서 삭제합니다.
@@ -279,6 +296,7 @@ public class SystemController {
 	public String cancelSignupRequest(
 			@org.springframework.security.core.annotation.AuthenticationPrincipal com.weple.cloud.auth.service.LoginUserDetails loginUser,
 			@org.springframework.web.bind.annotation.PathVariable String userCode,
+			@RequestParam(defaultValue = "1") int page,
 			org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
 		try {
 			signupApprovalService.cancelPendingUser(loginUser.getLoginUser().getCompanyId(), userCode);
@@ -286,7 +304,7 @@ public class SystemController {
 		} catch (IllegalArgumentException ex) {
 			redirectAttributes.addFlashAttribute("approvalError", ex.getMessage());
 		}
-		return "redirect:/approvalList";
+		return "redirect:/approvalList?page=" + Math.max(page, 1);
 	}
 
 	// -------------------------------코드값------------------------------
@@ -470,4 +488,65 @@ public class SystemController {
 	// 역할 등록 처리
 	
 	// 역할 삭제
+	
+
+	// ---------------------------- 사용자 관리 --------------------------
+	@Autowired
+	private UserManagementService userManagementService;
+
+	// 현재 로그인한 관리자의 회사에 속한 활성·비활성 사용자 목록을 조회합니다.
+	@GetMapping("/userList")
+	public String userManagementList(@AuthenticationPrincipal LoginUserDetails loginUser,
+			@RequestParam(defaultValue = "1") int page,
+			@RequestParam(required = false) String keyword,
+			Model model) {
+		int pageSize = 10;
+		int pageBlockSize = 10;
+		Long companyId = loginUser.getLoginUser().getCompanyId();
+		String searchKeyword = keyword == null ? null : keyword.trim();
+		int totalCount = userManagementService.countUsers(companyId, searchKeyword);
+		int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / pageSize));
+		int currentPage = Math.min(Math.max(page, 1), totalPages);
+		int offset = (currentPage - 1) * pageSize;
+		int startPage = ((currentPage - 1) / pageBlockSize) * pageBlockSize + 1;
+		int endPage = Math.min(startPage + pageBlockSize - 1, totalPages);
+
+		model.addAttribute("userList", userManagementService.findUsers(companyId, searchKeyword, offset, pageSize));
+		model.addAttribute("totalCount", totalCount);
+		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("currentPage", currentPage);
+		model.addAttribute("startPage", startPage);
+		model.addAttribute("endPage", endPage);
+		model.addAttribute("keyword", searchKeyword);
+		model.addAttribute("isCompanyOwner", Integer.valueOf(1).equals(loginUser.getLoginUser().getOwnerYn()));
+		model.addAttribute("sidebarMenu", "system");
+		model.addAttribute("currentMenu", "systemuser");
+		model.addAttribute("menu", "user");
+		return "weple/admin/user/list";
+	}
+
+	// 상태 스위치는 a2(활성)와 a3(비활성) 값만 받아 같은 회사 사용자 상태를 변경합니다.
+	@PostMapping("/userList/{userCode}/status")
+	public String changeUserStatus(@AuthenticationPrincipal LoginUserDetails loginUser,
+			@PathVariable String userCode,
+			@RequestParam String status,
+			@RequestParam(defaultValue = "1") int page,
+			@RequestParam(required = false) String keyword,
+			RedirectAttributes redirectAttributes) {
+		try {
+			int actorOwnerYn = Integer.valueOf(1).equals(loginUser.getLoginUser().getOwnerYn()) ? 1 : 0;
+			userManagementService.changeUserStatus(loginUser.getLoginUser().getCompanyId(), actorOwnerYn, userCode, status);
+			redirectAttributes.addFlashAttribute("userSuccess", "사용자 상태가 변경되었습니다.");
+		} catch (IllegalArgumentException ex) {
+			redirectAttributes.addFlashAttribute("userError", ex.getMessage());
+		}
+		String searchParameter = keyword == null || keyword.isBlank()
+				? "" : "&keyword=" + java.net.URLEncoder.encode(keyword.trim(), java.nio.charset.StandardCharsets.UTF_8);
+		return "redirect:/userList?page=" + Math.max(page, 1) + searchParameter;
+	}
+
 }
+
+
+
+

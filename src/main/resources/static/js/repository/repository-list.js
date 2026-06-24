@@ -7,7 +7,7 @@
         return;
     }
 
-    // 입력·붙여넣기·모바일 자동완성 모두 반영하기 위해 keydown 대신 input 이벤트 사용함.
+    // keydown 대신 input 이벤트 사용함.
     searchInput.addEventListener('input', () => {
         const keyword = searchInput.value.trim().toLowerCase();
         let visibleCount = 0;

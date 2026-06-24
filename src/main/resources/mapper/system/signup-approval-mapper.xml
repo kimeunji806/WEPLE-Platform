@@ -5,23 +5,36 @@
 
 <mapper namespace="com.weple.cloud.system.mapper.SignupApprovalMapper">
 
-    <!-- 현재 관리자와 같은 회사에 속한 승인 대기 회원만 조회합니다. -->
+    <!-- 현재 관리자와 같은 회사에 속한 승인 대기 회원을 10명 단위 페이지로 조회합니다. -->
     <select id="selectPendingUsersByCompanyId"
             resultType="com.weple.cloud.system.service.SignupApprovalUserVO">
-        SELECT
-            user_code AS userCode,
-            login_id AS loginId,
-            user_name AS userName,
-            email AS email,
-            phone_number AS phoneNumber,
-            CASE
-                WHEN REGEXP_LIKE(user_code, '^USR-[0-9]{8}-[0-9]+$')
-                THEN TO_CHAR(TO_DATE(SUBSTR(user_code, 5, 8), 'YYYYMMDD'), 'YYYY/MM/DD')
-            END AS requestedAt
+        SELECT *
+        FROM (
+            SELECT inner_q.*, ROWNUM AS rn
+            FROM (
+                SELECT
+                    user_code AS userCode,
+                    login_id AS loginId,
+                    user_name AS userName,
+                    email AS email,
+                    phone_number AS phoneNumber,
+                    TO_CHAR(signup_requested_at, 'YYYY/MM/DD') AS requestedAt
+                FROM users
+                WHERE company_id = #{companyId}
+                  AND status = 'a1'
+                ORDER BY user_code ASC
+            ) inner_q
+            WHERE ROWNUM &lt;= #{offset} + #{pageSize}
+        )
+        WHERE rn &gt; #{offset}
+    </select>
+
+    <!-- 페이지 수 계산용으로 현재 회사의 승인 대기 회원 전체 건수를 조회합니다. -->
+    <select id="countPendingUsersByCompanyId" resultType="int">
+        SELECT COUNT(*)
         FROM users
         WHERE company_id = #{companyId}
           AND status = 'a1'
-        ORDER BY user_code ASC
     </select>
 
     <!-- 다른 회사 사용자 또는 이미 처리된 요청은 승인할 수 없도록 조건을 둡니다. -->

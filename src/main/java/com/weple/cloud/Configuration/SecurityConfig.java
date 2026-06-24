@@ -1,13 +1,18 @@
 package com.weple.cloud.Configuration;
 
+import javax.sql.DataSource;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
 import com.weple.cloud.auth.impl.LoginFailureHandler;
+import com.weple.cloud.auth.impl.LoginUserDetailsServiceImpl;
 
 @Configuration
 public class SecurityConfig {
@@ -18,8 +23,19 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    // 자동 로그인 토큰은 DB에 저장해 로그아웃·만료 시 서버에서도 무효화할 수 있게 합니다.
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginFailureHandler loginFailureHandler) throws Exception {
+    public PersistentTokenRepository persistentTokenRepository(DataSource dataSource) {
+        JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
+        tokenRepository.setDataSource(dataSource);
+        return tokenRepository;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   LoginFailureHandler loginFailureHandler,
+                                                   PersistentTokenRepository persistentTokenRepository,
+                                                   LoginUserDetailsServiceImpl loginUserDetailsService) throws Exception {
 
         http
             .authorizeHttpRequests(auth -> auth
@@ -40,6 +56,10 @@ public class SecurityConfig {
                 
                 // 일감유형 화면과 일감유형 CRUD는 최고관리자 또는 관리자만 접근할 수 있다
                 .requestMatchers("/system/taskType", "/system/taskType/**")
+                .hasAnyAuthority("ROLE_COMPANY_OWNER", "ROLE_COMPANY_ADMIN")
+
+                // 사용자 관리 목록과 활성·비활성 변경은 기업 최고관리자 또는 관리자만 처리할 수 있습니다.
+                .requestMatchers("/userList", "/userList/**")
                 .hasAnyAuthority("ROLE_COMPANY_OWNER", "ROLE_COMPANY_ADMIN")
 
                 // 저장소 등록 설정은 기업 최고관리자 또는 관리자만 사용할 수 있습니다.
@@ -70,6 +90,15 @@ public class SecurityConfig {
 
                 // 로그인 관련 URL 접근 허용
                 .permitAll()
+            )
+            // 자동 로그인 체크 시에만 DB 검증용 토큰 쿠키를 발급합니다.
+            .rememberMe(remember -> remember
+                .rememberMeParameter("rememberMe")
+                .tokenValiditySeconds(60 * 60 * 24 * 14)
+                .tokenRepository(persistentTokenRepository)
+                .userDetailsService(loginUserDetailsService)
+                .rememberMeCookieName("WEPLE_REMEMBER_ME")
+                .alwaysRemember(false)
             )
             .logout(logout -> logout
                 // 로그아웃 처리 URL

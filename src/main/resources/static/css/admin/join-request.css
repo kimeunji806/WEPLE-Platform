@@ -116,6 +116,48 @@
     color: #6b7280 !important;
 }
 
+#approvalList {
+    scroll-margin-top: 16px;
+}
+
+/* 프로젝트 관리 목록과 같은 페이지 버튼 형태를 가입승인 화면에도 적용합니다. */
+.pagination-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 18px 0 10px;
+}
+
+.page-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    color: #5d6b87;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.page-btn.active {
+    border-radius: 8px;
+    background: #4d84ff;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.page-btn.disabled {
+    opacity: .4;
+    pointer-events: none;
+}
+
+.page-btn:hover:not(.active):not(.disabled) {
+    color: #4d84ff;
+}
+
 @media (max-width: 768px) {
     .approval-page {
         padding: 20px;

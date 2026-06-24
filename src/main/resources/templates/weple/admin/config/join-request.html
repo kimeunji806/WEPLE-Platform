@@ -18,7 +18,7 @@
                 처리 중 오류가 발생했습니다.
             </p>
 
-            <div class="approval-table-wrap">
+            <div id="approvalList" class="approval-table-wrap">
                 <table class="approval-table">
                     <thead>
                         <tr>
@@ -33,7 +33,7 @@
                     </thead>
                     <tbody>
                         <tr th:each="pendingUser, stat : ${pendingUsers}">
-                            <td th:text="${#lists.size(pendingUsers) - stat.index}">1</td>
+                            <td th:text="${totalCount - ((currentPage - 1) * pageSize + stat.index)}">1</td>
                             <td th:text="${pendingUser.loginId}">weple1234</td>
                             <td th:text="${pendingUser.email}">weple@example.com</td>
                             <td th:text="${pendingUser.phoneNumber}">010-1234-5678</td>
@@ -44,10 +44,12 @@
                                 <div class="approval-actions">
                                     <form th:action="@{/approvalList/{userCode}/approve(userCode=${pendingUser.userCode})}" method="post">
                                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <input type="hidden" name="page" th:value="${currentPage}">
                                         <button class="approval-button approval-button-confirm" type="submit">승인</button>
                                     </form>
                                     <form th:action="@{/approvalList/{userCode}/cancel(userCode=${pendingUser.userCode})}" method="post">
                                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <input type="hidden" name="page" th:value="${currentPage}">
                                         <button class="approval-button approval-button-cancel" type="submit"
                                                 onclick="return confirm('가입 요청을 취소하시겠습니까?');">취소</button>
                                     </form>
@@ -60,6 +62,21 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- 프로젝트 관리 목록과 같은 10개 단위 페이지 버튼을 사용합니다. -->
+            <nav class="pagination-wrap" th:if="${totalPages > 1}" aria-label="가입승인 목록 페이지">
+                <a th:href="@{/approvalList(page=${currentPage - 1})} + '#approvalList'"
+                   th:classappend="${currentPage <= 1} ? 'disabled' : ''"
+                   class="page-btn">&lt; 이전</a>
+                <a th:each="i : ${#numbers.sequence(startPage, endPage)}"
+                   th:href="@{/approvalList(page=${i})} + '#approvalList'"
+                   th:text="${i}"
+                   th:classappend="${i == currentPage} ? 'active' : ''"
+                   class="page-btn"></a>
+                <a th:href="@{/approvalList(page=${currentPage + 1})} + '#approvalList'"
+                   th:classappend="${currentPage >= totalPages} ? 'disabled' : ''"
+                   class="page-btn">다음 &gt;</a>
+            </nav>
         </div>
     </section>
 </body>

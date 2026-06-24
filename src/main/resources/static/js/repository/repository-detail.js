@@ -53,6 +53,7 @@
             detailUrl.searchParams.set('branch', branchSelect.value);
             detailUrl.searchParams.delete('directoryPath');
             detailUrl.searchParams.delete('filePath');
+            detailUrl.searchParams.delete('commitPage');
             window.location.href = detailUrl.toString();
         });
     }

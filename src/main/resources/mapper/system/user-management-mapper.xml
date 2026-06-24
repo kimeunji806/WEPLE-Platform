@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.weple.cloud.system.mapper.UserManagementMapper">
+
+    <!-- 가입승인(a1) 처리 후 활성(a2) 또는 비활성(a3) 상태인 사용자만 조회합니다. -->
+	<select id="selectUserManagementList"
+			resultType="com.weple.cloud.system.service.UserManagementVO">
+		SELECT *
+		FROM (
+			SELECT inner_q.*, ROWNUM AS rn
+			FROM (
+				SELECT user_code AS userCode,
+					   login_id AS loginId,
+					   user_name AS userName,
+					   email AS email,
+					   status AS status,
+					   owner_yn AS ownerYn,
+					   admin_yn AS adminYn,
+					   CASE
+					       WHEN owner_yn = 1 THEN '최고관리자'
+					       WHEN NVL(admin_yn, 0) = 1 THEN '관리자'
+					       ELSE '일반 사용자'
+					   END AS roleName
+				FROM users
+				WHERE company_id = #{companyId}
+				  AND status IN ('a2', 'a3')
+				  <if test="keyword != null and keyword != ''">
+				      AND (LOWER(login_id) LIKE '%' || LOWER(#{keyword}) || '%'
+				           OR LOWER(user_name) LIKE '%' || LOWER(#{keyword}) || '%')
+				  </if>
+            <!-- 권한이 높은 계정과 활성 사용자를 먼저 보여주고, 같은 분류 안에서는 아이디순으로 정렬합니다. -->
+            ORDER BY NVL(owner_yn, 0) DESC,
+                     NVL(admin_yn, 0) DESC,
+                     CASE status WHEN 'a2' THEN 0 ELSE 1 END,
+                     login_id ASC
+			) inner_q
+			WHERE ROWNUM &lt;= #{offset} + #{pageSize}
+		)
+		WHERE rn &gt; #{offset}
+	</select>
+
+    <!-- 활성·비활성 사용자만 사용자 관리 목록 건수에 포함합니다. -->
+    <select id="countUserManagementList" resultType="int">
+        SELECT COUNT(*)
+        FROM users
+        WHERE company_id = #{companyId}
+          AND status IN ('a2', 'a3')
+          <if test="keyword != null and keyword != ''">
+              AND (LOWER(login_id) LIKE '%' || LOWER(#{keyword}) || '%'
+                   OR LOWER(user_name) LIKE '%' || LOWER(#{keyword}) || '%')
+          </if>
+    </select>
+
+    <!-- 같은 회사의 활성·비활성 사용자만 상태 변경 대상으로 제한합니다. -->
+    <update id="updateUserStatus">
+        UPDATE users
+        SET status = #{status}
+        WHERE company_id = #{companyId}
+          AND user_code = #{userCode}
+          AND status IN ('a2', 'a3')
+          AND NVL(owner_yn, 0) = 0
+          AND (#{actorOwnerYn} = 1 OR NVL(admin_yn, 0) = 0)
+    </update>
+</mapper>

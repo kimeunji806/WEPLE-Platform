@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.weple.cloud.auth.service.LoginUserDetails;
+import com.weple.cloud.project.service.ProjectService;
 import com.weple.cloud.repository.service.GithubRepositoryInfo;
 import com.weple.cloud.repository.service.GithubRepositoryReader;
 import com.weple.cloud.repository.service.GithubFileDiffInfo;
@@ -28,6 +29,7 @@ public class RepositoryController {
 
     private final RepositoryService repositoryService;
     private final GithubRepositoryReader githubRepositoryReader;
+    private final ProjectService projectService;
 
     // 설정 탭에서는 프로젝트에 등록된 저장소를 관리 목록으로 보여 줍니다.
     @GetMapping("/management")
@@ -146,10 +148,11 @@ public class RepositoryController {
     public String detail(@AuthenticationPrincipal LoginUserDetails loginUser,
                          @RequestParam(defaultValue = "1") Long projectId,
                          @RequestParam(required = false) String repositoryId,
-                         @RequestParam(required = false) String branch,
-                         @RequestParam(required = false) String directoryPath,
-                         @RequestParam(required = false) String filePath,
-                         Model model) {
+                          @RequestParam(required = false) String branch,
+                          @RequestParam(required = false) String directoryPath,
+                          @RequestParam(required = false) String filePath,
+                          @RequestParam(defaultValue = "1") int commitPage,
+                          Model model) {
         setProjectMenu(model, projectId);
         List<RepositoryVO> repositoryList =
                 repositoryService.findRepositories(loginUser.getLoginUser().getCompanyId(), projectId);
@@ -165,9 +168,13 @@ public class RepositoryController {
             githubInfo.setFiles(List.of());
             githubInfo.setSelectedFileContent("GitHub 파일 정보를 불러오는 중입니다.");
             githubInfo.setCommits(List.of());
+            githubInfo.setCommitPage(Math.max(commitPage, 1));
+            githubInfo.setTotalCommitPages(1);
+            githubInfo.setStartCommitPage(1);
+            githubInfo.setEndCommitPage(1);
             try {
                 githubInfo = githubRepositoryReader.readRepository(
-                        repository.getRepositoryUrl(), branch, directoryPath, filePath);
+                        repository.getRepositoryUrl(), branch, directoryPath, filePath, commitPage);
             } catch (IllegalStateException ex) {
                 model.addAttribute("githubError", ex.getMessage());
             }
@@ -176,7 +183,7 @@ public class RepositoryController {
         return "weple/repository/detail";
     }
 
-    // 파일 변경 비교 화면은 GitHub 비교 API 연동 전에 화면 구조만 제공합니다.
+    // 선택 파일의 최근 두 커밋을 GitHub에서 조회해 변경 비교 화면에 전달합니다.
     @GetMapping("/diff")
     public String diff(@AuthenticationPrincipal LoginUserDetails loginUser,
                        @RequestParam(defaultValue = "1") Long projectId,
@@ -205,6 +212,7 @@ public class RepositoryController {
 
     // 프로젝트 공통 레이아웃에서 저장소 메뉴를 활성화합니다.
     private void setProjectMenu(Model model, Long projectId) {
+        setProjectHeader(model, projectId);
         model.addAttribute("projectId", projectId);
         model.addAttribute("sidebarMenu", "project");
         model.addAttribute("currentMenu", "repository");
@@ -212,10 +220,16 @@ public class RepositoryController {
 
     // 설정 안의 저장소 화면에서는 프로젝트 헤더의 설정 탭을 활성화합니다.
     private void setRepositorySettingMenu(Model model, Long projectId) {
+        setProjectHeader(model, projectId);
         model.addAttribute("projectId", projectId);
         model.addAttribute("sidebarMenu", "project");
         model.addAttribute("currentMenu", "setting");
         model.addAttribute("settingMenu", "repository");
+    }
+
+    // 프로젝트 공통 헤더가 프로젝트명을 표시할 수 있도록 현재 프로젝트 정보를 모델에 담습니다.
+    private void setProjectHeader(Model model, Long projectId) {
+        model.addAttribute("project", projectService.findById(String.valueOf(projectId)));
     }
 
     // 등록 또는 수정 대상과 다른 주 저장소가 있을 때만 변경 확인 창을 표시합니다.

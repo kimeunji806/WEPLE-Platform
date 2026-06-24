@@ -16,8 +16,13 @@ public class SignupApprovalServiceImpl implements SignupApprovalService {
     private final SignupApprovalMapper signupApprovalMapper;
 
     @Override
-    public List<SignupApprovalUserVO> findPendingUsers(Long companyId) {
-        return signupApprovalMapper.selectPendingUsersByCompanyId(companyId);
+    public List<SignupApprovalUserVO> findPendingUsers(Long companyId, int offset, int pageSize) {
+        return signupApprovalMapper.selectPendingUsersByCompanyId(companyId, offset, pageSize);
+    }
+
+    @Override
+    public int countPendingUsers(Long companyId) {
+        return signupApprovalMapper.countPendingUsersByCompanyId(companyId);
     }
 
     @Override

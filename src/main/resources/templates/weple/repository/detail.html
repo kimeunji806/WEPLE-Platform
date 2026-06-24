@@ -33,7 +33,7 @@
                 <pre><code id="githubFileContent" th:text="${githubInfo?.selectedFileContent}">파일 내용을 불러오는 중입니다.</code></pre>
             </article>
         </div>
-        <div class="repository-commits-heading"><h2>커밋 내역</h2></div>
+        <div id="repositoryCommits" class="repository-commits-heading"><h2>커밋 내역</h2></div>
         <div class="repository-table-wrap">
             <table class="repository-table repository-commit-table">
                 <thead><tr><th>해시코드</th><th>브랜치 정보</th><th>최신 커밋 메시지</th><th>이메일</th><th>작성일시</th></tr></thead>
@@ -43,6 +43,20 @@
                 </tbody>
             </table>
         </div>
+        <!-- GitHub Link 헤더에서 확인한 커밋 페이지 정보를 프로젝트 관리 목록과 같은 형식으로 표시합니다. -->
+        <nav class="repository-pagination" th:if="${githubInfo != null and githubInfo.totalCommitPages > 1}" aria-label="GitHub 커밋 목록 페이지">
+            <a th:href="@{/repository/detail(projectId=${projectId}, repositoryId=${repository.repositoryId}, branch=${githubInfo.selectedBranch}, directoryPath=${githubInfo.currentDirectory}, filePath=${githubInfo.selectedFilePath}, commitPage=${githubInfo.commitPage - 1})} + '#repositoryCommits'"
+               th:classappend="${githubInfo.commitPage <= 1} ? 'disabled' : ''"
+               class="repository-page-btn">&lt; 이전</a>
+            <a th:each="i : ${#numbers.sequence(githubInfo.startCommitPage, githubInfo.endCommitPage)}"
+               th:href="@{/repository/detail(projectId=${projectId}, repositoryId=${repository.repositoryId}, branch=${githubInfo.selectedBranch}, directoryPath=${githubInfo.currentDirectory}, filePath=${githubInfo.selectedFilePath}, commitPage=${i})} + '#repositoryCommits'"
+               th:text="${i}"
+               th:classappend="${i == githubInfo.commitPage} ? 'active' : ''"
+               class="repository-page-btn"></a>
+            <a th:href="@{/repository/detail(projectId=${projectId}, repositoryId=${repository.repositoryId}, branch=${githubInfo.selectedBranch}, directoryPath=${githubInfo.currentDirectory}, filePath=${githubInfo.selectedFilePath}, commitPage=${githubInfo.commitPage + 1})} + '#repositoryCommits'"
+               th:classappend="${!githubInfo.hasNextCommitPage} ? 'disabled' : ''"
+               class="repository-page-btn">다음 &gt;</a>
+        </nav>
         </th:block>
     </div>
     <script th:src="@{/js/repository/repository-detail.js}"></script>

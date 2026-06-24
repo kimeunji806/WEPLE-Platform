@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.weple.cloud.auth.service.LoginUserDetails;
+import com.weple.cloud.project.service.ProjectService;
 import com.weple.cloud.task.service.TaskProjectSelectVO;
 import com.weple.cloud.task.service.TaskService;
 import com.weple.cloud.task.service.TaskVO;
@@ -25,12 +26,16 @@ import lombok.RequiredArgsConstructor;
 public class TaskController {
     
 	private final TaskService taskService;
+	private final ProjectService projectService;
 	
 	@GetMapping("/project/task")
     public String projectTaskList(@RequestParam("projectId") Long pId,Model model) {
 		
 
 		List<TaskVO> list = taskService.findAll(pId);
+		model.addAttribute("projectId", pId);
+		model.addAttribute("project", projectService.findById(String.valueOf(pId)));
+		model.addAttribute("sidebarMenu", "project");
 		model.addAttribute("currentMenu", "task");
 		model.addAttribute("taskListinfo",list);
         return "weple/task/list";

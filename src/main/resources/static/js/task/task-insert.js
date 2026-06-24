@@ -5,112 +5,188 @@ window.onerror = function(message, source, lineno, colno, error) {
     }
 };
 
-//상위 일감 찾는 검색창 함수
 document.addEventListener("DOMContentLoaded", function() {
-    // HTML 화면단에서 전역 바인딩한 부모 일감 리스트를 가져옵니다.
+    // ==========================================
+    // 1. 상위 일감 찾는 검색창 함수
+    // ==========================================
     const parentTasks = window.globalParentTaskList || [];
-
     const searchInput = document.getElementById("parentTaskSearch");
     const hiddenInput = document.getElementById("parentTaskId");
     const autocompleteList = document.getElementById("autocomplete-list");
 
-    if (!searchInput || !autocompleteList) return;
+    if (searchInput && autocompleteList) {
+        searchInput.addEventListener("input", function(e) {
+            e.stopPropagation(); 
+            
+            const val = this.value.trim().toLowerCase();
+            autocompleteList.innerHTML = ""; 
 
-    // 검색창 입력 이벤트
-    searchInput.addEventListener("input", function(e) {
-        e.stopPropagation(); 
-        
-        const val = this.value.trim().toLowerCase();
-        autocompleteList.innerHTML = ""; 
-
-        if (!val) {
-            autocompleteList.style.display = "none";
-            hiddenInput.value = ""; 
-            return;
-        }
-
-        const filtered = parentTasks.filter(task => {
-            if (task && task.taskTitle) {
-                const titleStr = String(task.taskTitle).toLowerCase();
-                return titleStr.includes(val);
+            if (!val) {
+                autocompleteList.style.display = "none";
+                hiddenInput.value = ""; 
+                return;
             }
-            return false;
+
+            const filtered = parentTasks.filter(task => {
+                if (task && task.taskTitle) {
+                    const titleStr = String(task.taskTitle).toLowerCase();
+                    return titleStr.includes(val);
+                }
+                return false;
+            });
+
+            if (filtered.length > 0) {
+                let htmlContent = "";
+                
+                filtered.forEach(task => {
+                    htmlContent += `
+                        <button type="button" 
+                                class="list-group-item list-group-item-action small text-start py-2 parent-task-item" 
+                                style="cursor: pointer; background-color: #ffffff; border-top: none; border-left: 1px solid #dee2e6; border-right: 1px solid #dee2e6; border-bottom: 1px solid #dee2e6;"
+                                data-id="${task.taskId}" 
+                                data-title="${task.taskTitle}">
+                            ${task.taskTitle}
+                        </button>
+                    `;
+                });
+                
+                autocompleteList.innerHTML = htmlContent;
+                
+                const firstItem = autocompleteList.querySelector(".parent-task-item");
+                if (firstItem) firstItem.style.borderTop = "1px solid #dee2e6";
+                
+                autocompleteList.style.display = "block"; 
+                
+                const items = autocompleteList.querySelectorAll(".parent-task-item");
+                items.forEach(item => {
+                    item.addEventListener("click", function(clickEvent) {
+                        clickEvent.stopPropagation(); 
+                        searchInput.value = this.getAttribute("data-title");  
+                        hiddenInput.value = this.getAttribute("data-id");    
+                        autocompleteList.style.display = "none"; 
+                    });
+                });
+            } else {
+                autocompleteList.style.display = "none"; 
+            }
         });
 
-        if (filtered.length > 0) {
-            let htmlContent = "";
-            
-            filtered.forEach(task => {
-                htmlContent += `
-                    <button type="button" 
-                            class="list-group-item list-group-item-action small text-start py-2 parent-task-item" 
-                            style="cursor: pointer; background-color: #ffffff; border-top: none; border-left: 1px solid #dee2e6; border-right: 1px solid #dee2e6; border-bottom: 1px solid #dee2e6;"
-                            data-id="${task.taskId}" 
-                            data-title="${task.taskTitle}">
-                        ${task.taskTitle}
-                    </button>
-                `;
-            });
-            
-            autocompleteList.innerHTML = htmlContent;
-            
-            const firstItem = autocompleteList.querySelector(".parent-task-item");
-            if (firstItem) firstItem.style.borderTop = "1px solid #dee2e6";
-            
-            autocompleteList.style.display = "block"; 
-            
-            const items = autocompleteList.querySelectorAll(".parent-task-item");
-            items.forEach(item => {
-                item.addEventListener("click", function(clickEvent) {
-                    clickEvent.stopPropagation(); 
-                    
-                    searchInput.value = this.getAttribute("data-title");  
-                    hiddenInput.value = this.getAttribute("data-id");    
-                    autocompleteList.style.display = "none"; 
-                });
-            });
-            
-        } else {
-            autocompleteList.style.display = "none"; 
-        }
-    });
+        document.addEventListener("click", function(e) {
+            if (e.target !== searchInput && e.target !== autocompleteList) {
+                autocompleteList.style.display = "none";
+            }
+        });
+    }
 
-    document.addEventListener("click", function(e) {
-        if (e.target !== searchInput && e.target !== autocompleteList) {
-            autocompleteList.style.display = "none";
-        }
-    });
-});
-
-
-document.getElementById('fileInput').addEventListener('change', function(e) {
+    // ==========================================
+    // 2. 신규 파일 첨부 및 드래그 앤 드롭 로직
+    // ==========================================
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
     const fileListDisplay = document.getElementById('fileListDisplay');
     
-    // 이전에 표시되던 목록 초기화
-    fileListDisplay.innerHTML = '';
-    
-    // 선택된 파일들을 가져옴
-    const files = e.target.files;
-    
-    if(files.length > 0) {
-        // 파일 목록을 감쌀 ul 태그 생성
-        const ul = document.createElement('ul');
-        ul.style.listStyle = 'none';
-        ul.style.paddingLeft = '5px';
-        
-        for(let i = 0; i < files.length; i++) {
-            const li = document.createElement('li');
-            
-            // 파일 크기를 KB 단위를 환산하여 보기 좋게 표시
-            const fileSizeKB = (files[i].size / 1024).toFixed(1); 
-            
-            li.innerHTML = `📄 <strong>${files[i].name}</strong> (${fileSizeKB} KB)`;
-            li.style.marginBottom = '5px';
-            ul.appendChild(li);
+    let selectedFiles = [];
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+    if (fileInput && dropZone) {
+        // 파일 클릭 첨부
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        // 드래그 앤 드롭
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // 파일 검증 및 배열 추가 함수
+        function handleFiles(files) {
+            for (let file of files) {
+                if (file.size > MAX_SIZE) {
+                    alert(`${file.name} 파일이 5MB를 초과합니다.`);
+                    continue;
+                }
+                // 중복 방지
+                if (selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    continue;
+                }
+                selectedFiles.push(file);
+            }
+            renderFileList();
         }
-        
-        fileListDisplay.appendChild(ul);
-    } else {
-        fileListDisplay.innerHTML = '<span style="color: #999;">선택된 파일이 없습니다.</span>';
+
+        // ⭐️ 중요: 파일 목록 렌더링 및 실제 <input> 태그 동기화
+        function renderFileList() {
+            fileListDisplay.innerHTML = '';
+            
+            // 일반 Form Submit을 위해 JS 배열의 파일을 실제 <input type="file">에 동기화해주는 객체
+            const dataTransfer = new DataTransfer(); 
+
+            selectedFiles.forEach((file, index) => {
+                // 1. 실제 input에 전송될 파일 목록에 추가
+                dataTransfer.items.add(file);
+
+                // 2. 화면에 보여줄 UI 생성
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>📄 <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)</span>
+                    <span class="btn-remove" data-index="${index}" style="color: #ff4d4f; cursor: pointer; font-weight: bold; margin-left: 10px;">✕</span>
+                `;
+                fileListDisplay.appendChild(fileItem);
+            });
+
+            // ⭐️ 가장 핵심: 동기화된 파일 목록을 실제 input 태그에 덮어씌움
+            fileInput.files = dataTransfer.files;
+
+            // 취소 버튼 이벤트
+            const removeButtons = fileListDisplay.querySelectorAll('.btn-remove');
+            removeButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    const indexToRemove = parseInt(btn.getAttribute('data-index'));
+                    selectedFiles.splice(indexToRemove, 1);
+                    renderFileList(); // 삭제 후 재렌더링 (이때 input.files도 다시 갱신됨)
+                });
+            });
+        }
+    }
+
+    // ==========================================
+    // 3. 기존 첨부된 파일 삭제 로직 (수정 화면용)
+    // ==========================================
+    const existingFileItems = document.querySelectorAll('.existing-file-item');
+    const deletedFilesContainer = document.getElementById('deletedFilesContainer');
+
+    if (existingFileItems.length > 0 && deletedFilesContainer) {
+        existingFileItems.forEach(item => {
+            const removeBtn = item.querySelector('.btn-remove-existing');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', () => {
+                    const fileId = item.getAttribute('data-file-id');
+
+                    // 서버로 전송할 hidden input 생성
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'deletedFileIds'; // 백엔드 DTO와 일치해야 함
+                    hiddenInput.value = fileId;
+                    deletedFilesContainer.appendChild(hiddenInput);
+
+                    // 화면에서 숨김
+                    item.style.display = 'none';
+                });
+            }
+        });
     }
 });

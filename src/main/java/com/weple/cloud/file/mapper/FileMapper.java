@@ -1,6 +1,7 @@
 package com.weple.cloud.file.mapper;
 
-import org.apache.ibatis.annotations.Mapper;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 
 import com.weple.cloud.file.FileInfoVO;
@@ -19,4 +20,9 @@ public interface FileMapper {
     
     // 파일 버전(상세) 정보 등록
     int insertFileInfo(FileInfoVO fileInfoVO);
+    
+    List<FileInfoVO> findFileInfoByFileId(Long fileId);
+    void updateFileDeletedStatus(Long fileId);
+    void clearFileVersionInfo(Long fileId);
+    void restoreFile(Long fileId);
 }

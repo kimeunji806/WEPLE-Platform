@@ -77,7 +77,7 @@
                         <option th:value="${loginUserCode}" th:selected="${taskDetail.taskManagerId == loginUserCode}"><< 내게 할당 >></option>
                         <option th:each="member : ${memberList}" 
                                 th:value="${member.userCode}" 
-                                th:text="${member.userName}"
+                                th:text="|${member.userName} (${member.email})|"
                                 th:selected="${member.userCode == taskDetail.taskManagerId and member.userCode != loginUserCode}"></option> 
                     </select>
 				</div>
@@ -144,25 +144,29 @@
 			</div>
 
             <div class="row" style="margin-bottom: 30px;">
-                <div class="col-md-12">
-                    <label class="form-label">파일</label>
-                    
-                    <div th:if="*{fileList != null and !fileList.isEmpty()}" style="margin-bottom: 15px; padding: 10px; background-color: #f8fafc; border-radius: 5px;">
-                        <span style="font-size: 13px; font-weight: bold; color: #475569; display: block; margin-bottom: 5px;">기존 첨부된 파일</span>
-                        <div th:each="file : *{fileList}" style="font-size: 14px; margin-bottom: 5px;">
-                            <span th:text="${file.logicalName}"></span>
-                        </div>
-                    </div>
+    			<div class="col-md-12">
+        			<label class="form-label">파일</label>
+        
+        			<div id="deletedFilesContainer"></div>
 
-                    <div class="upload-zone" onclick="document.getElementById('fileInput').click();" style="border: 2px dashed #ccc; padding: 20px; text-align: center; cursor: pointer; border-radius: 5px;">
-                        <div class="upload-icon">📁</div>
-                        <div class="upload-text">새로운 파일을 선택하거나 여기로 드래그하세요 (최대 크기: 5 MB)</div>
-                        <input type="file" id="fileInput" name="files" multiple style="display: none;">
-                    </div>
-                    
-                    <div id="fileListDisplay" style="margin-top: 10px; font-size: 14px; color: #555;"></div>
-                </div>
-            </div>
+        			<div th:if="*{fileList != null and !fileList.isEmpty()}" id="existingFilesList" style="margin-bottom: 15px; padding: 10px; background-color: #f8fafc; border-radius: 5px;">
+            			<span style="font-size: 13px; font-weight: bold; color: #475569; display: block; margin-bottom: 5px;">기존 첨부된 파일</span>
+            
+            			<div th:each="file : *{fileList}" class="existing-file-item" th:data-file-id="${file.fileId}" style="font-size: 14px; margin-bottom: 5px; display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 5px 10px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                <span th:text="${file.logicalName}">파일명.txt</span>
+                <span class="btn-remove-existing" style="color: #ff4d4f; cursor: pointer; font-weight: bold;">✕</span>
+            			</div>
+        			</div>
+
+        			<div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click();" style="border: 2px dashed #ccc; padding: 20px; text-align: center; cursor: pointer; border-radius: 5px;">
+            			<div class="upload-icon">📁</div>
+            			<div class="upload-text">새로운 파일을 선택하거나 여기로 드래그하세요 (최대 크기: 5 MB)</div>
+            			<input type="file" id="fileInput" name="files" multiple style="display: none;">
+        			</div>
+        
+        			<div id="fileListDisplay" style="margin-top: 10px; font-size: 14px; color: #555;"></div>
+    			</div>
+			</div>
 
 			<div style="display: flex; justify-content: flex-end; gap: 10px;">
                 <button type="button" th:onclick="|location.href='@{/project/task/detail/{id}(id=*{taskId}, projectId=${param.projectId})}'|" class="btn-insert-cancel">취소</button>

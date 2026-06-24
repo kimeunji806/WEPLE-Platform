@@ -12,6 +12,7 @@ import com.weple.cloud.file.FileInfoVO;
 import com.weple.cloud.file.FileVO;
 import com.weple.cloud.file.mapper.FileMapper;
 import com.weple.cloud.task.mapper.TaskMapper;
+import com.weple.cloud.task.service.TaskCommentVO;
 import com.weple.cloud.task.service.TaskMemberVO;
 import com.weple.cloud.task.service.TaskMilestoneVO;
 import com.weple.cloud.task.service.TaskParentVO;
@@ -149,64 +150,97 @@ public class TaskServiceImpl implements TaskService {
 
 	// 일감 수정
 	@Transactional(rollbackFor = Exception.class)
-    @Override
-    public void updateTask(TaskVO taskVO, List<MultipartFile> files) throws Exception {
-        
+	@Override
+	public void updateTask(TaskVO taskVO, List<MultipartFile> files, List<Long> deletedFileIds) throws Exception {
+	    
+	    // [추가] 기존 첨부파일 삭제 처리 (물리 파일 삭제 및 DB 상태 변경)
+	    if (deletedFileIds != null && !deletedFileIds.isEmpty()) {
+	        for (Long fileId : deletedFileIds) {
+	            // 1. 물리적 파일 삭제를 위해 해당 file_id의 모든 버전 정보(경로) 조회
+	            List<FileInfoVO> fileVersions = fileMapper.findFileInfoByFileId(fileId);
+	            
+	            if (fileVersions != null) {
+	                for (FileInfoVO fileInfo : fileVersions) {
+	                    if (fileInfo.getFilePath() != null) {
+	                        File physicalFile = new File(fileInfo.getFilePath());
+	                        if (physicalFile.exists()) {
+	                            physicalFile.delete(); // 폴더 내의 파일 삭제
+	                        }
+	                    }
+	                }
+	            }
+	            
+	            // 2. DB 업데이트: files 테이블의 is_deleted = 'Y'
+	            fileMapper.updateFileDeletedStatus(fileId);
+	            
+	            // 3. DB 업데이트: file_info(file_version) 테이블의 경로 및 크기 정보 NULL 처리
+	            fileMapper.clearFileVersionInfo(fileId);
+	        }
+	    }
 
-        taskMapper.updateTask(taskVO);
-        
-        // 추가된 파일이 존재할 경우 업로드 및 버전 관리 진행
-        if (files != null && !files.isEmpty()) {
-            
-            File dir = new File(uploadDir);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
+	    // 기존 일감 정보 업데이트
+	    taskMapper.updateTask(taskVO);
+	    
+	    // 추가된 파일이 존재할 경우 업로드 및 버전 관리 진행 (기존 코드 유지)
+	    if (files != null && !files.isEmpty()) {
+	        File dir = new File(uploadDir);
+	        if (!dir.exists()) {
+	            dir.mkdirs();
+	        }
 
-            for (MultipartFile file : files) {
-                if (!file.isEmpty()) {
-                    String originalFilename = file.getOriginalFilename(); 
-                    
-                    // 파일명 중복 체크
-                    Long existingFileId = fileMapper.findFileId(taskVO.getTaskId(), originalFilename);
-                    
-                    Long targetFileId;
-                    
-                    if (existingFileId != null) {
-                        // 기존 파일이 있으면 버전만 올리기 위해 ID 유지
-                        targetFileId = existingFileId;
-                    } else {
-                        // 새 파일이면 files 테이블에 마스터 등록
-                        FileVO fileVO = new FileVO();
-                        fileVO.setTaskId(taskVO.getTaskId());
-                        fileVO.setFileName(originalFilename); 
-                        
-                        fileMapper.insertFile(fileVO);
-                        targetFileId = fileVO.getFileId(); 
-                    }
-                    
-                    // 물리 파일 저장
-                    String savedName = UUID.randomUUID().toString() + "_" + originalFilename;
-                    String filePath = uploadDir + savedName; 
-                    file.transferTo(new File(filePath));
-                    
-                    // 파일 버전(상세) 정보 등록
-                    FileInfoVO fileInfoVO = new FileInfoVO();
-                    fileInfoVO.setFileId(targetFileId);
-                    fileInfoVO.setFilePath(filePath);
-                    fileInfoVO.setFileSize(file.getSize());
-                    fileInfoVO.setUploader(taskVO.getUserCode()); 
-                    fileInfoVO.setSavedName(savedName);
-                    
-                    fileMapper.insertFileInfo(fileInfoVO); 
-                }
-            }
-        }
-    }
+	        for (MultipartFile file : files) {
+	            if (!file.isEmpty()) {
+	                String originalFilename = file.getOriginalFilename(); 
+	                
+	                // 이제 is_deleted가 Y인 파일도 ID를 정상적으로 찾아옵니다.
+	                Long existingFileId = fileMapper.findFileId(taskVO.getTaskId(), originalFilename);
+	                
+	                Long targetFileId;
+	                
+	                if (existingFileId != null) {
+	                    // 기존 파일이 있으면 ID를 유지
+	                    targetFileId = existingFileId;
+	                    
+	                    // [핵심 추가] 혹시 is_deleted가 'Y' 상태일 수 있으므로 'N'으로 업데이트
+	                    fileMapper.restoreFile(targetFileId);
+	                    
+	                } else {
+	                    // 아예 처음 올리는 새 파일이면 마스터 등록
+	                    FileVO fileVO = new FileVO();
+	                    fileVO.setTaskId(taskVO.getTaskId());
+	                    fileVO.setFileName(originalFilename); 
+	                    
+	                    fileMapper.insertFile(fileVO);
+	                    targetFileId = fileVO.getFileId(); 
+	                }
+	                
+	                // 물리 파일 저장
+	                String savedName = UUID.randomUUID().toString() + "_" + originalFilename;
+	                String filePath = uploadDir + savedName; 
+	                file.transferTo(new File(filePath));
+	                
+	                // 파일 버전(상세) 정보 등록
+	                FileInfoVO fileInfoVO = new FileInfoVO();
+	                fileInfoVO.setFileId(targetFileId);
+	                fileInfoVO.setFilePath(filePath);
+	                fileInfoVO.setFileSize(file.getSize());
+	                fileInfoVO.setUploader(taskVO.getUserCode()); 
+	                fileInfoVO.setSavedName(savedName);
+	                
+	                // 여기서 (기존 MAX 버전 + 1) 로직이 타면서 자연스럽게 다음 버전으로 Insert 됩니다.
+	                fileMapper.insertFileInfo(fileInfoVO); 
+	            }
+	        }
+	    }
+	}
 	// 삭제
 	@Override
 	public void deleteTask(String tId) {
 		taskMapper.deleteTask(tId);
+	}
+	@Override
+	public List<TaskCommentVO>findTaskComment(String tId) {
+		return taskMapper.taskCommentList(tId);
 	}
 
 }

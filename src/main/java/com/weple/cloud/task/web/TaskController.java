@@ -1,18 +1,22 @@
 package com.weple.cloud.task.web;
 
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.weple.cloud.auth.service.LoginUserDetails;
+import com.weple.cloud.task.service.TaskCommentVO;
 import com.weple.cloud.task.service.TaskProjectSelectVO;
 import com.weple.cloud.task.service.TaskService;
 import com.weple.cloud.task.service.TaskVO;
@@ -82,11 +86,14 @@ public class TaskController {
 	public String taskDetail(@PathVariable("tId") String tId,@RequestParam("projectId") Long pId,@AuthenticationPrincipal LoginUserDetails loginUser,Model model,TaskVO taskVO) {
 			
 		TaskVO taskDetail = taskService.findTaskDetail(tId);
+		List<TaskCommentVO> taskComment = taskService.findTaskComment(tId);
+		System.out.println("여기" + taskComment);
 		List<TaskVO> childTaskList = taskService.findChildTask(tId);
 		model.addAttribute("currentMenu", "task");
 		model.addAttribute("projectId",pId);
 		model.addAttribute("taskDetail",taskDetail);
 		model.addAttribute("chlidTaskList",childTaskList);
+		model.addAttribute("taskComment" , taskComment);
 		return "weple/task/detail";
 	}
 	
@@ -140,14 +147,15 @@ public class TaskController {
 	public String taskUpdateProcess(@RequestParam("projectId") Long pId,
 	                                @AuthenticationPrincipal LoginUserDetails loginUser,
 	                                TaskVO taskVO,
-	                                @RequestParam(value = "files", required = false) List<MultipartFile> files) throws Exception {
+	                                @RequestParam(value = "files", required = false) List<MultipartFile> files,
+	                                @RequestParam(value = "deletedFileIds", required = false) List<Long> deletedFileIds) throws Exception {
 	    
 		String userCode = loginUser.getLoginUser().getUserCode();
 	    taskVO.setProjectId(pId);
 	    taskVO.setUserCode(userCode); 
 
 
-	    taskService.updateTask(taskVO, files);
+	    taskService.updateTask(taskVO, files, deletedFileIds);
 	    
 	    // 수정 완료 후 해당 일감의 상세조회 페이지로 리다이렉트
 	    return "redirect:/project/task/detail/" + taskVO.getTaskId() + "?projectId=" + pId;
@@ -159,6 +167,28 @@ public class TaskController {
 		return "redirect:/project/task" + "?projectId=" +pId;
 		
 	}
+//	@PostMapping("/project/task/comment/add")
+//    @ResponseBody // ★ 일반 @Controller에서 JSON 응답을 내보내기 위해 필수!
+//    public ResponseEntity<?> taskCommentAdd(@RequestBody TaskCommentVO commentVO,
+//                                            @AuthenticationPrincipal LoginUserDetails loginUser) {
+//        try {
+//            // 로그인한 사용자의 고유 코드 세팅
+//            String userCode = loginUser.getLoginUser().getUserCode();
+//            commentVO.setUserCode(userCode);
+//
+//            // DB에 댓글 Insert
+//            taskService.addTaskComment(commentVO);
+//
+//            // 성공 반환 (자바스크립트 쪽에서 data.success == true 로 받게 됨)
+//            return ResponseEntity.ok().body(Map.of("success", true));
+//            
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            // 에러 발생 시 500 에러와 함께 메시지 반환
+//            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", e.getMessage()));
+//        }
+//    }
+	
 
 
 }

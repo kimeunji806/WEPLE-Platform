@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 
+import com.weple.cloud.task.service.TaskCommentVO;
 import com.weple.cloud.task.service.TaskMemberVO;
 import com.weple.cloud.task.service.TaskMilestoneVO;
 import com.weple.cloud.task.service.TaskParentVO;
@@ -41,5 +42,7 @@ public interface TaskMapper {
     public int updateTask(TaskVO taskVO);
     
     public void deleteTask(@Param("tId") String tId);
+    
+    public List<TaskCommentVO>taskCommentList(@Param("tId") String tId);
 
 }

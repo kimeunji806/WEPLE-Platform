@@ -3,12 +3,11 @@
 
 <mapper namespace="com.weple.cloud.file.mapper.FileMapper">
 <select id="findFileId" resultType="Long">
-        SELECT file_id 
-        FROM files 
-        WHERE task_id = #{taskId} 
-          AND logical_name = #{fileName} 
-          AND is_deleted = 'N'
-    </select>
+    SELECT MAX(file_id) 
+    FROM files 
+    WHERE task_id = #{taskId} 
+      AND logical_name = #{fileName} 
+</select>
 
     <insert id="insertFile" parameterType="FileVO">
         <selectKey keyProperty="fileId" resultType="Long" order="BEFORE">
@@ -39,4 +38,28 @@
             #{savedName}
         )
     </insert>
+    <select id="findFileInfoByFileId" parameterType="long" resultType="FileInfoVO">
+    SELECT file_id, file_path, saved_name, file_size
+      FROM file_versions
+     WHERE file_id = #{fileId}
+</select>
+
+<update id="updateFileDeletedStatus" parameterType="long">
+    UPDATE files
+       SET is_deleted = 'Y'
+     WHERE file_id = #{fileId}
+</update>
+
+<update id="clearFileVersionInfo" parameterType="long">
+    UPDATE file_versions
+       SET saved_name = NULL,
+           file_path = NULL,
+           file_size = NULL
+     WHERE file_id = #{fileId}
+</update>
+<update id="restoreFile" parameterType="Long">
+    UPDATE files
+       SET is_deleted = 'N'
+     WHERE file_id = #{fileId}
+</update>
 </mapper>

@@ -69,3 +69,29 @@
 	border-radius: 6px;
 	padding: 8px 24px;
 }
+
+.file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 10px;
+        background: #f5f5f5;
+        border-radius: 4px;
+        margin-top: 5px;
+    }
+    /* 취소 버튼 스타일 */
+    .btn-remove {
+        color: #ff4d4f;
+        cursor: pointer;
+        font-weight: bold;
+        margin-left: 10px;
+        padding: 0 5px;
+    }
+    .btn-remove:hover {
+        color: #ff1818;
+    }
+    /* 드래그 오버 시 시각 효과 */
+    .upload-zone.dragover {
+        border-color: #40a9ff !important;
+        background-color: #e6f7ff;
+    }

@@ -24,7 +24,7 @@
 			common_code cc ON t.task_status = cc.common_id
 		LEFT JOIN
 			users u ON t.task_manager = u.user_code
-		WHERE t.project_id = #{pId}
+		WHERE t.project_id = #{pId} AND deleted_yn ='N'
 		ORDER BY createdAt DESC
 	</select>
 	<select id="taskTypes" resultType="TaskTypeListVO"> <!-- 일감등록 일감유형 목록 조회 -->
@@ -45,6 +45,7 @@
 	<select id="taskMembers" resultType="TaskMemberVO"> <!-- 일감등록 현재 선택된 프로젝트 참여자 목록 조회 -->
 		SELECT 
 			u.user_code AS userCode,
+			u.email AS email,
 			u.user_name AS userName
 		FROM members m
 			INNER JOIN users u ON m.user_code = u.user_code
@@ -218,7 +219,7 @@
 			common_code cc ON t.task_status = cc.common_id
 		LEFT JOIN
 			users u ON t.task_manager = u.user_code
-		WHERE t.task_manager = #{tManager}
+		WHERE t.task_manager = #{tManager} AND deleted_yn ='N'
 		ORDER BY createdAt DESC
 	</select>
 	<select id="myAllTasks" resultType="TaskProjectSelectVO">
@@ -226,7 +227,7 @@
 			m.project_id , p.project_title
 		FROM 
 			members m JOIN project p ON m.project_id = p.project_id
-		WHERE m.user_code = #{uCode}
+		WHERE m.user_code = #{uCode} AND deleted_yn ='N'
 	</select>
 	
 	
@@ -249,8 +250,24 @@
      WHERE task_id = #{taskId}
 </update>
 
-<delete id="deleteTask">
-	DELETE FROM task WHERE task_id = #{tId} <!-- 권한에 따라 사용자는 삭제 버튼 안보이게 하던가 아니면 연결된 권한 쪽 확인해서 일감 삭제 권한 있는지 확인하고 해당 쿼리 실행할수 있도록 -->
-</delete>
+<update id="deleteTask">
+    UPDATE task
+       SET deleted_yn = 'Y'
+     WHERE task_id = #{tId}
+</update>
+
+<select id="taskCommentList" resultType="TaskCommentVO">
+	SELECT tc.comment_id AS commentId ,
+        tc.task_id taskId,
+        tc.parent_comment_id parentCommentId,
+        tc.user_code userCode,
+        u.user_name userName,
+        u.profile_image profileImage,
+        tc.task_comment taskComment,
+        tc.created_at AS createdAt
+	FROM task_comment tc JOIN users u ON tc.user_code = u.user_code
+	WHERE task_id = #{tId}
+	ORDER BY tc.comment_id ASC
+</select>
 
 </mapper>

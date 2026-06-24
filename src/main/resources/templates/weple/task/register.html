@@ -65,7 +65,7 @@
 					<label class="form-label">담당자</label> 
 					<select class="form-control form-select" name="taskManager">
 						<option th:value="${loginUserCode}"><< 내게 할당 >></option>
-						<option th:each="member : ${memberList}" th:value="${member.userCode}" th:text="${member.userName}"></option>
+						<option th:each="member : ${memberList}" th:value="${member.userCode}" th:text="|${member.userName} (${member.email})|"></option>
 					</select>
 				</div>
 				<div class="col-md-6">
@@ -128,22 +128,21 @@
 				</div>
 			</div>
 
-<div class="row" style="margin-bottom: 30px;">
-    <div class="col-md-12">
-        <label class="form-label">파일</label>
-        <div class="upload-zone" onclick="document.getElementById('fileInput').click();" style="border: 2px dashed #ccc; padding: 20px; text-align: center; cursor: pointer; border-radius: 5px;">
-            <div class="upload-icon">📁</div>
-            <div class="upload-text">파일을 선택하거나 여기로 드래그하세요 (최대 크기: 5 MB)</div>
-            <input type="file" id="fileInput" name="files" multiple style="display: none;">
-        </div>
-        
-        <div id="fileListDisplay" style="margin-top: 10px; font-size: 14px; color: #555;">
-            </div>
-    </div>
-</div>
+			<div class="row" style="margin-bottom: 30px;">
+			    <div class="col-md-12">
+			        <label class="form-label">파일</label>
+			        <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click();" style="border: 2px dashed #ccc; padding: 20px; text-align: center; cursor: pointer; border-radius: 5px;">
+			            <div class="upload-icon">📁</div>
+			            <div class="upload-text">파일을 선택하거나 여기로 드래그하세요 (최대 크기: 5 MB)</div>
+			            <input type="file" id="fileInput" name="files" multiple style="display: none;">
+			        </div>
+			        
+			        <div id="fileListDisplay" style="margin-top: 10px; font-size: 14px; color: #555;"></div>
+			    </div>
+			</div>			
 
 			<div style="display: flex; justify-content: flex-end; gap: 10px;">
-				<button type="button" th:onclick="|location.href='@{/task/list}'|" class="btn-insert-cancel">취소</button>
+				<button type="button" th:onclick="|location.href='@{/project/task?projectId={projectId}(projectId=${param.projectId})}'|" class="btn-insert-cancel">취소</button>
 				<button type="submit" class="btn-insert-submit">등록</button>
 			</div>
 		</form>

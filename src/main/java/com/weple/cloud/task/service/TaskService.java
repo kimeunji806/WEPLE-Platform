@@ -29,7 +29,9 @@ public interface TaskService {
 	
 	public List<TaskProjectSelectVO> findMyProject(String uCode);
 	
-	public void updateTask(TaskVO taskVO, List<MultipartFile> files) throws Exception;
+	void updateTask(TaskVO taskVO, List<MultipartFile> files, List<Long> deletedFileIds) throws Exception;
 	
 	public void deleteTask(String tId);
+	
+	public List<TaskCommentVO> findTaskComment(String tId);
 }

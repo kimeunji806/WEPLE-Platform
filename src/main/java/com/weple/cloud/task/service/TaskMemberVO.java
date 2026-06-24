@@ -12,5 +12,6 @@ import lombok.ToString;
 @ToString
 public class TaskMemberVO {
 	private String userCode;
+	private String email;
 	private String userName;
 }

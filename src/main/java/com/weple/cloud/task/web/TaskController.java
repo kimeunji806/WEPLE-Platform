@@ -1,24 +1,21 @@
 package com.weple.cloud.task.web;
 
 import java.util.List;
-import java.util.Map;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.weple.cloud.auth.service.LoginUserDetails;
-import com.weple.cloud.task.service.TaskCommentVO;
-import com.weple.cloud.project.service.ProjectService;
 import com.weple.cloud.history.task.service.TaskHistoryService;
+import com.weple.cloud.project.service.ProjectService;
+import com.weple.cloud.task.service.TaskCommentVO;
 import com.weple.cloud.task.service.TaskProjectSelectVO;
 import com.weple.cloud.task.service.TaskService;
 import com.weple.cloud.task.service.TaskVO;
@@ -168,7 +165,7 @@ public class TaskController {
 	    taskVO.setUserCode(userCode); 
 
 
-	    taskService.updateTask(taskVO, files, deletedFileIds);
+	    
 	    
 	    // 수정 전 값 먼저 조회-은지
 	    TaskVO before = taskService.findTaskDetail(taskVO.getTaskId());
@@ -176,7 +173,7 @@ public class TaskController {
 	    String oldTypeName = before.getTypeIdName();
 	    
 	    // 수정 처리 서비스 호출 (VO 내부에 taskId가 hidden으로 담겨서 넘어옵니다)
-	    taskService.updateTask(taskVO, files);
+	    taskService.updateTask(taskVO, files, deletedFileIds);
  
 	    // 작업내역 저장-은지
 	    taskHistoryService.insertHistory(
@@ -190,8 +187,11 @@ public class TaskController {
 	}
 	
 	@PostMapping("/project/task/delete/{tId}")
-	public String taskDeleteProcess(@RequestParam("projectId") Long pId,@PathVariable("tId") String tId) {
+	public void taskDeleteProcess(@RequestParam("projectId") Long pId,@PathVariable("tId") String tId) {
 		taskService.deleteTask(tId);
+	}
+	
+		
 	@DeleteMapping("/project/task/delete")
 	public String taskDeleteProcess(
 			@RequestParam("projectId") Long pId,

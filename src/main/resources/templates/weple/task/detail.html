@@ -151,26 +151,14 @@
         </div>
     </div>
 
-    <div id="tab-comments" class="tab-content" style="display: none;">
-    <div class="comment-header-title" style="margin-bottom: 15px; font-size: 15px;">
-        <strong>댓글 <span style="color: #3b82f6;" th:text="${taskComment != null ? taskComment.size() : 0}">0</span></strong>
-    </div>
-
-    <div class="comment-input-box main-comment-input">
-        <textarea id="mainCommentContent" placeholder="댓글 내용을 입력하세요..."></textarea>
-        <div class="comment-submit-area">
-            <button type="button" onclick="submitComment(null)">댓글 등록</button>
-        </div>
-    </div>
-
     <div class="comment-list">
-        <th:block th:each="comment : ${taskComment}" th:if="${comment.parentCommentId == null}">
+        <th:block th:each="comment : ${taskComment}" th:if="${comment.parentCommentId == null or comment.parentCommentId == 0}">
             
             <div class="comment-item root-comment">
                 <div class="comment-header">
                     <div class="user-info">
                         <div class="profile-img"></div>
-                        <strong th:text="${comment.userCode}">user01</strong>
+                        <strong th:text="|${comment.userName}(${comment.userCode})|">김병원(user01)</strong>
                         <span class="comment-date" th:text="${#temporals.format(comment.createdAt, 'yyyy.MM.dd HH:mm')}">2026.06.11 14:20</span>
                     </div>
                 </div>
@@ -197,7 +185,7 @@
                         <div class="comment-header">
                             <div class="user-info">
                                 <div class="profile-img"></div>
-                                <strong th:text="${reply.userCode}">user02</strong>
+                                <strong th:text="|${reply.userName}(${reply.userCode})|">송민규(user02)</strong>
                                 <span class="comment-date" th:text="${#temporals.format(reply.createdAt, 'yyyy.MM.dd HH:mm')}">2026.06.11 15:30</span>
                             </div>
                         </div>
@@ -205,17 +193,18 @@
                             대댓글 내용입니다.
                         </div>
                         <div class="comment-actions">
-                            <span class="reply-btn" th:data-id="${comment.commentId}" th:data-user="${reply.userCode}" onclick="toggleReplyForm(this.getAttribute('data-id'), this.getAttribute('data-user'))">답글</span>
+                            <span class="reply-btn" th:data-id="${comment.commentId}" th:data-user="${reply.userName}" onclick="toggleReplyForm(this.getAttribute('data-id'), this.getAttribute('data-user'))">답글</span>
                         </div>
                     </div>
                 </div>
             </th:block>
-            </th:block>
+            
+        </th:block>
+        
         <div th:if="${taskComment == null or taskComment.isEmpty()}" style="text-align: center; padding: 30px; color: #94a3b8;">
             등록된 댓글이 없습니다.
         </div>
     </div>
-</div>
 </div>
 
                 <div id="tab-time" class="tab-content" style="display: none;">

@@ -163,9 +163,6 @@ public class TaskController {
 		String userCode = loginUser.getLoginUser().getUserCode();
 	    taskVO.setProjectId(pId);
 	    taskVO.setUserCode(userCode); 
-
-
-	    
 	    
 	    // 수정 전 값 먼저 조회-은지
 	    TaskVO before = taskService.findTaskDetail(taskVO.getTaskId());

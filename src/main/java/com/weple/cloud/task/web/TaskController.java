@@ -163,9 +163,6 @@ public class TaskController {
 		String userCode = loginUser.getLoginUser().getUserCode();
 	    taskVO.setProjectId(pId);
 	    taskVO.setUserCode(userCode); 
-
-
-	    
 	    
 	    // 수정 전 값 먼저 조회-은지
 	    TaskVO before = taskService.findTaskDetail(taskVO.getTaskId());
@@ -186,13 +183,14 @@ public class TaskController {
 	    return "redirect:/project/task/detail/" + taskVO.getTaskId() + "?projectId=" + pId;
 	}
 	
-	@PostMapping("/project/task/delete/{tId}")
-	public void taskDeleteProcess(@RequestParam("projectId") Long pId,@PathVariable("tId") String tId) {
-		taskService.deleteTask(tId);
-	}
 	
+	@PostMapping("/project/task/delete/{tId}")
+    public String taskDeleteProcess(@RequestParam("projectId") Long pId, @PathVariable("tId") String tId) {
+        taskService.deleteTask(tId);
+        return "redirect:/project/task" + "?projectId=" + pId;
+    }
 		
-	@DeleteMapping("/project/task/delete")
+	@PostMapping("/project/task/delete/soft")
 	public String taskDeleteProcess(
 			@RequestParam("projectId") Long pId,
 			@RequestParam("tId") String tId,

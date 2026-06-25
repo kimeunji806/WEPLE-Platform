@@ -75,7 +75,7 @@ document.addEventListener("DOMContentLoaded", function() {
 			// ⭐️ 핵심: 기존 컨트롤러가 사용하는 PathVariable과 QueryParam 주소 동적 세팅
 
 
-			taskDeleteForm.action = '/project/task/delete/' + taskId + '?projectId=' + projectId;
+			taskDeleteForm.action = '/project/task/delete/soft?projectId=' + projectId + '&tId=' + taskId;
 
 			// 실시간 입력값 비교 체크 (일감명이 정확히 일치할 때만 버튼 활성화)
 			confirmInput.oninput = function() {

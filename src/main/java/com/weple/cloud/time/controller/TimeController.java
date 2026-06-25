@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.weple.cloud.project.service.ProjectService;
@@ -52,8 +53,15 @@ public class TimeController {
 	@GetMapping("/insertProjectTime")
 	public String insertProjectTimeForm(@RequestParam(value="projectId", required=false) Long projectId, Model model) {
 		List<ProjectVO> projectList = projectService.findAll("");
+		//projectId가 없을 경우 첫 번째 프로젝트 선택
 		if (projectId == null && projectList != null && !projectList.isEmpty()) {
 	        projectId = projectList.get(0).getProjectId();
+	    }
+		
+		// 현재 선택된 projectId로 프로젝트 정보 조회
+		if (projectId != null) {
+			ProjectVO currentProject = projectService.findById(String.valueOf(projectId));
+			model.addAttribute("currentProject", currentProject);
 	    }
 		
 		model.addAttribute("currentMenu", "time");
@@ -89,6 +97,13 @@ public class TimeController {
 	    return "redirect:/projectTimeList";
 	}
 
+	//일감 설명 가져옴
+	@GetMapping("/getTaskDetail")
+	@ResponseBody
+	public TaskVO getTaskDetail(@RequestParam("taskId") String taskId) {
+	    return taskService.findTaskDetail(taskId);
+	}
+	
 	// 수정 폼
 	@GetMapping("/updateProjectTime")
 	public String updateProjectTimeForm(@RequestParam("workId") long workId, Model model) {

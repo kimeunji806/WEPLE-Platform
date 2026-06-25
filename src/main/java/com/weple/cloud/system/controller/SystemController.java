@@ -33,6 +33,9 @@ import com.weple.cloud.system.service.SystemProjectService;
 import com.weple.cloud.system.service.SystemProjectVO;
 import com.weple.cloud.system.service.TaskTypeService;
 import com.weple.cloud.system.service.TaskTypeVO;
+import com.weple.cloud.system.service.UserService;
+import com.weple.cloud.time.service.SelectTotalTimeService;
+import com.weple.cloud.time.service.SelectTotalTimeVO;
 import com.weple.cloud.system.service.UserManagementService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -654,62 +657,6 @@ public class SystemController {
 				? "" : "&keyword=" + java.net.URLEncoder.encode(keyword.trim(), java.nio.charset.StandardCharsets.UTF_8);
 		return "redirect:/userList?page=" + Math.max(page, 1) + searchParameter;
 	}
-
-	// -------------------------------전체 소요시간------------------------------
-	private final SelectTotalTimeService selectTotalTimeService;
-	
-	// 전체조회
-	@GetMapping("totalTimeList")
-	public String totalTimeList(Model model) {
-		List<SelectTotalTimeVO> list = selectTotalTimeService.findSelectTotalTimeAll();
-		model.addAttribute("totalTimeList", list);
-		model.addAttribute("sidebarMenu", "time");
-		return "weple/time/all-total";
-	}
-	
-	// 등록 폼
-	@GetMapping("/insertTotalTime")
-	public String insertTotalTimeForm(Model model) {
-		SystemProjectVO vo = new SystemProjectVO();
-		vo.setStatus("ACTIVE");
-	    
-	    model.addAttribute("projectList", systemProjectService.selectProjectList(vo));
-	    //model.addAttribute("taskList", taskService.findAll()); 
-	    model.addAttribute("workClassList", codeValueService.findCodeValueAll());
-	    model.addAttribute("user", groupuserService.findGroupUserAll());
-	    
-	    return "weple/time/insert";
-	}
-	
-	//등록 처리
-	@PostMapping("/insertTotalTime")
-	public String insertTotalTimeProcess(SelectTotalTimeVO selectTotalTimeVO) {
-		selectTotalTimeService.addSelectTotalTime(selectTotalTimeVO);
-		return "redirect:/totalTimeList";
-	}
-	
-	// 수정 폼
-	@GetMapping("/updateTotalTime")
-    public String modifyTotalTimeForm(@RequestParam("workId") long workId, Model model) {
-        //SelectTotalTimeVO vo = selectTotalTimeService.modifySelectTotalTime(workId);
-        //model.addAttribute("totalTime", vo);
-        return "weple/time/insert";
-    }
-	
-	// 수정 처리
-	@PostMapping("/updateTotalTime")
-    public String modifyTotalTimeProcess(SelectTotalTimeVO selectTotalTimeVO) {
-        selectTotalTimeService.modifySelectTotalTime(selectTotalTimeVO);
-        return "redirect:/totalTimeList";
-    }
-	
-	// 삭제
-	@GetMapping("/deleteTotalTime")
-    public String deleteWork(@RequestParam("workId") long workId) {
-		long result = selectTotalTimeService.removeSelectTotalTime(workId);
-	    System.out.println("삭제 시도 ID: " + workId + ", 결과: " + result);
-        return "redirect:/totalTimeList";
-    }
 		
 }
 

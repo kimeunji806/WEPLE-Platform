@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.weple.cloud.system.mapper.SelectTotalTimeMapper">
+<mapper namespace="com.weple.cloud.time.mapper.SelectTotalTimeMapper">
 	<!-- 전체 소요시간 -->
 	<!-- 전체 조회 -->
-	<resultMap id="TotalTimeResultMap" type="com.weple.cloud.system.service.SelectTotalTimeVO">
+	<resultMap id="TotalTimeResultMap" type="com.weple.cloud.time.service.SelectTotalTimeVO">
 	    <result property="workId" column="work_id" />
 	    <result property="projectId" column="project_id" />
 	    <result property="taskId" column="task_id" />
@@ -11,6 +11,8 @@
 	    <result property="workNameLabel" column="work_name_label" /> <result property="workDate" column="work_date" />
 	    <result property="spentContent" column="spent_content" />
 	    <result property="spentHour" column="spent_hour" />
+	    <result property="countSpentHour" column="countSpentHour"/>
+		<result property="totalSpentHour" column="totalSpentHour"/>
 	</resultMap>
 	
 	<select id="SelectTotalTimeAll" resultType="SelectTotalTimeVO">
@@ -22,8 +24,13 @@
        		   , w_tme.work_date
        		   , w_tme.spent_content
        		   , w_tme.spent_hour
+       		   , SUM(w_tme.spent_hour) OVER (ORDER BY w_tme.work_id) AS countSpentHour
+               , SUM(w_tme.spent_hour) OVER () AS totalSpentHour
        		   , w_tme.created_at
        		   , w_tme.updated_at
+       		   , p.project_title
+               , u.user_name
+               , t.task_title
 		FROM work_time w_tme
 		LEFT JOIN project P ON w_tme.project_id = p.project_id
 		LEFT JOIN users u ON u.user_code = w_tme.user_code

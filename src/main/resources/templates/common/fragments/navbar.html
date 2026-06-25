@@ -19,8 +19,9 @@
         	<a th:href="@{/project/task(projectId=${projectId})}">일감</a>
         </li>
         
-        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b5')}">
-        	<a href="#">소요시간</a>
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b5')}"
+        	th:classappend="${currentMenu == 'time'} ? 'active' : ''">
+        	<a th:href="@{/projectTimeList(projectId=${projectId})}">소요시간</a>
         </li>
         
         <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b6')}">

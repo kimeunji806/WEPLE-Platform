@@ -34,6 +34,7 @@ import com.weple.cloud.system.service.TaskTypeService;
 import com.weple.cloud.system.service.TaskTypeVO;
 import com.weple.cloud.system.service.UserManagementCreateVO;
 import com.weple.cloud.system.service.UserManagementService;
+import com.weple.cloud.system.service.UserManagementVO;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -642,6 +643,27 @@ public class SystemController {
 		model.addAttribute("currentMenu", "systemuser");
 		model.addAttribute("menu", "user");
 		return "weple/admin/user/insert";
+	}
+
+	// 사용자 목록에서 아이디를 클릭하면 기본 정보와 프로젝트별 역할 정보를 상세조회합니다.
+	@GetMapping("/userList/{userCode}")
+	public String userManagementDetail(@AuthenticationPrincipal LoginUserDetails loginUser,
+			@PathVariable String userCode,
+			Model model,
+			RedirectAttributes redirectAttributes) {
+		Long companyId = loginUser.getLoginUser().getCompanyId();
+		UserManagementVO userDetail = userManagementService.findUserDetail(companyId, userCode);
+		if (userDetail == null) {
+			redirectAttributes.addFlashAttribute("userError", "조회할 사용자를 찾을 수 없습니다.");
+			return "redirect:/userList";
+		}
+
+		model.addAttribute("userDetail", userDetail);
+		model.addAttribute("projectList", userManagementService.findUserProjects(companyId, userCode));
+		model.addAttribute("sidebarMenu", "system");
+		model.addAttribute("currentMenu", "systemuser");
+		model.addAttribute("menu", "user");
+		return "weple/admin/user/detail";
 	}
 
 	// 화면에서 입력한 신규 사용자 정보를 현재 관리자의 회사 사용자로 등록합니다.

@@ -10,6 +10,12 @@ public interface UserManagementService {
     // 사용자 관리 목록의 전체 페이지 수 계산에 사용할 사용자 수를 조회
     int countUsers(Long companyId, String keyword);
 
+    // 사용자 상세조회 화면에 표시할 기본 정보를 조회
+    UserManagementVO findUserDetail(Long companyId, String userCode);
+
+    // 사용자 상세조회 화면에 표시할 프로젝트별 역할 목록을 조회
+    List<UserManagementProjectVO> findUserProjects(Long companyId, String userCode);
+
     // 기업최고관리자만 부여받은 관리자의 상태를 변경할 수 있도록 사용자 상태를 변경
     void changeUserStatus(Long companyId, int actorOwnerYn, String userCode, String status);
 

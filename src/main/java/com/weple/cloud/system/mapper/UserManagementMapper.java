@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.weple.cloud.system.service.UserManagementCreateVO;
+import com.weple.cloud.system.service.UserManagementProjectVO;
 import com.weple.cloud.system.service.UserManagementVO;
 
 @Mapper
@@ -20,6 +21,14 @@ public interface UserManagementMapper {
     // 사용자 관리 목록의 전체 페이지 수 계산에 사용할 사용자 수를 조회합니다.
     int countUserManagementList(@Param("companyId") Long companyId,
                                 @Param("keyword") String keyword);
+
+    // 사용자 상세조회 화면에 표시할 기본 정보와 소속 그룹 정보를 조회합니다.
+    UserManagementVO selectUserDetail(@Param("companyId") Long companyId,
+                                      @Param("userCode") String userCode);
+
+    // 사용자 상세조회 화면에 표시할 프로젝트별 역할 목록을 조회합니다.
+    List<UserManagementProjectVO> selectUserProjects(@Param("companyId") Long companyId,
+                                                     @Param("userCode") String userCode);
 
     // 같은 회사에 속한 활성 회원을 활성(a2) 또는 비활성(a3) 상태로 변경
     int updateUserStatus(@Param("companyId") Long companyId,

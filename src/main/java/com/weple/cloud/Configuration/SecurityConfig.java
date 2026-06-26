@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.rememberme.JdbcTokenRepos
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
 import com.weple.cloud.auth.impl.LoginFailureHandler;
+import com.weple.cloud.auth.impl.LoginSuccessHandler;
 import com.weple.cloud.auth.impl.LoginUserDetailsServiceImpl;
 
 @Configuration
@@ -34,6 +35,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    LoginFailureHandler loginFailureHandler,
+                                                   LoginSuccessHandler loginSuccessHandler,
                                                    PersistentTokenRepository persistentTokenRepository,
                                                    LoginUserDetailsServiceImpl loginUserDetailsService) throws Exception {
 
@@ -82,8 +84,8 @@ public class SecurityConfig {
                 // 로그인 폼의 비밀번호 input name
                 .passwordParameter("password")
 
-                // 로그인 성공 시 이동할 URL
-                .defaultSuccessUrl("/", true)
+                // 로그인 성공 시 최근 로그인 일시를 저장한 뒤 메인으로 이동
+                .successHandler(loginSuccessHandler)
 
                 // 로그인 실패 시 메시지를 구분해서 처리
                 .failureHandler(loginFailureHandler)

@@ -12,7 +12,12 @@ public class UserManagementVO {
     private String loginId;
     private String userName;
     private String email;
+    private String phoneNumber;
+    private String profileImage;
     private String status;
+    private String createdAt;
+    private String lastLoginTime;
+    private String groupName;
     private Integer ownerYn;
     private Integer adminYn;
 

@@ -1,14 +1,92 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{common/layouts/default_layout :: layout(~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org/"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
-    <title>WEPLE - 공통 관리</title>
+    <title>WEPLE - 사용자 상세조회</title>
 </head>
 <body>
+<section>
+    <link rel="stylesheet" th:href="@{/css/admin/user-list.css}">
+    <div class="user-management-page">
+        <div class="user-detail-header">
+            <h1 class="user-management-title">사용자관리</h1>
+            <a class="user-edit-button"
+               th:href="@{/userList/{userCode}/edit(userCode=${userDetail.userCode})}">수정</a>
+        </div>
 
-    <section>
-        본인 작성 내역 여기다 넣기
-    </section>
+        <div class="user-management-panel user-detail-panel">
+            <section class="user-detail-card">
+                <div class="user-detail-profile">
+                    <div class="user-detail-avatar">
+                        <img th:if="${userDetail.profileImage != null and userDetail.profileImage != ''}"
+                             th:src="${userDetail.profileImage}"
+                             th:alt="${userDetail.userName + ' 프로필 이미지'}">
+                        <i th:unless="${userDetail.profileImage != null and userDetail.profileImage != ''}"
+                           class="fa fa-user-circle" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <strong th:text="${userDetail.userName}">송팀원</strong>
+                        <p th:text="${userDetail.groupName != null and userDetail.groupName != '' ? userDetail.groupName : '소속 그룹 없음'}">소속 그룹</p>
+                    </div>
+                </div>
 
+                <div class="user-detail-grid">
+                    <div class="user-detail-info-box">
+                        <span>사용자 아이디</span>
+                        <strong th:text="${userDetail.loginId}">song01</strong>
+                    </div>
+                    <div class="user-detail-info-box">
+                        <span>성명 (이름)</span>
+                        <strong th:text="${userDetail.userName}">송팀원</strong>
+                    </div>
+                    <div class="user-detail-info-box">
+                        <span>이메일 주소</span>
+                        <strong th:text="${userDetail.email}">song@weple.com</strong>
+                    </div>
+                    <div class="user-detail-info-box">
+                        <span>계정 상태</span>
+                        <strong class="user-detail-status-active"
+                                th:if="${userDetail.status == 'a2'}">활성 (Active)</strong>
+                        <strong class="user-detail-status-inactive"
+                                th:unless="${userDetail.status == 'a2'}">비활성 (Inactive)</strong>
+                    </div>
+                    <div class="user-detail-info-box">
+                        <span>최초 시스템 가입일</span>
+                        <strong th:text="${userDetail.createdAt != null ? userDetail.createdAt : '-'}">2026-05-01 09:12</strong>
+                    </div>
+                    <div class="user-detail-info-box">
+                        <span>최근 로그인 일시</span>
+                        <strong th:text="${userDetail.lastLoginTime != null ? userDetail.lastLoginTime : '-'}">2026-06-12 00:08</strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="user-detail-section">
+                <h2>소속된 그룹</h2>
+                <div class="user-detail-list-row">
+                    <span th:text="${userDetail.groupName != null and userDetail.groupName != '' ? userDetail.groupName : '소속 그룹 없음'}">개발</span>
+                </div>
+            </section>
+
+            <section class="user-detail-section">
+                <h2>프로젝트 조회</h2>
+                <div class="user-project-list" th:if="${!#lists.isEmpty(projectList)}">
+                    <div class="user-project-row" th:each="project : ${projectList}">
+                        <span class="user-project-title" th:text="${project.projectTitle}">WEPLE</span>
+                        <span class="user-project-role-label">역할 :</span>
+                        <span class="user-project-role" th:text="${project.roleName}">개발자</span>
+                    </div>
+                </div>
+                <div class="user-detail-empty-row" th:if="${#lists.isEmpty(projectList)}">
+                    등록된 프로젝트가 없습니다.
+                </div>
+            </section>
+
+            <div class="user-detail-actions">
+                <a class="user-cancel-button" th:href="@{/userList}">목록</a>
+            </div>
+        </div>
+    </div>
+</section>
 </body>
 </html>

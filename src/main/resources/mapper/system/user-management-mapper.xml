@@ -54,6 +54,57 @@
           </if>
     </select>
 
+    <!-- 사용자 상세조회 화면에 표시할 기본 정보와 소속 그룹명을 조회합니다. -->
+    <select id="selectUserDetail" resultType="com.weple.cloud.system.service.UserManagementVO">
+        SELECT u.user_code AS userCode,
+               u.login_id AS loginId,
+               u.user_name AS userName,
+               u.email AS email,
+               u.phone_number AS phoneNumber,
+               u.profile_image AS profileImage,
+               u.status AS status,
+               TO_CHAR(u.create_date, 'YYYY-MM-DD HH24:MI') AS createdAt,
+               TO_CHAR(u.last_login_time, 'YYYY-MM-DD HH24:MI') AS lastLoginTime,
+               g.group_name AS groupName,
+               u.owner_yn AS ownerYn,
+               u.admin_yn AS adminYn,
+               CASE
+                   WHEN u.owner_yn = 1 THEN '최고관리자'
+                   WHEN NVL(u.admin_yn, 0) = 1 THEN '관리자'
+                   ELSE '일반 사용자'
+               END AS roleName
+        FROM users u
+        LEFT JOIN groups g
+          ON u.group_id = g.group_id
+        WHERE u.company_id = #{companyId}
+          AND u.user_code = #{userCode}
+          AND u.status IN ('a2', 'a3')
+    </select>
+
+    <!-- 사용자가 구성원으로 등록된 프로젝트와 해당 프로젝트에서 연결된 역할명을 조회합니다. -->
+    <select id="selectUserProjects" resultType="com.weple.cloud.system.service.UserManagementProjectVO">
+        SELECT m.project_id AS projectId,
+               p.project_title AS projectTitle,
+               NVL(
+                   LISTAGG(r.role_name, ', ') WITHIN GROUP (ORDER BY r.role_name),
+                   '역할 미지정'
+               ) AS roleName
+        FROM members m
+        JOIN users u
+          ON m.user_code = u.user_code
+        JOIN project p
+          ON m.project_id = p.project_id
+        LEFT JOIN member_roles mr
+          ON m.member_id = mr.member_id
+        LEFT JOIN roles r
+          ON mr.role_id = r.role_id
+         AND r.company_id = u.company_id
+        WHERE u.company_id = #{companyId}
+          AND u.user_code = #{userCode}
+        GROUP BY m.project_id, p.project_title
+        ORDER BY p.project_title ASC
+    </select>
+
     <!-- 같은 회사의 활성·비활성 사용자만 상태 변경 대상으로 제한합니다. -->
     <update id="updateUserStatus">
         UPDATE users

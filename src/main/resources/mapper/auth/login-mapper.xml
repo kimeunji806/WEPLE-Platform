@@ -48,4 +48,11 @@
         WHERE m.user_code = #{userCode}
     </select>
 
+    <!-- 로그인 성공 시 관리 화면에서 확인할 최근 로그인 일시를 갱신합니다. -->
+    <update id="updateLastLoginTime">
+        UPDATE users
+        SET last_login_time = SYSDATE
+        WHERE user_code = #{userCode}
+    </update>
+
 </mapper>

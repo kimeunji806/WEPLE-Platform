@@ -40,7 +40,12 @@
                     </thead>
                     <tbody>
                         <tr th:each="user : ${userList}">
-                            <td th:text="${user.loginId}">admin</td>
+                            <td>
+                                <a class="user-detail-link"
+                                   th:href="@{/userList/{userCode}(userCode=${user.userCode})}"
+                                   th:text="${user.loginId}"
+                                   th:attr="aria-label=${user.loginId + ' 상세조회'}">admin</a>
+                            </td>
                             <td th:text="${user.userName}">관리자</td>
                             <td th:text="${user.email}">admin@weple.com</td>
                             <td th:text="${user.roleName}">관리자</td>

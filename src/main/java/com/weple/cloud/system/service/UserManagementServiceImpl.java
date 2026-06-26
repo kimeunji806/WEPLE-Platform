@@ -32,6 +32,18 @@ public class UserManagementServiceImpl implements UserManagementService {
     }
 
     @Override
+    public UserManagementVO findUserDetail(Long companyId, String userCode) {
+        validateUserLookup(companyId, userCode);
+        return userManagementMapper.selectUserDetail(companyId, userCode);
+    }
+
+    @Override
+    public List<UserManagementProjectVO> findUserProjects(Long companyId, String userCode) {
+        validateUserLookup(companyId, userCode);
+        return userManagementMapper.selectUserProjects(companyId, userCode);
+    }
+
+    @Override
     @Transactional
     public void changeUserStatus(Long companyId, int actorOwnerYn, String userCode, String status) {
         validateStatusChange(companyId, userCode, status);
@@ -51,6 +63,15 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
         if (!ACTIVE_STATUS.equals(status) && !INACTIVE_STATUS.equals(status)) {
             throw new IllegalArgumentException("활성 또는 비활성 상태만 변경할 수 있습니다.");
+        }
+    }
+
+    private void validateUserLookup(Long companyId, String userCode) {
+        if (companyId == null) {
+            throw new IllegalArgumentException("회사 정보가 없습니다.");
+        }
+        if (userCode == null || userCode.isBlank()) {
+            throw new IllegalArgumentException("사용자 정보가 없습니다.");
         }
     }
 

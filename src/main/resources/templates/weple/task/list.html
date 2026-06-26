@@ -4,8 +4,11 @@
 	th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
 <title>WEPLE</title>
-<link rel="stylesheet" th:href="@{/css/task/task-list.css}">
-<link rel="stylesheet" th:href="@{/css/repository/repository.css}">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+    <link rel="stylesheet" th:href="@{/css/task/task-list.css}">
+    <link rel="stylesheet" th:href="@{/css/repository/repository.css}">
 </head>
 <body>
 
@@ -71,15 +74,16 @@
 				</div>
 
 				<div class="filter-row">
-					<div class="filter-label label-manager">담당자</div>
-					<div class="filter-options">
-						<label th:each="member : ${memberList}"> <input
-							type="checkbox" name="memberIds" th:value="${member.userCode}"
-							th:checked="${param.memberIds != null and #arrays.contains(param.memberIds, #strings.toString(member.userCode))}">
-							<span th:text="${member.userName}">홍길동</span>
-						</label>
-					</div>
-				</div>
+    <div class="filter-label label-manager">담당자</div>
+    <div class="filter-options">
+        <select id="memberChoices" name="memberIds" multiple>
+            <option th:each="member : ${memberList}" 
+                    th:value="${member.userCode}" 
+                    th:text="|${member.userName} (${member.email})|">
+            </option>
+        </select>
+    </div>
+</div>
 
 				<div class="filter-row">
 					<div class="filter-label label-progress">진척도</div>

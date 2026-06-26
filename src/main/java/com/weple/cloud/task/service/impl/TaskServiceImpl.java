@@ -153,9 +153,9 @@ public class TaskServiceImpl implements TaskService {
 	
 	// 전체 일감 조회
 	@Override
-	public List<TaskVO> findAllList(String tManager) {
+	public List<TaskVO> findAllList(Map<String, Object> allParams) {
 		
-		return taskMapper.selectAllList(tManager);
+		return taskMapper.selectAllList(allParams);
 	}
 	// 프로젝트 전체 본인의 모든 일감 조회
 	@Override
@@ -346,6 +346,11 @@ public class TaskServiceImpl implements TaskService {
 	public List<TaskVO> findAllMyTasksWithFilters(Map<String, Object> allParams) {
 
 		return taskMapper.findAllMyTasksWithFilters(allParams);
+	}
+	@Override
+	public List<TaskMemberVO> findAllMemberList() {
+		
+		return taskMapper.allMemberList();
 	}
 	}
 

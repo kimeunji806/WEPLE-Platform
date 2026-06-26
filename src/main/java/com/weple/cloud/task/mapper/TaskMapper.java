@@ -34,7 +34,7 @@ public interface TaskMapper {
 	
     public int insertTask(TaskVO taskVO);
     
-    public List<TaskVO> selectAllList(@Param("tManager") String tManager);
+    public List<TaskVO> selectAllList(Map<String,Object>allParams);
     
     public TaskVO taskDetail(@Param("tId") String tId);
     
@@ -66,5 +66,7 @@ public interface TaskMapper {
   
   // 소요시간의 진척도 자동계산 프로시저 - 민지
     public void updateHierarchicalProgress(@Param("taskId") String taskId);
+    
+    public List<TaskMemberVO> allMemberList();
 
 }

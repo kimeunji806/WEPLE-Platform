@@ -26,7 +26,7 @@ public interface TaskService {
 	
 	public List<TaskVO> findChildTask(String tId);
 	
-	public List<TaskVO> findAllList(String tManager);
+	public List<TaskVO> findAllList(Map<String, Object> allParams);
 	
 	public List<TaskProjectSelectVO> findMyProject(String uCode);
 	
@@ -50,4 +50,6 @@ public interface TaskService {
     public List<TaskVO> findAllWithFilters(Map<String, Object> filterParams);
 
 	public List<TaskVO> findAllMyTasksWithFilters(Map<String, Object> allParams);
+	
+	public List<TaskMemberVO> findAllMemberList();
 }

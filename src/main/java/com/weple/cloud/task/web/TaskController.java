@@ -24,6 +24,7 @@ import com.weple.cloud.history.task.service.TaskHistoryService;
 import com.weple.cloud.project.service.ProjectService;
 import com.weple.cloud.task.service.TaskCommentVO;
 import com.weple.cloud.task.service.TaskHistoryDTO;
+import com.weple.cloud.task.service.TaskMemberVO;
 import com.weple.cloud.task.service.TaskProjectSelectVO;
 import com.weple.cloud.task.service.TaskService;
 import com.weple.cloud.task.service.TaskSpentTimeVO;
@@ -240,11 +241,15 @@ public class TaskController {
 	        @RequestParam(required = false) List<String> progress,
 	        @RequestParam(required = false) List<String> regDate,
 	        @RequestParam(required = false) List<String> dueDate,
+	        @RequestParam(required = false) List<String> memberIds,
 	        Model model) {
 
 	    String userCode = loginUser.getLoginUser().getUserCode();
 	    Long companyId = loginUser.getLoginUser().getCompanyId();
 
+	    Integer ownerYn = loginUser.getLoginUser().getOwnerYn();
+	    Integer adminYn = loginUser.getLoginUser().getAdminYn();
+	    
 	    Map<String, Object> allParams = new HashMap<>();
 	    allParams.put("tManager", userCode);
 	    allParams.put("searchKeyword", searchKeyword);
@@ -255,8 +260,10 @@ public class TaskController {
 	    allParams.put("progress", progress);
 	    allParams.put("regDate", regDate);
 	    allParams.put("dueDate", dueDate);
+	    allParams.put("memberIds", memberIds);
 
 	    List<TaskProjectSelectVO> projectList = taskService.findMyProject(userCode);
+	    List<TaskMemberVO> allMemberList = taskService.findAllMemberList();
 
 	    model.addAttribute("sidebarMenu", "task");
 	    model.addAttribute("allList", taskService.findAllMyTasksWithFilters(allParams));
@@ -264,7 +271,16 @@ public class TaskController {
 	    model.addAttribute("typeList", taskService.findType(companyId));
 	    model.addAttribute("statusList", taskService.findStatus());
 	    model.addAttribute("priorityList", taskService.findPriority(companyId));
+	    model.addAttribute("allMemberList" , allMemberList);
+	    
+	    boolean isAdminOrOwner = (ownerYn != null && ownerYn == 1) || (adminYn != null && adminYn == 1);
+	    model.addAttribute("isAdminOrOwner", isAdminOrOwner); // 화면 제어용 변수 추가
 
+	    if (isAdminOrOwner) {
+	        model.addAttribute("allList", taskService.findAllList(allParams));
+	    } else {
+	        model.addAttribute("allList", taskService.findAllMyTasksWithFilters(allParams));
+	    }
 	    return "weple/task/all-list";
 	}
 	

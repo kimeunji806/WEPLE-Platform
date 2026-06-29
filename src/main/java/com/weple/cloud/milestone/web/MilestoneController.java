@@ -121,6 +121,13 @@ public class MilestoneController {
 	    List<MilestoneVO> parentMilestoneList = milestoneService.getMilestoneListByProjectId(projectId);
 	    model.addAttribute("parentMilestoneList", parentMilestoneList);
 	    
+	    ProjectVO project = milestoneService.findById(projectId); 
+	    
+	    model.addAttribute("projectId", projectId);
+	    // 날짜 포맷이 yyyy-MM-dd 형태여야 HTML date 인풋에 호환됩니다.
+	    model.addAttribute("projectStart", project.getCreatedAt()); 
+	    model.addAttribute("projectFinish", project.getFinishDate());
+	    
 	    return "weple/milestone/register";
 	}
 
@@ -169,6 +176,13 @@ public class MilestoneController {
 		    // 3. 상위 마일스톤 목록 조회 (자기 자신은 제외하도록 milestoneId 추가 전달)
 		    List<MilestoneVO> parentMilestoneList = milestoneService.getMilestoneListForUpdate(projectId, milestoneId);
 		    model.addAttribute("parentMilestoneList", parentMilestoneList);
+		    
+		    ProjectVO project = milestoneService.findById(projectId); 
+		    
+		    model.addAttribute("projectId", projectId);
+		    // 날짜 포맷이 yyyy-MM-dd 형태여야 HTML date 인풋에 호환됩니다.
+		    model.addAttribute("projectStart", project.getCreatedAt()); 
+		    model.addAttribute("projectFinish", project.getFinishDate());
 		    
 		    return "weple/milestone/update"; // register.html 복사해서 만들 수정 폼 파일명
 		}

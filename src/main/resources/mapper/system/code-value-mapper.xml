@@ -9,6 +9,7 @@
         		, NULL AS priorityName
        		 	, w.default_yn AS defaultYn
        		 	, w.using_yn AS usingYn
+       		 	, w.order_no AS orderNo
     	FROM work_classification w
     	JOIN companies c ON c.company_id = w.company_id
     	
@@ -20,9 +21,10 @@
         		, t.priority_name AS priorityName
         		, t.default_yn AS defaultYn
         		, t.using_yn AS usingYn
+        		, t.order_no AS orderNo
     	FROM task_priority t
     	JOIN companies c ON c.company_id = t.company_id
-    	ORDER BY 1, 2
+    	ORDER BY orderNo ASC NULLS LAST
 	</select>
 
 	<select id="selectCodeValueInfo" parameterType="CodeValueVO" resultType="CodeValueVO">
@@ -138,6 +140,87 @@
 	            WHERE task_priority_id = #{id}
 	        </otherwise>
 	    </choose>
-</update>-->
-
+	</update>-->
+	
+	<!-- 기본값 이름 가져오기 -->
+	<select id="findDefaultNameByType" parameterType="map" resultType="string">
+	    SELECT 
+	        <choose>
+	            <when test="type == 'work'">work_name</when>
+	            <otherwise>priority_name</otherwise>
+	        </choose>
+	    FROM 
+	        <choose>
+	            <when test="type == 'work'">work_classification</when>
+	            <otherwise>task_priority</otherwise>
+	        </choose>
+	    WHERE default_yn = 'Y'
+	    <if test="cno != null and cno != ''">
+	    AND 
+	        <choose>
+	            <when test="type == 'work'">task_classification_id</when>
+	            <otherwise>task_priority_id</otherwise>
+	        </choose>
+	        != #{cno}
+	    </if>
+	</select>
+	
+	<!-- 드래그앤드랍 -->
+	<update id="updateCodeOrder" parameterType="java.util.List">
+	    BEGIN
+	    <foreach collection="list" item="item" separator=";">
+	        <choose>
+	            <when test="item.taskClassificationId != null and item.taskClassificationId != 'null'">
+	                UPDATE work_classification
+	                SET ORDER_NO = #{item.orderNo}
+	                WHERE task_classification_id = #{item.taskClassificationId}
+	            </when>
+	            <otherwise>
+	                UPDATE task_priority
+	                SET ORDER_NO = #{item.orderNo}
+	                WHERE task_priority_id = #{item.taskPriorityId}
+	            </otherwise>
+	        </choose>
+	    </foreach>
+	    ; END;
+	</update>
+	
+	<insert id="insertCodeValueReorder">
+	    <choose>
+	        <when test="type == 'work'">
+	            INSERT INTO work_classification (
+	                task_classification_id, company_id, work_name, default_yn, using_yn
+	            ) VALUES (
+	                #{item.taskClassificationId}, 
+	                #{item.companyId}, 
+	                #{item.workName}, 
+	                #{item.defaultYn}, 
+	                #{item.usingYn}
+	            )
+	        </when>
+	        <otherwise>
+	            INSERT INTO task_priority (
+	                task_priority_id, company_id, priority_name, default_yn, using_yn
+	            ) VALUES (
+	                #{item.taskPriorityId}, 
+	                #{item.companyId}, 
+	                #{item.priorityName}, 
+	                #{item.defaultYn}, 
+	                #{item.usingYn}
+	            )
+	        </otherwise>
+	    </choose>
+	</insert>
+	
+	<select id="findCodeValueAll" resultType="com.weple.cloud.system.service.CodeValueVO">
+	    SELECT task_classification_id AS taskClassificationId
+       		 	, w.work_name AS workName
+        		, NULL AS priorityName
+       		 	, default_yn AS defaultYn
+       		 	, using_yn AS usingYn
+       		 	, order_no AS orderNo
+	    FROM work_classification
+	    WHERE company_id = 1
+	    ORDER BY ORDER_NO ASC
+    </select>
 </mapper>

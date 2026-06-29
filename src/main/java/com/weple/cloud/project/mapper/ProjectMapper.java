@@ -25,8 +25,11 @@ public interface ProjectMapper {
 	// 단건 조회
 	public ProjectVO selectById(String projectId);
 	
-	// 모듈명 목록 조회
+	// 관리에서 선택된 모듈 전체 목록 조회
 	public List<String> selectModuleNames(@Param("projectId") Long projectId);
+	
+	// 네비바 활성화된 모듈만 조회
+	public List<String> selectActiveModuleNames(@Param("projectId") Long projectId);
 	
 	// 설정 페이지 - 프로젝트 설정 정보 단건 조회
 	public ProjectVO selectSettingById(@Param("projectId") Long projectId);
@@ -41,4 +44,14 @@ public interface ProjectMapper {
 	public int insertModuleMapping(
             @Param("projectId")  Long projectId,
             @Param("moduleCode") String moduleCode);
+	
+	// 설정 페이지 - 활성여부 업데이트
+	public int updateModuleActive(
+            @Param("projectId")  Long projectId,
+            @Param("moduleName") String moduleName,
+            @Param("isActive")   String isActive);
+	
+	// URL 접근 제어 - 모듈 활성화 여부
+	public int isModuleActive(@Param("projectId") Long projectId,
+							  @Param("moduleName") String moduleName);
 }

@@ -1,14 +1,324 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{common/layouts/default_layout :: layout(~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org/"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
-    <title>WEPLE - 공통 관리</title>
+<title>WEPLE - 파일관리</title>
+<link rel="stylesheet" href="/css/system/project-create.css">
 </head>
 <body>
+<section>
 
-    <section>
-        본인 작성 내역 여기다 넣기
-    </section>
+<div class="file-wrap">
 
+  <!-- 상단 타이틀 + 버튼 -->
+  <div class="file-toolbar">
+    <h3 class="file-page-title">파일관리</h3>
+    <div class="file-toolbar-right">
+      <!-- 검색 -->
+      <div class="file-search-form">
+        <div class="search-field">
+          <span class="search-label">파일명:</span>
+          <input type="text" id="searchKeyword" placeholder="파일명">
+        </div>
+        <div class="search-field">
+          <span class="search-label">일감명:</span>
+          <input type="text" id="searchTagKeyword" placeholder="일감명">
+        </div>
+        <button type="button" class="btn-icon-search" onclick="searchFiles()">🔍</button>
+      </div>
+      <!-- 파일 등록 버튼 -->
+      <button class="page-btn active" onclick="openUploadModal()">📁 파일 등록</button>
+      <!-- 다운로드 이력 버튼 -->
+      <button class="page-btn" onclick="goDownloadHistory()">👤 다운로드 이력</button>
+    </div>
+  </div>
+
+  <!-- 파일 목록 테이블 -->
+  <div class="project-card" style="padding:0;">
+    <table class="file-table">
+      <thead>
+        <tr>
+          <th>파일명</th>
+          <th>프로젝트명</th>
+          <th>연결 일감</th>
+          <th>일감 유형</th>
+          <th>크기</th>
+          <th>업로드 사용자</th>
+          <th>업로드일</th>
+          <th>파일 버전</th>
+          <th width="60">⬇</th>
+          <th width="60">🗑</th>
+        </tr>
+      </thead>
+      <tbody id="fileTableBody">
+        <tr>
+          <td><a class="file-name-link" href="#" onclick="goDetail(1); return false;">기획서_v2.pdf</a></td>
+          <td>WEPLE 프로젝트</td>
+          <td><span class="task-badge-linked">#3 메인화면 설계</span></td>
+          <td>디자인</td>
+          <td>2.4 MB</td>
+          <td>김위플</td>
+          <td>2026-06-20 14:32</td>
+          <td><span class="version-badge">v2.0</span></td>
+          <td class="td-center"><button class="icon-btn" title="다운로드" onclick="downloadFile(1)">⬇</button></td>
+          <td class="td-center"><button class="icon-btn icon-btn-del" title="삭제" onclick="deleteFile(1, 'linked')">🗑</button></td>
+        </tr>
+        <tr>
+          <td><a class="file-name-link" href="#" onclick="goDetail(2); return false;">UI_가이드라인.png</a></td>
+          <td>WEPLE 프로젝트</td>
+          <td><span class="task-badge-none">-</span></td>
+          <td>-</td>
+          <td>1.1 MB</td>
+          <td>이개발</td>
+          <td>2026-06-22 09:15</td>
+          <td><span class="version-badge">v1.0</span></td>
+          <td class="td-center"><button class="icon-btn" title="다운로드" onclick="downloadFile(2)">⬇</button></td>
+          <td class="td-center"><button class="icon-btn icon-btn-del" title="삭제" onclick="deleteFile(2, 'none')">🗑</button></td>
+        </tr>
+        <tr>
+          <td><a class="file-name-link" href="#" onclick="goDetail(3); return false;">회의록_0625.docx</a></td>
+          <td>프로젝트1</td>
+          <td><span class="task-badge-linked">#7 스프린트 회의</span></td>
+          <td>문서</td>
+          <td>320 KB</td>
+          <td>박미나</td>
+          <td>2026-06-25 16:48</td>
+          <td><span class="version-badge">v1.0</span></td>
+          <td class="td-center"><button class="icon-btn" title="다운로드" onclick="downloadFile(3)">⬇</button></td>
+          <td class="td-center"><button class="icon-btn icon-btn-del" title="삭제" onclick="deleteFile(3, 'linked')">🗑</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 페이징 -->
+  <div class="paging-row">
+    <button class="pg-btn pg-disabled">이전</button>
+    <button class="pg-btn pg-active">1</button>
+    <button class="pg-btn">2</button>
+    <button class="pg-btn">다음</button>
+  </div>
+
+</div>
+
+<!-- 파일 업로드 모달 -->
+<div id="uploadModal" class="modal-backdrop" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">파일 등록</span>
+      <button class="modal-close" onclick="closeUploadModal()">✕</button>
+    </div>
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <span class="drop-icon">☁</span>
+      <p class="drop-text">파일 선택 또는 드래그</p>
+      <p class="drop-sub" id="selectedFileName"></p>
+    </div>
+    <input type="file" id="fileInput" style="display:none;" onchange="onFileSelected(this)">
+
+    <div class="modal-form-group">
+      <label class="modal-label">프로젝트 (선택)</label>
+      <input type="text" class="form-input-text" value="현재 프로젝트" readonly>
+    </div>
+    <div class="modal-form-group">
+      <label class="modal-label">연결 일감 (선택)</label>
+      <select class="form-input-text">
+        <option value="">선택 안함</option>
+        <option value="3">#3 메인화면 설계</option>
+        <option value="7">#7 스프린트 회의</option>
+      </select>
+    </div>
+    <div class="modal-form-group">
+      <label class="modal-label">일감 유형 (선택)</label>
+      <select class="form-input-text">
+        <option value="">선택 안함</option>
+        <option>디자인</option>
+        <option>문서</option>
+      </select>
+    </div>
+    <div class="modal-form-group">
+      <label class="modal-label">태그 입력 <span class="req">*</span></label>
+      <input type="text" id="fileTagInput" class="form-input-text" placeholder="#디자인 #피그마">
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="page-btn btn-cancel" onclick="closeUploadModal()">취소</button>
+      <button type="button" class="page-btn active" onclick="submitUpload()">등록</button>
+    </div>
+  </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div id="deleteModal" class="modal-backdrop" style="display:none;">
+  <div class="modal-box" style="max-width:360px;">
+    <div class="modal-header">
+      <span class="modal-title">파일 삭제</span>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <div style="padding:24px; text-align:center;">
+      <p id="deleteMsg" style="font-size:15px; color:#1a1a2e; margin:0 0 24px; line-height:1.6;"></p>
+      <div style="display:flex; justify-content:center; gap:12px;">
+        <button class="page-btn" onclick="closeDeleteModal()">취소</button>
+        <button class="page-btn active" style="background:#e53e3e; border-color:#e53e3e;" onclick="confirmDelete()">삭제</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showToast(msg, type) {
+  var old = document.getElementById('_toastWrap');
+  if (old) old.remove();
+  var wrap = document.createElement('div');
+  wrap.id = '_toastWrap';
+  wrap.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;';
+  var box = document.createElement('div');
+  box.style.cssText = 'padding:16px 28px;border-radius:8px;font-size:15px;font-weight:500;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.25);text-align:center;min-width:220px;';
+  box.style.backgroundColor = (type === 'error') ? '#e53e3e' : '#38a169';
+  box.textContent = msg;
+  wrap.appendChild(box);
+  document.body.appendChild(wrap);
+  setTimeout(function() {
+    wrap.style.transition = 'opacity 0.4s';
+    wrap.style.opacity = '0';
+    setTimeout(function() { wrap.remove(); }, 400);
+  }, 2500);
+}
+
+function searchFiles() {
+  showToast('검색 기능은 서버 연동 후 사용 가능합니다.', 'error');
+}
+function goDownloadHistory() {
+  showToast('다운로드 이력은 서버 연동 후 사용 가능합니다.', 'error');
+}
+function goDetail(fileId) {
+  showToast('파일 상세는 서버 연동 후 사용 가능합니다.', 'error');
+}
+function downloadFile(fileId) {
+  showToast('다운로드는 서버 연동 후 사용 가능합니다.', 'error');
+}
+
+var pendingDeleteId = null;
+function deleteFile(fileId, linkedStatus) {
+  pendingDeleteId = fileId;
+  var msg = linkedStatus === 'linked'
+    ? '연결된 일감과 파일을 정말 삭제하시겠습니까?\n삭제 후 복구가 불가능합니다.'
+    : '파일을 삭제하시겠습니까?';
+  document.getElementById('deleteMsg').textContent = msg;
+  document.getElementById('deleteModal').style.display = 'flex';
+}
+function closeDeleteModal() {
+  document.getElementById('deleteModal').style.display = 'none';
+  pendingDeleteId = null;
+}
+function confirmDelete() {
+  closeDeleteModal();
+  showToast('삭제는 서버 연동 후 사용 가능합니다.', 'error');
+}
+
+function openUploadModal() {
+  document.getElementById('selectedFileName').textContent = '';
+  document.getElementById('fileTagInput').value = '';
+  document.getElementById('uploadModal').style.display = 'flex';
+}
+function closeUploadModal() {
+  document.getElementById('uploadModal').style.display = 'none';
+}
+function onFileSelected(input) {
+  if (input.files && input.files[0]) {
+    var f = input.files[0];
+    document.getElementById('selectedFileName').textContent = f.name;
+    if (f.size > 5 * 1024 * 1024) {
+      showToast('파일 크기는 5MB 이하여야 합니다.', 'error');
+      input.value = '';
+      document.getElementById('selectedFileName').textContent = '';
+    }
+  }
+}
+function submitUpload() {
+  var fileInput = document.getElementById('fileInput');
+  if (!fileInput.files || !fileInput.files[0]) {
+    showToast('업로드할 파일을 선택해 주세요.', 'error'); return;
+  }
+  var tag = document.getElementById('fileTagInput').value.trim();
+  if (!tag) {
+    showToast('태그를 입력해 주세요.', 'error'); return;
+  }
+  showToast('등록은 서버 연동 후 사용 가능합니다.', 'error');
+  closeUploadModal();
+}
+
+// 드래그앤드랍
+var dropZone = document.getElementById('dropZone');
+['dragover','dragenter'].forEach(function(ev) {
+  dropZone.addEventListener(ev, function(e) { e.preventDefault(); dropZone.classList.add('drop-over'); });
+});
+['dragleave','drop'].forEach(function(ev) {
+  dropZone.addEventListener(ev, function(e) { e.preventDefault(); dropZone.classList.remove('drop-over'); });
+});
+dropZone.addEventListener('drop', function(e) {
+  var files = e.dataTransfer.files;
+  if (files && files[0]) {
+    document.getElementById('fileInput').files = files;
+    onFileSelected(document.getElementById('fileInput'));
+  }
+});
+</script>
+
+<style>
+.file-wrap { max-width: 1200px; margin: 24px auto; padding: 0 20px; }
+.file-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.file-page-title { font-size: 20px; font-weight: 700; color: #333; margin: 0; }
+.file-toolbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.file-search-form { display: flex; align-items: center; gap: 8px; }
+.search-field { display: flex; align-items: center; gap: 4px; font-size: 13px; }
+.search-label { color: #555; font-weight: 600; white-space: nowrap; }
+.file-search-form input[type="text"] {
+  height: 32px; border: 1px solid #ced4da; border-radius: 5px;
+  padding: 0 8px; font-size: 13px; width: 110px; outline: none;
+}
+.btn-icon-search {
+  height: 32px; padding: 0 10px; border: 1px solid #ced4da;
+  border-radius: 5px; background: #fff; cursor: pointer; font-size: 14px;
+}
+.file-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.file-table thead tr { background: #f7f8fa; }
+.file-table th, .file-table td {
+  padding: 11px 12px; border-bottom: 1px solid #e8edf2;
+  text-align: left; vertical-align: middle;
+}
+.file-table th { font-weight: 600; color: #64748b; }
+.file-table tbody tr:hover { background: #f9fafb; }
+.file-name-link { color: #007bff; text-decoration: none; font-weight: 500; }
+.file-name-link:hover { text-decoration: underline; }
+.task-badge-linked { background: #e0f0ff; color: #1976d2; padding: 2px 8px; border-radius: 10px; font-size: 12px; white-space: nowrap; }
+.task-badge-none { color: #aaa; }
+.version-badge { background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+.td-center { text-align: center; }
+.icon-btn { background: none; border: none; cursor: pointer; font-size: 16px; color: #64748b; padding: 2px 4px; }
+.icon-btn:hover { color: #1976d2; }
+.icon-btn-del:hover { color: #e53e3e; }
+.empty-row { text-align: center; color: #aaa; padding: 40px; }
+.paging-row { display: flex; justify-content: center; gap: 4px; margin-top: 20px; }
+.pg-btn { padding: 6px 12px; border: 1px solid #ced4da; border-radius: 5px; background: #fff; color: #495057; font-size: 13px; cursor: pointer; text-decoration: none; transition: .15s; }
+.pg-btn:hover { background: #e9ecef; }
+.pg-active { background: #007bff !important; color: #fff !important; border-color: #007bff !important; }
+.pg-disabled { pointer-events: none; color: #aaa; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.modal-box { background: #fff; border-radius: 10px; width: 520px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 12px 40px rgba(0,0,0,.18); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid #e1e4e6; background: #f7f8fa; position: sticky; top: 0; }
+.modal-title { font-size: 16px; font-weight: 700; color: #333; }
+.modal-close { background: none; border: none; font-size: 18px; color: #94a3b8; cursor: pointer; }
+.drop-zone { border: 2px dashed #ced4da; border-radius: 8px; margin: 20px 24px 4px; padding: 32px; text-align: center; cursor: pointer; transition: .2s; background: #fafafa; }
+.drop-zone:hover, .drop-zone.drop-over { border-color: #007bff; background: #f0f7ff; }
+.drop-icon { font-size: 32px; display: block; margin-bottom: 8px; color: #94a3b8; }
+.drop-text { font-size: 14px; color: #555; margin: 0; }
+.drop-sub { font-size: 13px; color: #007bff; margin: 6px 0 0; font-weight: 600; }
+.modal-form-group { padding: 10px 24px; }
+.modal-label { display: block; font-size: 13px; font-weight: 600; color: #4b525a; margin-bottom: 6px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; background: #f7f8fa; border-top: 1px solid #e1e4e6; }
+.req { color: #e53e3e; }
+</style>
+
+</section>
 </body>
 </html>

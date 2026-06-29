@@ -8,9 +8,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
+import com.weple.cloud.auth.impl.CompanyLoginValidationFilter;
 import com.weple.cloud.auth.impl.LoginFailureHandler;
 import com.weple.cloud.auth.impl.LoginSuccessHandler;
 import com.weple.cloud.auth.impl.LoginUserDetailsServiceImpl;
@@ -36,6 +38,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    LoginFailureHandler loginFailureHandler,
                                                    LoginSuccessHandler loginSuccessHandler,
+                                                   CompanyLoginValidationFilter companyLoginValidationFilter,
                                                    PersistentTokenRepository persistentTokenRepository,
                                                    LoginUserDetailsServiceImpl loginUserDetailsService) throws Exception {
 
@@ -45,6 +48,8 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/login",
                     "/join",
+                    "/c/*/login",
+                    "/c/*/join",
                     "/access-denide",
                     "/css/**",
                     "/js/**",
@@ -117,7 +122,8 @@ public class SecurityConfig {
                 .accessDeniedHandler((request, response, accessDeniedException) ->
                     response.sendRedirect(request.getContextPath() + "/access-denide")
                 )
-            );
+            )
+            .addFilterBefore(companyLoginValidationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

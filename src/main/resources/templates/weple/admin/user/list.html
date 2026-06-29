@@ -15,9 +15,9 @@
             <p class="user-management-message user-management-message-error" th:if="${userError}" th:text="${userError}">사용자 상태를 변경할 수 없습니다.</p>
             <div class="user-management-toolbar">
                 <form id="userSearchForm" class="user-search" method="get" th:action="@{/userList}">
-                    <label class="sr-only" for="userSearch">아이디 또는 이름 검색</label>
+                    <label class="sr-only" for="userSearch">역할, 아이디 또는 이름 검색</label>
                     <i class="fa fa-search" aria-hidden="true"></i>
-                    <input id="userSearch" name="keyword" type="search" th:value="${keyword}" placeholder="아이디 또는 이름을 검색하세요." autocomplete="off">
+                    <input id="userSearch" name="keyword" type="search" th:value="${keyword}" placeholder="역할, 아이디 또는 이름 검색" autocomplete="off">
                 </form>
                 <a class="user-register-button" th:href="@{/userList/insert}">
                     <i class="fa fa-user-plus" aria-hidden="true"></i>
@@ -30,16 +30,17 @@
                 <table class="user-table">
                     <thead>
                         <tr>
+                            <th>역할</th>
                             <th>아이디</th>
                             <th>이름</th>
                             <th>이메일</th>
-                            <th>역할</th>
                             <th>상태 활성화</th>
                             <th>관리</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="user : ${userList}">
+                            <td th:text="${user.roleName}">관리자</td>
                             <td>
                                 <a class="user-detail-link"
                                    th:href="@{/userList/{userCode}(userCode=${user.userCode})}"
@@ -48,7 +49,6 @@
                             </td>
                             <td th:text="${user.userName}">관리자</td>
                             <td th:text="${user.email}">admin@weple.com</td>
-                            <td th:text="${user.roleName}">관리자</td>
                             <td>
                                 <!-- 최고관리자는 항상 잠그고, 부여받은 관리자는 기업최고관리자만 변경할 수 있습니다. -->
                                 <span class="user-status-switch user-status-switch-locked"

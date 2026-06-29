@@ -33,4 +33,23 @@ public class WorkLogServiceImpl implements WorkLogService {
 		return workLogMapper.countAll(
                 projectId, startDate, endDate, userCode, typeNames);
 	}
+
+	@Override
+	public Double sumSpentHour(String projectId, String startDate, String endDate, String userCode,
+			List<String> typeNames) {
+		return workLogMapper.sumSpentHour(projectId, startDate, endDate, userCode, typeNames);
+	}
+
+	@Override
+	public List<String> findDistinctDates(String projectId, String startDate, String endDate, String userCode,
+			List<String> typeNames) {
+		return workLogMapper.selectDistinctDates(
+	            projectId, startDate, endDate, userCode, typeNames);
+	}
+
+	@Override
+	public List<WorkLogVO> findByDate(String targetDate, String projectId, String userCode, List<String> typeNames) {
+		return workLogMapper.selectByDate(
+	            targetDate, projectId, userCode, typeNames);
+	}
 }

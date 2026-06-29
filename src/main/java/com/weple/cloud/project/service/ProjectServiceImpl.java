@@ -40,10 +40,16 @@ public class ProjectServiceImpl implements ProjectService {
 		return projectMapper.selectById(projectId);
 	}
 
-	// 모듈명 목록 조회
+	// 관리에서 선택된 모듈 전체 목록 조회
 	@Override
 	public List<String> findModuleNames(Long projectId) {
 		return projectMapper.selectModuleNames(projectId);
+	}
+	
+	// 네비바 활성화된 모듈만 조회
+	@Override
+	public List<String> findActiveModuleNames(Long projectId) {
+		return projectMapper.selectActiveModuleNames(projectId);
 	}
 	
 	// 설정 페이지 - 프로젝트 설정 정보 조회
@@ -56,21 +62,30 @@ public class ProjectServiceImpl implements ProjectService {
 	}
 	
 	// 설정 페이지 - 프로젝트 설정 저장
-	@Override
-	@Transactional
-	public void saveProjectSetting(ProjectVO vo) {
-		// 기본 정보 수정(제목, 설명)
-		projectMapper.updateProjectSetting(vo);
-		
-		// 기존 모듈 전체 삭제
-		projectMapper.deleteModuleMapping(vo.getProjectId());
-		
-		// 체크된 모듈 재삽입
-		List<String> modules = vo.getModuleNames();
-		if(modules != null && !modules.isEmpty()) {
-			for(String name : modules) {
-				projectMapper.insertModuleMapping(vo.getProjectId(), name);
-			}
-		}
-	}
+    @Override
+    @Transactional
+    public void saveProjectSetting(ProjectVO vo) {
+        // 기본 정보 수정(제목, 설명)
+        projectMapper.updateProjectSetting(vo);
+ 
+        //    관리 모듈 전체 목록을 기준으로 is_active만 업데이트
+        List<String> checkedModules = vo.getModuleNames();
+        if (checkedModules == null) checkedModules = new ArrayList<>();
+ 
+        // 관리에서 선택된 전체 모듈 목록 조회
+        List<String> allModules = projectMapper.selectModuleNames(vo.getProjectId());
+ 
+        for (String moduleName : allModules) {
+            // 체크된 모듈은 Y, 해제된 모듈은 N
+            String isActive = checkedModules.contains(moduleName) ? "Y" : "N";
+            projectMapper.updateModuleActive(vo.getProjectId(), moduleName, isActive);
+        }
+    }
+	
+	// URL 접근 제어 - module_mapping row 존재 여부로 활성화 판단
+    @Override
+    public boolean isModuleActive(Long projectId, String moduleName) {
+        return projectMapper.isModuleActive(projectId, moduleName) > 0;
+    }
+
 }

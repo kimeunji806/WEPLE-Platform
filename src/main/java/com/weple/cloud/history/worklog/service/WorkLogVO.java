@@ -23,6 +23,7 @@ public class WorkLogVO {
 	private LocalDateTime actionAt;
 	private String defaultDescribe;
 	
+	private Long projectId;
 	private String projectTitle; // 프로젝트명(project 테이블)
 	private String userName; // 사용자명(user 테이블)
 	private String taskTitle; // 일감명(task 테이블)

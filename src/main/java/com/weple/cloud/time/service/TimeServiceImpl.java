@@ -25,6 +25,12 @@ public class TimeServiceImpl implements TimeService {
 		return timeMapper.projectTimeAll(projectId);
 	}
 
+	// 단건 조회
+	@Override
+	public WorkTimeVO findProjectTimeOne(long workId) {
+		return timeMapper.projectTimeOne(workId);
+	}
+
 	// 등록
 	@Transactional
 	@Override

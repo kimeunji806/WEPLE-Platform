@@ -28,7 +28,7 @@
                 </p>
 
                 <!-- 회원가입 처리 API가 만들어지면 action 경로를 POST 컨트롤러와 맞추면 됩니다. -->
-                <form th:action="@{/join}" method="post">
+                <form th:action="${companyCode != null and companyCode != ''} ? @{/c/{companyCode}/join(companyCode=${companyCode})} : @{/join}" method="post">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
                     <!-- 기존 회사에 가입 요청하기 위해 회사 코드를 입력받습니다. -->
@@ -78,7 +78,11 @@
                 </form>
 
                 <div class="login-links">
-                    <span>이미 계정이 있으신가요? <a href="/login">로그인</a></span>
+                    <span>
+                        이미 계정이 있으신가요?
+                        <a th:if="${companyCode}" th:href="@{/c/{companyCode}/login(companyCode=${companyCode})}">로그인</a>
+                        <a th:unless="${companyCode}" th:href="@{/login}">로그인</a>
+                    </span>
                 </div>
             </div>
         </section>

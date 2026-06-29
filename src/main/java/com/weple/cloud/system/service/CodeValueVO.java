@@ -27,4 +27,5 @@ public class CodeValueVO {
 	// 코드값 내 일감 우선순위
 	private String taskPriorityId;
 	private String priorityName;
+	private long orderNo;
 }

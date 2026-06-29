@@ -36,4 +36,6 @@ public class SelectTotalTimeVO {
 	private String userName; 
 	private Long countSpentHour;
 	private Long totalSpentHour;
+	private long taskClassificationId;
+	private long estimatedTime;
 }

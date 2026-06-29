@@ -15,12 +15,18 @@ public interface ProjectService {
 	// 단건 조회
 	public ProjectVO findById(String projectId);
 	
-	// 모듈명 목록 조회
+	// 관리에서 선택된 모듈 전체 목록 조회
 	public List<String> findModuleNames(Long projectId);
+	
+	// 네비바 활성화된 모듈만 조회
+	public List<String> findActiveModuleNames(Long projectId);
 	
 	// 설정 페이지 - 프로젝트 설정 정보 조회
 	public ProjectVO findSettingById(Long projectId);
 	
 	// 설정 페이지 - 프로젝트 설정 저장
 	public void saveProjectSetting(ProjectVO vo);
+	
+	// URL 접근 제어 - 모듈 활성화 여부
+	public boolean isModuleActive(Long projectId, String moduleName);
 }

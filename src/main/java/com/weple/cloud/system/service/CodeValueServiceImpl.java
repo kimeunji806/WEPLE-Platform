@@ -73,15 +73,22 @@ public class CodeValueServiceImpl implements CodeValueService {
 
 	// 추가 등록 시 모든 기본값을 N으로 변경
 	@Override
-	//등록 시 해당 종류(type)의 모든 기본값을 "N"으로 변경하는 메서드입니다
 	public void resetAllDefaultYn(String type) {
 	    codeValueMapper.resetAllDefaultYn(type);
 	}
 
-	// 수정 (드래그 앤 드랍으로 순서 변경한 데이터 저장)
-	//@Override
-	//public void updateOrder(String type, String cno, long orderNum) {
-	//	codeValueMapper.updateOrderNum(type, cno, orderNum);		
-	//}
+	//기본값 이름을 넘겨줌
+	@Override
+	public String findDefaultNameByType(String type, String cno) {
+		return codeValueMapper.findDefaultNameByType(type, cno);
+	}
+
+	//드래그앤드랍
+	@Override
+	@Transactional
+	public void reorderCodes(String type, List<CodeValueVO> itemList) {
+		codeValueMapper.updateCodeOrder(itemList);
+		
+	}
 
 }

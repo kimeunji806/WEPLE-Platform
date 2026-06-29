@@ -33,7 +33,16 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
         // 한글 메시지를 URL 파라미터로 전달하기 위해 인코딩
         String encodedMessage = URLEncoder.encode(message, StandardCharsets.UTF_8);
 
+        String companyCode = request.getParameter("companyCode");
+        if (companyCode == null || companyCode.isBlank()) {
+            Object sessionCompanyCode = request.getSession().getAttribute("LOGIN_COMPANY_CODE");
+            companyCode = sessionCompanyCode instanceof String value ? value : null;
+        }
+        String loginPath = companyCode == null || companyCode.isBlank()
+                ? "/login"
+                : "/c/" + companyCode + "/login";
+
         // 로그인 화면으로 실패 메시지 전달
-        response.sendRedirect(request.getContextPath() + "/login?error=" + encodedMessage);
+        response.sendRedirect(request.getContextPath() + loginPath + "?error=" + encodedMessage);
     }
 }

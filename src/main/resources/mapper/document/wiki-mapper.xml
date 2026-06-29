@@ -1,3 +1,163 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="mapper.document.wiki-mapper"></mapper>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weple.cloud.wiki.mapper.WikiMapper">
+
+    <!-- ResultMap -->
+    <resultMap id="wikiPageResultMap" type="com.weple.cloud.wiki.service.WikiPageVO">
+        <result column="wiki_page_id"   property="wikiPageId"/>
+        <result column="project_id"     property="projectId"/>
+        <result column="parent_page_id" property="parentPageId"/>
+        <result column="title"          property="title"/>
+        <result column="content"        property="content"        jdbcType="CLOB"/>
+        <result column="current_version" property="currentVersion"/>
+        <result column="user_code"      property="userCode"/>
+        <result column="lock_user_code" property="lockUserCode"/>
+        <result column="locked_at"      property="lockedAt"/>
+        <result column="created_at"     property="createdAt"/>
+        <result column="update_at"      property="updateAt"/>
+        <result column="user_name"      property="userName"/>
+    </resultMap>
+
+    <resultMap id="wikiHistoryResultMap" type="com.weple.cloud.wiki.service.WikiHistoryVO">
+        <result column="wiki_history_id" property="wikiHistoryId"/>
+        <result column="wiki_page_id"    property="wikiPageId"/>
+        <result column="wiki_version"    property="wikiVersion"/>
+        <result column="title"           property="title"/>
+        <result column="content"         property="content"   jdbcType="CLOB"/>
+        <result column="user_code"       property="userCode"/>
+        <result column="created_at"      property="createdAt"/>
+        <result column="user_name"       property="userName"/>
+    </resultMap>
+
+    <!-- 프로젝트 위키 목록 전체 조회 (트리용) -->
+    <select id="selectWikiList" resultMap="wikiPageResultMap">
+        SELECT
+            w.wiki_page_id,
+            w.project_id,
+            w.parent_page_id,
+            w.title,
+            w.current_version,
+            w.user_code,
+            w.created_at,
+            w.update_at,
+            u.user_name
+        FROM wiki_pages w
+        LEFT JOIN users u ON w.user_code = u.user_code
+        WHERE w.project_id = #{projectId}
+        ORDER BY w.created_at ASC
+    </select>
+
+    <!-- 위키 단건 조회 -->
+    <select id="selectWikiById" resultMap="wikiPageResultMap">
+        SELECT
+            w.wiki_page_id,
+            w.project_id,
+            w.parent_page_id,
+            w.title,
+            w.content,
+            w.current_version,
+            w.user_code,
+            w.lock_user_code,
+            w.locked_at,
+            w.created_at,
+            w.update_at,
+            u.user_name
+        FROM wiki_pages w
+        LEFT JOIN users u ON w.user_code = u.user_code
+        WHERE w.wiki_page_id = #{wikiPageId}
+    </select>
+
+    <!-- 위키 등록 -->
+    <insert id="insertWiki" parameterType="com.weple.cloud.wiki.service.WikiPageVO">
+        INSERT INTO wiki_pages (
+            wiki_page_id,
+            project_id,
+            parent_page_id,
+            title,
+            content,
+            current_version,
+            user_code,
+            created_at,
+            update_at
+        ) VALUES (
+            'WP-' || wiki_page_id_seq.NEXTVAL,
+            #{projectId},
+            #{parentPageId},
+            #{title},
+            #{content,jdbcType=CLOB},
+            1,
+            #{userCode},
+            SYSDATE,
+            SYSDATE
+        )
+    </insert>
+
+    <!-- 위키 수정 - 프로시저 호출 (버전 백업 + 버전업 + 내용 업데이트) -->
+    <update id="updateWiki" parameterType="com.weple.cloud.wiki.service.WikiPageVO"
+            statementType="CALLABLE">
+        {CALL SP_SAVE_WIKI_VERSION(
+            #{wikiPageId, mode=IN, jdbcType=VARCHAR},
+            #{title,      mode=IN, jdbcType=VARCHAR},
+            #{content,    mode=IN, jdbcType=CLOB},
+            #{userCode,   mode=IN, jdbcType=VARCHAR}
+        )}
+    </update>
+
+    <!-- 위키 삭제 -->
+    <delete id="deleteWiki">
+        DELETE FROM wiki_pages
+        WHERE wiki_page_id = #{wikiPageId}
+    </delete>
+
+    <!-- 위키 검색 (제목 기준) -->
+    <select id="searchWiki" resultMap="wikiPageResultMap">
+        SELECT
+            wiki_page_id,
+            project_id,
+            parent_page_id,
+            title,
+            current_version,
+            user_code,
+            created_at,
+            update_at
+        FROM wiki_pages
+        WHERE project_id = #{projectId}
+        <if test="keyword != null and keyword != ''">
+            AND title LIKE '%' || #{keyword} || '%'
+        </if>
+        ORDER BY created_at ASC
+    </select>
+
+    <!-- 변경 이력 목록 조회 -->
+    <select id="selectHistoryList" resultMap="wikiHistoryResultMap">
+        SELECT
+            h.wiki_history_id,
+            h.wiki_page_id,
+            h.wiki_version,
+            h.title,
+            h.user_code,
+            h.created_at,
+            u.user_name
+        FROM wiki_histories h
+        LEFT JOIN users u ON h.user_code = u.user_code
+        WHERE h.wiki_page_id = #{wikiPageId}
+        ORDER BY h.wiki_version DESC
+    </select>
+
+    <!-- 특정 버전 조회 -->
+    <select id="selectHistoryByVersion" resultMap="wikiHistoryResultMap">
+        SELECT
+            wiki_history_id,
+            wiki_page_id,
+            wiki_version,
+            title,
+            content,
+            user_code,
+            created_at
+        FROM wiki_histories
+        WHERE wiki_page_id = #{wikiPageId}
+          AND wiki_version  = #{wikiVersion}
+    </select>
+
+</mapper>

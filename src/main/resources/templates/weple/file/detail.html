@@ -1,14 +1,121 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{common/layouts/default_layout :: layout(~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org/"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
-    <title>WEPLE - 공통 관리</title>
+<title>WEPLE - 파일 상세</title>
+<link rel="stylesheet" href="/css/system/project-create.css">
 </head>
 <body>
+<section>
+<div class="file-wrap">
 
-    <section>
-        본인 작성 내역 여기다 넣기
-    </section>
+  <div class="file-toolbar" style="margin-bottom:16px;">
+    <h3 class="file-page-title">파일관리</h3>
+  </div>
 
+  <div class="project-card">
+
+    <!-- 파일 상세 헤더 -->
+    <div class="detail-header">
+      <span class="detail-label">파일 상세조회</span>
+      <span class="detail-filename">기획서_v2.pdf</span>
+    </div>
+
+    <!-- 파일 메타 정보 -->
+    <div class="detail-meta-grid">
+      <div class="meta-item">
+        <span class="meta-label">파일 제목</span>
+        <span class="meta-value">기획서_v2.pdf</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">등록 사용자</span>
+        <span class="meta-value">김위플</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">등록일</span>
+        <span class="meta-value">2026-06-20 14:32</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">버전</span>
+        <span class="meta-value">v2.0</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">연결 일감</span>
+        <span class="meta-value">#3 메인화면 설계</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">태그</span>
+        <span class="meta-value">#기획 #설계</span>
+      </div>
+    </div>
+
+    <!-- 다운로드 버튼 -->
+    <div class="detail-download-row">
+      <button class="page-btn active" onclick="showToast('다운로드는 서버 연동 후 사용 가능합니다.', 'error')">⬇ 다운로드</button>
+    </div>
+
+    <!-- 파일 미리보기 -->
+    <div class="detail-preview-label">파일 내용 미리보기</div>
+    <div class="detail-preview-box">
+      <div class="preview-unavailable">
+        <p>이 파일 형식은 미리보기를 지원하지 않습니다.</p>
+        <p>다운로드하여 확인해 주세요.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 뒤로가기 -->
+  <div class="button-group-right" style="margin-top:16px;">
+    <button class="page-btn" onclick="history.back()">목록으로</button>
+  </div>
+
+</div>
+
+<script>
+function showToast(msg, type) {
+  var old = document.getElementById('_toastWrap');
+  if (old) old.remove();
+  var wrap = document.createElement('div');
+  wrap.id = '_toastWrap';
+  wrap.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;';
+  var box = document.createElement('div');
+  box.style.cssText = 'padding:16px 28px;border-radius:8px;font-size:15px;font-weight:500;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.25);text-align:center;min-width:220px;';
+  box.style.backgroundColor = (type === 'error') ? '#e53e3e' : '#38a169';
+  box.textContent = msg;
+  wrap.appendChild(box);
+  document.body.appendChild(wrap);
+  setTimeout(function() {
+    wrap.style.transition = 'opacity 0.4s';
+    wrap.style.opacity = '0';
+    setTimeout(function() { wrap.remove(); }, 400);
+  }, 2500);
+}
+</script>
+
+<style>
+.file-wrap { max-width: 1000px; margin: 24px auto; padding: 0 20px; }
+.file-toolbar { display: flex; align-items: center; }
+.file-page-title { font-size: 20px; font-weight: 700; color: #333; margin: 0; }
+.detail-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 24px; border-bottom: 1px solid #e1e4e6;
+  background: #f7f8fa; border-radius: 8px 8px 0 0;
+  margin: -30px -30px 20px;
+}
+.detail-label { font-size: 14px; color: #888; font-weight: 600; }
+.detail-filename { font-size: 16px; font-weight: 700; color: #333; }
+.detail-meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+.meta-item { display: flex; flex-direction: column; gap: 4px; }
+.meta-label { font-size: 12px; color: #94a3b8; font-weight: 600; }
+.meta-value { font-size: 14px; color: #333; }
+.detail-download-row { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+.detail-preview-label { font-size: 13px; font-weight: 700; color: #4b525a; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e1e4e6; }
+.detail-preview-box { border: 1px solid #e1e4e6; border-radius: 6px; min-height: 200px; background: #fafafa; overflow: hidden; }
+.preview-unavailable { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; color: #94a3b8; font-size: 14px; text-align: center; }
+.preview-unavailable p { margin: 4px 0; }
+</style>
+</section>
 </body>
 </html>

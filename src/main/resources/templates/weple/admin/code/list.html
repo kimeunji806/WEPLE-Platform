@@ -4,10 +4,10 @@
 	th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
 <title>WEPLE</title>
-<link rel="stylesheet"
-	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-<script
-	src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<meta name="_csrf" th:content="${_csrf.token}"/>
+<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 
@@ -30,8 +30,11 @@
 						</tr>
 					</thead>
 					<tbody>
-						<th:block th:each="item : ${codeList}" th:if="${item.workName != null}" th:data-id="${item.taskClassificationId}">
-							<tr>
+						<th:block th:each="item : ${codeList}" th:if="${item.workName != null}" >
+							<tr th:data-id="${item.taskClassificationId}"
+								th:data-company-id="${item.companyId}" 
+    							th:data-default-yn="${item.defaultYn}" 
+    							th:data-using-yn="${item.usingYn}">
 								<td><span th:text="${item.workName}"></span></td>
 								<td><span th:if="${item.defaultYn == 'Y'}" class="check-icon check-blue">✓</span></td>
 								<td><span th:if="${item.usingYn == 'Y'}" class="check-icon">✓</span></td>
@@ -65,7 +68,10 @@
 					</thead>
 					<tbody>
 						<th:block th:each="item : ${codeList}" th:if="${item.priorityName != null}" th:data-id="${item.taskPriorityId}">
-							<tr>
+							<tr th:data-id="${item.taskPriorityId}"
+								th:data-company-id="${item.companyId}" 
+    							th:data-default-yn="${item.defaultYn}" 
+    							th:data-using-yn="${item.usingYn}">
 								<td><span th:text="${item.priorityName}"></span></td>
 								<td><span th:if="${item.defaultYn == 'Y'}" class="check-icon check-blue">✓</span></td>
 								<td><span th:if="${item.usingYn == 'Y'}" class="check-icon">✓</span></td>
@@ -98,8 +104,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const rows = tbody.querySelectorAll('tr');
         rows.forEach((tr, rowIndex) => {
-            tr.setAttribute('data-id', 'row-' + tableIndex + '-' + rowIndex);
-
             const actionButtons = tr.querySelector('.action-buttons');
             if (actionButtons) {
                 const sortBtn = actionButtons.querySelector('button:first-child');
@@ -116,7 +120,40 @@ document.addEventListener("DOMContentLoaded", function() {
             ghostClass: 'sortable-ghost',
             chosenClass: 'sortable-chosen',
             onEnd: function (evt) {
-                console.log("드래그 종료. 대상:", evt.item.dataset.id, "새 위치:", evt.newIndex);
+                const tableId = evt.to.id; 
+                const rows = Array.from(evt.to.querySelectorAll('tr'));
+                
+                const itemList = rows.map(row => {
+                	return {
+                        id: row.getAttribute('data-id'),
+                        name: row.querySelector('td:first-child').innerText.trim(),
+                        companyId: row.getAttribute('data-company-id'),
+                        defaultYn: row.getAttribute('data-default-yn'),
+                        usingYn: row.getAttribute('data-using-yn')
+                    };
+                });
+                const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+                fetch('[[@{/updateOrder}]]', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        [csrfHeader]: csrfToken // CSRF 토큰 추가
+                    },
+                    body: JSON.stringify({
+                        type: tableId === 'table-body-0' ? 'work' : 'priority',
+                        items: itemList 
+                    })
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error("서버 통신 실패");
+                    return res.json();
+                })
+                .then(data => console.log("순서가 저장되었습니다."))
+                .catch(error => {
+                    console.error("진짜 에러 원인:", error);
+                    showToast("오류 발생: " + error.message, 'error');
+                });
             }
         });
     });

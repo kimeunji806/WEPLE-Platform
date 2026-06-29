@@ -11,6 +11,8 @@
             FROM (
                 SELECT
                     th.history_id,
+                    th.task_id,
+                    t.project_id AS projectId,
                     p.project_title AS projectTitle,
                     u.user_name AS userName,
                     NVL(d_title.new_value, t.task_title) AS taskTitle,
@@ -99,5 +101,118 @@
             </if>
         </where>
     </select>
+    
+    <!-- 총 소요시간 합계(해당 기간+필터 조건) -->
+    <select id="sumSpentHour" resultType="java.lang.Double">
+        SELECT NVL(SUM(w.spent_hour), 0)
+        FROM work_time w
+        LEFT JOIN task t ON w.task_id = t.task_id
+        LEFT JOIN task_types tt ON t.type_id = tt.type_id
+        <where>
+            <if test="projectId != null and projectId != ''">
+                AND w.project_id = TO_NUMBER(#{projectId})
+            </if>
+            <if test="userCode != null and userCode != ''">
+                AND w.user_code = #{userCode}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND w.work_date &gt;= TO_DATE(#{startDate}, 'YYYY.MM.DD')
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND w.work_date &lt;= TO_DATE(#{endDate}, 'YYYY.MM.DD')
+            </if>
+            <if test="typeNames != null and typeNames.size() > 0">
+                AND tt.type_name IN
+                <foreach collection="typeNames" item="type" open="(" separator="," close=")">
+                    #{type}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    
+    <!-- 조회 가능한 날짜 목록 (페이징용) -->
+	<select id="selectDistinctDates" resultType="string">
+	    SELECT DISTINCT TO_CHAR(th.action_at + INTERVAL '9' HOUR, 'YYYY-MM-DD') AS action_date
+	    FROM task_history th
+	    INNER JOIN task t
+	    		ON th.task_id = t.task_id
+	    LEFT JOIN users u
+	    		ON th.changed_by = u.user_code
+	    LEFT JOIN task_types tt
+	    		ON t.type_id = tt.type_id
+	    LEFT JOIN task_history_detail d_type
+	           ON th.history_id = d_type.history_id
+	          AND d_type.field_name = 'type_name'
+	    <where>
+	        <if test="projectId != null and projectId != ''">
+	            AND t.project_id = TO_NUMBER(#{projectId})
+	        </if>
+	        <if test="userCode != null and userCode != ''">
+	            AND u.user_code = #{userCode}
+	        </if>
+	        <if test="startDate != null and startDate != ''">
+	            AND th.action_at &gt;= TO_DATE(#{startDate}, 'YYYY.MM.DD') - INTERVAL '9' HOUR
+	        </if>
+	        <if test="endDate != null and endDate != ''">
+	            AND th.action_at &lt; TO_DATE(#{endDate}, 'YYYY.MM.DD') + INTERVAL '1' DAY - INTERVAL '9' HOUR
+	        </if>
+	        <if test="typeNames != null and typeNames.size() > 0">
+	            AND NVL(d_type.new_value, tt.type_name) IN
+	            <foreach collection="typeNames" item="type" open="(" separator="," close=")">
+	                #{type}
+	            </foreach>
+	        </if>
+	    </where>
+	    ORDER BY action_date DESC
+	</select>
+
+	<!-- 특정 날짜의 전체 데이터 조회 (페이징 없음) -->
+	<select id="selectByDate" resultType="com.weple.cloud.history.worklog.service.WorkLogVO">
+	    SELECT
+	        th.history_id,
+	        th.task_id,
+            t.project_id AS projectId,
+	        p.project_title AS projectTitle,
+	        u.user_name AS userName,
+	        NVL(d_title.new_value, t.task_title) AS taskTitle,
+	        NVL(d_type.new_value, tt.type_name) AS typeName,
+	        cc.default_describe AS defaultDescribe,
+	        th.action_type,
+	        th.action_at + INTERVAL '9' HOUR AS actionAt
+	    FROM task_history th
+	    INNER JOIN task t
+	    		ON th.task_id = t.task_id
+	    INNER JOIN users u
+	    		ON th.changed_by = u.user_code
+	    INNER JOIN task_types tt
+	    		ON t.type_id = tt.type_id
+	    LEFT JOIN project p
+	    		ON t.project_id = p.project_id
+	    LEFT JOIN task_history_detail d_title
+	           ON th.history_id = d_title.history_id
+	          AND d_title.field_name = 'task_title'
+	    LEFT JOIN task_history_detail d_type
+	           ON th.history_id = d_type.history_id
+	          AND d_type.field_name = 'type_name'
+	    LEFT OUTER JOIN common_code cc
+	                ON t.task_status = cc.common_id
+	               AND cc.common_code = '0E'
+	    <where>
+	        TO_CHAR(th.action_at + INTERVAL '9' HOUR, 'YYYY-MM-DD') = #{targetDate}
+	        <if test="projectId != null and projectId != ''">
+	            AND t.project_id = TO_NUMBER(#{projectId})
+	        </if>
+	        <if test="userCode != null and userCode != ''">
+	            AND u.user_code = #{userCode}
+	        </if>
+	        <if test="typeNames != null and typeNames.size() > 0">
+	            AND NVL(d_type.new_value, tt.type_name) IN
+	            <foreach collection="typeNames" item="type" open="(" separator="," close=")">
+	                #{type}
+	            </foreach>
+	        </if>
+	    </where>
+	    ORDER BY th.action_at DESC
+	</select>
 
 </mapper>

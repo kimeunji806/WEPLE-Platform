@@ -25,8 +25,17 @@
         .sub-list-title { font-size: 16px; font-weight: 700; color: #222; margin: 25px 0 15px; }
         .date-section-title { font-size: 14px; font-weight: 700; color: #4d84ff; margin: 18px 0 8px; }
         .date-section-title:first-of-type { margin-top: 0; }
-        .project-table-wrap { border: 1px solid #e6ecf5; border-radius: 10px; overflow: hidden; background: #fff; margin-bottom: 18px; }
-        .project-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+
+        /* ★ 가로 스크롤 추가 */
+        .project-table-wrap {
+            border: 1px solid #e6ecf5;
+            border-radius: 10px;
+            overflow-x: auto;
+            background: #fff;
+            margin-bottom: 18px;
+        }
+
+        .project-table { width: 100%; min-width: 600px; border-collapse: collapse; table-layout: fixed; }
         .project-table th:nth-child(1), .project-table td:nth-child(1) { width: 14%; }
         .project-table th:nth-child(2), .project-table td:nth-child(2) { width: 14%; }
         .project-table th:nth-child(3), .project-table td:nth-child(3) { width: 40%; }
@@ -97,6 +106,22 @@
 		    background: #eef4ff;
 		    color: #4d84ff;
 		}
+
+        /* ★ 검색 버튼 */
+        .btn-search {
+            height: 38px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 8px;
+            background: #4d84ff;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .btn-search:hover { background: #3970eb; }
+
         .flatpickr-calendar { width: 240px !important; max-width: 240px !important; padding: 8px !important; }
         .flatpickr-calendar.arrowTop:before, .flatpickr-calendar.arrowTop:after { display: none; }
         .flatpickr-months { align-items: center; margin-bottom: 8px; }
@@ -117,3 +142,6 @@
         .flatpickr-day.selected, .flatpickr-day.selected:hover, .flatpickr-day.startRange, .flatpickr-day.startRange:hover, .flatpickr-day.endRange, .flatpickr-day.endRange:hover, .flatpickr-day.today.selected { background: #4d84ff !important; border-color: #4d84ff !important; color: #fff !important; font-weight: 700 !important; border-radius: 8px !important; }
         .flatpickr-day.inRange { background: #eef4ff !important; border-color: #eef4ff !important; box-shadow: -5px 0 0 #eef4ff, 5px 0 0 #eef4ff !important; color: #4d84ff !important; }
         .numInputWrapper:hover { background: transparent; }
+
+        /* flatpickr z-index */
+        .flatpickr-calendar { z-index: 99999 !important; }

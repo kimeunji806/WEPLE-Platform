@@ -2,6 +2,7 @@ package com.weple.cloud.system.controller;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -346,6 +347,9 @@ public class SystemController {
 		model.addAttribute("type", type);
 		model.addAttribute("menu", "code");
 		model.addAttribute("sidebarMenu", "system");
+		// 현재 기본값 이름 (등록 폼에서 기본값 설정 시 confirm 메시지에 표시)
+		String defaultName = codeValueService.findDefaultNameByType(type, null);
+		model.addAttribute("defaultItemName", (defaultName != null ? defaultName : "없음"));
 		return "weple/admin/code/codeForm";
 	}
 
@@ -380,6 +384,9 @@ public class SystemController {
 	    }
 
 	    CodeValueVO result = codeValueService.findCodeValueInfo(vo, type);
+	    
+	    String defaultName = codeValueService.findDefaultNameByType(type, cno);
+	    model.addAttribute("defaultItemName", (defaultName != null ? defaultName : "없음"));
 
 	    String pageTitle = "work".equals(type) ? "작업분류" : "일감 우선순위";
 	    model.addAttribute("pageTitle", pageTitle);
@@ -401,17 +408,42 @@ public class SystemController {
 	    return "redirect:codeValueList";
 	}
 	
-	// 수정 (드래그 앤 드랍으로 순서 변경한 데이터 저장)
-	//@PostMapping("/updateOrder")
-	//@ResponseBody // AJAX 요청을 위한 어노테이션
-	//public String updateOrderProcess(@RequestParam("type") String type, @RequestParam("orderData") String orderData) {
-	//    String[] idArray = orderData.split(",");
-	//    List<Long> sortedIds = Arrays.stream(idArray)
-	//                                 .map(Long::parseLong)
-	//                                 .collect(Collectors.toList());
-	//    codeValueService.updateOrder(type, sortedIds);    
-	//    return "SUCCESS";
-	//}
+	//드래그앤드랍
+	@PostMapping("/updateOrder")
+	@ResponseBody
+	public Map<String, Object> updateOrder(@RequestBody Map<String, Object> params) throws Exception {
+	    try {
+	        String type = (String) params.get("type");
+	        List<Map<String, Object>> items = (List<Map<String, Object>>) params.get("items");
+	        
+	        if (items == null || items.isEmpty()) {
+	            throw new Exception("저장할 데이터가 없습니다.");
+	        }
+
+	        List<CodeValueVO> itemList = new ArrayList<>();
+	        int order = 1;
+	        for (Map<String, Object> item : items) {
+	            CodeValueVO vo = new CodeValueVO();
+	            vo.setOrderNo(order++);
+	            vo.setCompanyId(1L);
+	            if ("work".equals(type)) {
+	                vo.setTaskClassificationId(String.valueOf(item.get("id")));
+	            } else {
+	                vo.setTaskPriorityId(String.valueOf(item.get("id")));
+	            }
+	            itemList.add(vo);
+	        }
+	        
+	        codeValueService.reorderCodes(type, itemList);
+	        
+	        Map<String, Object> response = new HashMap<>();
+	        response.put("status", "success");
+	        return response;
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        throw e;
+	    }
+	}
 
 	// -------------------------------프로젝트------------------------------
 	
@@ -738,7 +770,3 @@ public class SystemController {
 	}
 		
 }
-
-
-
-

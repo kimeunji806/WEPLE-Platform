@@ -11,42 +11,46 @@
 		<div class="worktime-container">
 			<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
 			    <h3 style="margin: 0; font-size: 22px; font-weight: 700;">소요시간</h3>
-			    <button class="btn btn-primary" th:onclick="|location.href='@{/insertProjectTime}'|">+ 소요시간 등록</button>
+			    <button class="btn btn-primary" 
+				        th:onclick="|location.href='@{/insertProjectTime}'|">
+				    + 소요시간 등록
+				</button>
 			</div>
 
 			<!-- 검색 영역 -->
 			<div class="search-box">
-				<div class="search-title" style="margin-bottom: 10px; font-weight: bold; color: #1976d2; display: flex; align-items: center;">
-                    <span style="margin-right: 5px;">▼</span> 검색조건
-                </div>
-				<div class="search-top">
-					<div class="search-left">
-						<div class="search-item">
-							<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px; color: #1976d2;">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-						    <label>작업시간</label>
-						    <input type="text" name="workTime" placeholder="작업시간을 입력하세요." style="width: 180px; height: 36px; border: 1px solid #d6d6d6; border-radius: 4px; padding: 0 10px;">
-						</div>
-					</div>
-					<div class="search-right">
-					    <button class="btn btn-primary">검색조건 추가 ▼</button>
-					</div>
-				</div>
-
-				<div class="search-bottom">
-					<div class="search-action">
-						<button class="btn btn-primary">적용</button>
-						<button class="btn btn-light">지우기</button>
-					</div>
-				</div>
-			</div>
+	            <div class="search-title" style="margin-bottom: 10px; font-weight: bold; color: #1976d2; display: flex; align-items: center;">▼ 검색조건</div>
+	            <div class="search-top">
+	                <div class="search-left" id="search-container">
+	                    <div class="search-item" id="workTime-filter">
+	                        <label>작업시간</label>
+							    <input type="number" name="startTime" placeholder="최소시간" 
+							           style="height: 36px; padding: 0 10px;" >
+							    <span>~</span>
+							    <input type="number" name="endTime" placeholder="최대시간" 
+							           style="height: 36px; padding: 0 10px;">
+	                    </div>
+	                </div>
+	                <div class="search-right" style="position: relative;">
+	                    <button class="btn btn-primary" onclick="toggleFilterMenu()">검색조건 추가 ▼</button>
+	                    <div id="filter-menu" class="dropdown-menu-box" style="right:0; top: 40px; display:none; padding:10px; width: 150px; z-index:1000;">
+	                        <label><input type="checkbox" value="2" onchange="toggleFilter(this, 1)"> 작업일자</label><br>
+	                        <label><input type="checkbox" value="3" onchange="toggleFilter(this, 2)"> 사용자</label><br>
+	                        <label><input type="checkbox" value="4" onchange="toggleFilter(this, 3)"> 작업분류</label><br>
+	                        <label><input type="checkbox" value="5" onchange="toggleFilter(this, 4)"> 일감</label><br>
+	                        <label><input type="checkbox" value="6" onchange="toggleFilter(this, 5)"> 내용</label>
+	                    </div>
+	                </div>
+	            </div>
+	            <div class="search-bottom">
+	                <div class="search-action"><button class="btn btn-primary" onclick="applySearch()">적용</button><button class="btn btn-light" onclick="resetSearch()">지우기</button></div>
+	            </div>
+	        </div>
 
 			<!-- 총 시간 -->
 			<div class="summary-area">
 			    <span>
-			        시간 :
+			        총 시간 :
 			        <strong th:text="${totalSpentHour + ':00'}">0:00</strong>
 			    </span>
 			</div>
@@ -58,7 +62,7 @@
 						<tr>
 							<th width="50"><input type="checkbox"></th>
 							<th width="120">프로젝트</th>
-							<th width="120">작업일자 ▼</th>
+							<th width="120">작업일자</th>
 							<th width="150">사용자</th>
 							<th width="120">작업분류</th>
 							<th>일감</th>
@@ -87,8 +91,8 @@
 									<span class="more-options-btn" onclick="toggleDropdown(this)">•••</span>
 									<div class="dropdown-menu-box">
 									    <button type="button" class="dropdown-item edit-btn"
-									        	th:onclick="|location.href='@{/updateProjectTime(id=${time.workId})}'|">
-									        	✏️ 수정
+									        	th:onclick="|location.href='@{/updateProjectTime(workId=${time.workId})}'|">
+									        	✏️ 편집
 									    </button>
 									    <button type="button" class="dropdown-item delete-btn" 
         										th:onclick="|deleteWork(${time.workId}, ${time.projectId})|">
@@ -110,6 +114,7 @@
 			    <div class="export-area">
 			        <button class="csv-btn" onclick="exportToCSV()">내보내기 : CSV</button>
 			    </div>
+			    <div class="pagination-wrap" id="paginationWrap"></div>
 			</div>
 		</div>
 	<script>
@@ -120,68 +125,115 @@
     const allRows = document.querySelectorAll(".data-table tbody tr:not([th\\:if])");
     
     let currentPage = 1;
-    const itemsPerPage = 20;
+    const itemsPerPage = 10;
 	
-	// 검색
-	function applySearch() {
-        const keyword = searchInput.value.toLowerCase();        
-        // 검색 필터링
-        allRows.forEach(row => {
-            const timeText = row.cells[7] ? row.cells[7].innerText.toLowerCase() : "";
-            const isMatch = timeText.includes(keyword);
-            row.style.display = isMatch ? "" : "none";
-        });
-        showPage(1);
+ 	// 필터 토글
+    function toggleFilterMenu() {
+        const menu = document.getElementById('filter-menu');
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
     }
+ 	
+	function toggleFilter(checkbox, colIndex) {
+	    const container = document.getElementById('search-container');
+	    if (checkbox.checked) {
+	        const div = document.createElement('div');
+	        div.className = 'search-item';
+	        div.id = 'filter-' + checkbox.value;
+	        const inputType = (colIndex === 1) ? 'date' : 'text'; 
+	        div.innerHTML = `
+	            <label style="width: 60px;">${checkbox.nextSibling.textContent.trim()}</label>
+	            <input type="${inputType}" data-col="${colIndex}" placeholder="검색어 입력" 
+	                   style="width: 180px; height: 36px; border: 1px solid #d6d6d6; border-radius: 4px; padding: 0 10px;">`;
+	        container.appendChild(div);
+	    } else {
+	        const el = document.getElementById('filter-' + checkbox.value);
+	        if(el) el.remove();
+	    }
+	}
     
-	function showPage(page) {
-        currentPage = page;
-        const visibleRows = Array.from(allRows).filter(row => row.style.display !== "none");
-        allRows.forEach((row, index) => {
-            if (row.style.display === "none") return;
-            const visibleIndex = visibleRows.indexOf(row);
-            row.style.display = (visibleIndex >= (page - 1) * itemsPerPage && visibleIndex < page * itemsPerPage) 
-                                ? "" : "none";
-        });
-        updatePagination(Math.ceil(visibleRows.length / itemsPerPage));
-    }
+    //외부 클릭해도 검색추가 닫힘
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('filter-menu');
+        const btn = document.querySelector('.search-right button');
+        if (!menu.contains(event.target) && event.target !== btn) {
+            menu.style.display = 'none';
+        }
+    })
+    let filteredRows = [];
+
+	// 페이지 로딩 시 초기화
+	document.addEventListener("DOMContentLoaded", function() {
+	    filteredRows = Array.from(allRows);
+	    showPage(1);
+	});
+    
+    function showPage(page) {
+	    currentPage = page;
+	    allRows.forEach(row => row.style.display = "none");
+	    const start = (page - 1) * itemsPerPage;
+	    const end = start + itemsPerPage;
+	    const pageRows = filteredRows.slice(start, end);
+	    pageRows.forEach(row => row.style.display = "");
+	    updatePagination(Math.ceil(filteredRows.length / itemsPerPage));
+	}
+    
+    // 통합 검색 함수
+	function applySearch() {
+	    const inputs = document.querySelectorAll("#search-container input");
+	    const minHour = parseInt(document.querySelector("input[name='startTime']").value) || 0;
+	    const maxHour = parseInt(document.querySelector("input[name='endTime']").value) || 999;
+
+	    filteredRows = Array.from(allRows).filter(row => {
+	        let isMatch = true;
+	        
+	        const timeCell = row.cells[7].innerText; 
+	        const hour = parseInt(timeCell.split(':')[0]);
+	        if (hour < minHour || hour > maxHour) isMatch = false;
+
+	        inputs.forEach(input => {
+	            if (input.name === 'startTime' || input.name === 'endTime' || !input.value) return;
+	            const colIndex = parseInt(input.getAttribute('data-col')) + 1; 
+	            let cellValue = row.cells[colIndex]?.innerText.toLowerCase() || "";
+	            if (input.type === 'date') cellValue = cellValue.replace(/\//g, '-');
+	            if (!cellValue.includes(input.value.toLowerCase())) isMatch = false;
+	        });
+	        return isMatch;
+	    });
+	    showPage(1);
+	}
 	
 	function updatePagination(pageCount) {
-        const pagingDiv = document.querySelector(".paging");
-        if (pageCount === 0) pageCount = 1;
-        
-        pagingDiv.innerHTML = `
-            <button class="page-btn" onclick="showPage(Math.max(1, currentPage - 1))">&lt; 이전</button>
-            <span id="page-numbers"></span>
-            <button class="page-btn" onclick="showPage(Math.min(${pageCount}, currentPage + 1))">다음 &gt;</button>
-        `;
+	    const pagingDiv = document.querySelector(".paging");
+	    if (pageCount === 0) pageCount = 1;
+	    
+	    pagingDiv.innerHTML = `
+	        <button class="page-btn" onclick="showPage(Math.max(1, currentPage - 1))">&lt; 이전</button>
+	        <div id="page-numbers" style="display: flex; gap: 5px; align-items: center;"></div>
+	        <button class="page-btn" onclick="showPage(Math.min(${pageCount}, currentPage + 1))">다음 &gt;</button>
+	    `;
 
-        const numberSpan = document.getElementById("page-numbers");
-        for (let i = 1; i <= pageCount; i++) {
-            const a = document.createElement("a");
-            a.href = "#";
-            a.innerText = i;
-            if (i === currentPage) a.className = "active";
-            a.onclick = (e) => { e.preventDefault(); showPage(i); };
-            numberSpan.appendChild(a);
-        }
-    }
+	    const numberSpan = document.getElementById("page-numbers");
+	    for (let i = 1; i <= pageCount; i++) {
+	        const a = document.createElement("a");
+	        a.href = "#";
+	        a.innerText = i;
+	        a.style.display = "flex";
+	        a.style.alignItems = "center";
+	        a.style.justifyContent = "center";
+	        if (i === currentPage) a.className = "active";
+	        a.onclick = (e) => { e.preventDefault(); showPage(i); };
+	        numberSpan.appendChild(a);
+	    }
+	}
 	
 	function toggleDropdown(element) {
-	    // 클릭한 버튼의 부모(dropdown-wrapper) 내부에 있는 메뉴 박스를 찾음
 	    const dropdownWrapper = element.parentElement;
 	    const menuBox = dropdownWrapper.querySelector('.dropdown-menu-box');
-	    
-	    // 다른 곳을 클릭하면 닫히게 하려면 아래 '전체 닫기' 로직 추가 권장
 	    document.querySelectorAll('.dropdown-menu-box').forEach(menu => {
 	        if (menu !== menuBox) menu.classList.remove('show');
 	    });
-
-	    // 현재 메뉴 토글
 	    menuBox.classList.toggle('show');
 	}
-
-	// 화면 아무 곳이나 클릭하면 열려있는 메뉴 닫기
 	window.onclick = function(event) {
 	    if (!event.target.matches('.more-options-btn')) {
 	        document.querySelectorAll('.dropdown-menu-box').forEach(menu => {
@@ -189,8 +241,6 @@
 	        });
 	    }
 	}
-        
-     // 검색 버튼 및 엔터키 이벤트 연결
         searchBtn.addEventListener("click", applySearch);
         searchInput.addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
@@ -200,18 +250,18 @@
         });
     
     // 지우기 버튼 클릭 이벤트
-        clearBtn.addEventListener("click", () => {
-            searchInput.value = "";
-            allRows.forEach(row => row.style.display = "");
-            showPage(1);
-        });
-
-        showPage(1);
+    function resetSearch() {
+	    const inputs = document.querySelectorAll("#search-container input");
+	    inputs.forEach(input => input.value = "");
+	    const rows = document.querySelectorAll(".data-table tbody tr");
+	    rows.forEach(row => row.style.display = "");
+	    showPage(1);
+	}
 	    
 	    //삭제버튼 컨펌
-	    function deleteWork(workId, projectId) {
+		function deleteWork(workId, projectId) {
 		    if(confirm("정말 삭제하시겠습니까?")) {
-		        location.href = `/deleteProjectTime?workId=${workId}&projectId=${projectId}`;
+		        location.href = `/deleteTotalTime?workId=${workId}`;
 		    }
 		}
 	    
@@ -240,103 +290,18 @@
 		    downloadLink.click();
 	    }
 	</script>
+		</script>
 		<style>
-/* ••• 버튼 자체 스타일 (클릭 반경 확대) */
-.more-options-btn {
-    cursor: pointer;
-    color: #94a3b8;
-    padding: 6px 12px;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 4px;
-    transition: background 0.2s;
-}
-
-/* 마우스 올렸을 때 피드백을 주어 오클릭 방지 */
-.more-options-btn:hover {
-    color: #475569;
-    background-color: #f1f5f9;
-}
-
-/* 기본적으로 숨겨둘 편집/삭제 박스 */
-.dropdown-menu-box {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 100%;
-    background-color: #ffffff;
-    min-width: 90px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.12);
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    z-index: 100;
-    padding: 4px 0;
-}
-
-/* 이 클래스가 붙으면 팝업이 나타남 */
-.dropdown-menu-box.show {
-    display: block;
-}
-
-/* 팝업 내부 버튼 공통 */
-.dropdown-item {
-    display: block;
-    width: 100%;
-    padding: 8px 14px;
-    text-align: left;
-    background: none;
-    border: none;
-    font-size: 13px;
-    color: #334155;
-    cursor: pointer;
-    font-family: sans-serif;
-}
-
-.dropdown-item:hover {
-    background-color: #f8fafc;
-}
-
-/* 삭제 버튼은 강조색 부여 */
-.dropdown-item.delete-btn {
-    color: #ef4444;
-}
-.dropdown-item.delete-btn:hover {
-    background-color: #fef2f2;
-}
-
-/* 관리 버튼 스타일 */
-.btn-edit, .btn-del {
-    padding: 4px 8px;
-    font-size: 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    border: 1px solid #ccc;
-    background: #fff;
-}
-
-.btn-edit:hover { background: #e9f3ff; color: #1976d2; border-color: #1976d2; }
-.btn-del:hover { background: #fff1f1; color: #d32f2f; border-color: #d32f2f; }
 /* =========================공통========================= */
-* {
-	margin: 0;
-	padding: 0;
-	box-sizing: border-box;
-}
-
-body {
-	font-family: "Malgun Gothic", sans-serif;
-	font-size: 14px;
-	color: #333;
-	background: #fff;
-}
+/* * {} body {} 전역 셀렉터 제거 - 사이드바/navbar 레이아웃 영향 방지 */
 
 .worktime-container {
-    width: 95%;
-    margin: 25px auto;
-    min-height: auto; /* 고정 높이가 있다면 auto로 변경 */
+	width: 95%;
+	margin: 25px auto;
+	min-height: auto;
 }
 
-/* =========================제목========================= */
+/* =========================제목 및 검색 ========================= */
 .page-header {
 	margin-bottom: 15px;
 }
@@ -347,13 +312,19 @@ body {
 	color: #222;
 }
 
-/* =========================검색영역========================= */
 .search-box {
-	border: 1px solid #dcdfe6;
-	border-radius: 6px;
-	background: #fff;
-	padding: 20px 25px;
-	margin-bottom: 20px;
+    border: 1px solid #dcdfe6; /* 선을 다시 넣되 색상을 통일 */
+    border-radius: 6px;
+    background: #fff;
+    padding: 20px 25px;
+    margin-bottom: 20px;
+}
+
+.search-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr); /* 3열 정렬 */
+	gap: 15px;
+	margin-bottom: 15px;
 }
 
 .search-top {
@@ -369,14 +340,56 @@ body {
 	gap: 15px;
 }
 
+#search-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 기본 3열 */
+    gap: 20px;
+    width: 100%;
+}
+
+/* 화면 크기가 줄어들 때 반응형 처리 */
+@media (max-width: 1200px) {
+    #search-container {
+        grid-template-columns: repeat(2, 1fr); /* 2열로 변경 */
+    }
+}
+
+@media (max-width: 768px) {
+    #search-container {
+        grid-template-columns: 1fr; /* 1열로 변경 (세로로 쌓임) */
+    }
+}
+
+/* '작업시간' 항목이 그리드 깨뜨리지 않게 조정 */
+#workTime-filter {
+    grid-column: span 1; /* 필요시 span 2로 조정 가능 */
+}
+
 .search-item {
-	display: flex;
-	align-items: center;
-	gap: 10px;
+    display: flex;
+    align-items: center; /* 세로 중앙 정렬 */
+    gap: 10px;
 }
 
 .search-item label {
-	font-weight: 600;
+    width: 70px; 
+    font-weight: 600;
+    flex-shrink: 0; /* 라벨이 찌그러지지 않게 함 */
+}
+
+.search-item input[type="text"], 
+.search-item input[type="number"], 
+.search-item input[type="date"] {
+    border: 1px solid #dcdfe6; /* 모든 입력창 테두리 색상 통일 */
+    border-radius: 4px;
+    height: 36px;
+    padding: 0 10px;
+    flex-grow: 1; /* 입력창이 남은 공간을 채우게 함 */
+}
+
+/* 범위 검색(최소~최대) 구간이 있다면 */
+.search-item span {
+    margin: 0 5px; /* 물결표(~) 양옆 간격 */
 }
 
 .search-item select {
@@ -389,18 +402,20 @@ body {
 	background: #fff;
 }
 
-.search-bottom {
-	display: flex;
-	justify-content: flex-start;
-}
-
 .search-action {
 	display: flex;
 	gap: 10px;
 }
 
-/* =========================버튼========================= */
-.btn {
+.search-left {
+	display: flex;
+	flex-wrap: wrap; /* 여러 개 추가 시 아래로 줄바꿈 */
+	gap: 15px;
+	align-items: center;
+}
+
+/* =========================버튼 ========================= */
+.worktime-container .btn {
 	min-width: 90px;
 	height: 36px;
 	border-radius: 4px;
@@ -409,37 +424,146 @@ body {
 	font-size: 14px;
 }
 
-.btn-primary {
+.worktime-container .btn-primary {
 	background: #1976d2;
 	color: #fff;
 	border: 1px solid #1976d2;
 }
 
-.btn-primary:hover {
+.worktime-container .btn-primary:hover {
 	background: #1565c0;
 }
 
-.btn-outline {
-	background: #fff;
-	color: #1976d2;
-	border: 1px solid #1976d2;
-}
-
-.btn-outline:hover {
-	background: #1976d2;
-	color: #fff;
-}
-
-.btn-light {
+.worktime-container .btn-light {
 	background: #fff;
 	border: 1px solid #ccc;
 }
 
-.btn-light:hover {
+.worktime-container .btn-light:hover {
 	background: #f5f5f5;
 }
 
-/* =========================총 시간========================= */
+/* =========================테이블 영역 ========================= */
+.table-wrapper {
+	border: 1px solid #e2e2e2;
+	border-radius: 6px;
+	background: #fff;
+	overflow: visible;
+}
+
+.data-table {
+	width: 100%;
+	border-collapse: collapse;
+	table-layout: fixed;
+}
+
+.data-table thead {
+	background: #f7f8fa;
+}
+
+.data-table th, .data-table td {
+	padding: 12px 8px;
+	border-bottom: 1px solid #e2e8f0;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.data-table th:nth-child(1), .data-table td:nth-child(1), /* 프로젝트 */
+	.data-table th:nth-child(4), .data-table td:nth-child(4), /* 작업분류 */
+	.data-table th:nth-child(5), .data-table td:nth-child(5), /* 일감 */
+	.data-table th:nth-child(6), .data-table td:nth-child(6) /* 내용 */ {
+	text-align: left;
+	padding-left: 15px; /* 이 열들은 그대로 15px 유지 */
+}
+
+.data-table th:nth-child(7), .data-table td:nth-child(7), .data-table th:nth-child(8),
+	.data-table td:nth-child(8) {
+	text-align: center;
+}
+
+.data-table th:nth-child(1), .data-table td:nth-child(1) {
+	text-align: left;
+	padding-left: 25px; /* 여백을 키워서 테두리와의 간격을 넓힘 */
+}
+
+.data-table td:nth-child(1), .data-table td:nth-child(4), .data-table td:nth-child(5),
+	.data-table td:nth-child(6) {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* 텍스트 줄임 처리 (관리 셀 제외) */
+.data-table td:not(:last-child) {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* 관리 버튼(마지막 셀) 및 드롭다운 */
+.data-table td:last-child {
+	overflow: visible !important;
+}
+
+.dropdown-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
+.more-options-btn {
+	cursor: pointer;
+	color: #94a3b8;
+	padding: 6px 12px;
+	font-size: 16px;
+	font-weight: bold;
+	border-radius: 4px;
+	transition: background 0.2s;
+}
+
+.more-options-btn:hover {
+	color: #475569;
+	background-color: #f1f5f9;
+}
+
+.dropdown-menu-box {
+	display: none;
+	position: absolute;
+	right: 0;
+	top: 100%;
+	background-color: #ffffff;
+	min-width: 90px;
+	box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.12);
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	z-index: 999; /* z-index 높여서 가려짐 방지 */
+	padding: 4px 0;
+}
+
+.dropdown-menu-box.show {
+	display: block;
+}
+
+.dropdown-item {
+	display: block;
+	width: 100%;
+	padding: 8px 14px;
+	text-align: left;
+	background: none;
+	border: none;
+	font-size: 13px;
+	color: #334155;
+	cursor: pointer;
+}
+
+.dropdown-item:hover {
+	background-color: #f8fafc;
+}
+
+.dropdown-item.delete-btn {
+	color: #ef4444;
+}
+
+/* =========================총 시간 영역 ========================= */
 .summary-area {
 	display: flex;
 	justify-content: flex-end;
@@ -449,107 +573,67 @@ body {
 
 .summary-area strong {
 	color: #1976d2;
+	margin-left: 5px; /* 텍스트와 숫자 간 간격 추가 */
 }
 
-/* =========================테이블========================= */
-.table-wrapper {
-    border: 1px solid #e2e2e2;
-    border-radius: 6px;
-    background: #fff;
-    /* 아래 두 줄이 핵심입니다 */
-    overflow: visible; 
-    height: auto;
-}
+/* 열별 정렬 및 너비 설정 (체크박스 열 삭제 반영) */
+.data-table th:nth-child(1) {
+	width: 10%;
+} /* 프로젝트 */
+.data-table th:nth-child(2) {
+	width: 10%;
+} /* 작업일자 */
+.data-table th:nth-child(3) {
+	width: 12%;
+} /* 사용자 */
+.data-table th:nth-child(4) {
+	width: 10%;
+} /* 작업분류 */
+.data-table th:nth-child(5) {
+	width: 22%;
+	text-align: left;
+	padding-left: 15px;
+} /* 일감 */
+.data-table th:nth-child(6) {
+	width: auto;
+	text-align: left;
+	padding-left: 15px;
+} /* 내용 */
+.data-table th:nth-child(7) {
+	width: 8%;
+	font-weight: bold;
+} /* 시간 */
+.data-table th:nth-child(8) {
+	width: 7%;
+} /* 관리 */
 
-/* 3. 혹시나 table-layout: fixed가 행 높이를 강제한다면 */
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed; 
-}
-
-.data-table thead {
-	background: #f7f8fa;
-}
-
-.data-table th, .data-table td {
-    padding: 10px 8px; /* 위아래 패딩 추가 */
-    border-bottom: 1px solid #e5e5e5;
-    text-align: center;
-    vertical-align: middle; /* 세로 중앙 정렬 */
-}
-
-.data-table td {
-    padding: 10px 8px;
-    border-bottom: 1px solid #e5e5e5;
-    text-align: center;
-    vertical-align: middle;
-    
-    /* 여기서 한 줄 고정 및 말줄임 처리 */
-    white-space: nowrap;       /* 줄바꿈 금지 */
-    overflow: hidden;          /* 넘치는 텍스트 숨김 */
-    text-overflow: ellipsis;   /* 넘치면 ... 표시 */
-}
-
-/* 관리 버튼이 들어있는 마지막 셀(td:nth-child(9)) 스타일 초기화 */
-.data-table td:nth-child(9) {
-    overflow: visible !important; /* 넘침 허용 (팝업 노출) */
-    white-space: normal !important; /* 줄바꿈 허용 */
-}
-
-/* 드롭다운 영역이 버튼 밖으로 나갈 수 있도록 보장 */
-.dropdown-wrapper {
-    position: relative;
-    display: inline-block;
-}
-
-/* 추가: 내용(내용 컬럼)은 왼쪽 정렬이 보기 좋을 수 있음 */
-.data-table td:nth-child(7) {
-    white-space: normal; /* 줄바꿈 허용 */
-    text-align: left;
-    word-break: break-all; /* 너무 긴 단어는 강제로 끊어서 줄바꿈 */
-}
-
-/* 내용(7번째)과 일감(6번째) 열에 대한 추가 조정 */
-.data-table td:nth-child(6), 
-.data-table td:nth-child(7) {
-    text-align: left;          /* 왼쪽 정렬 */
-    padding-left: 15px;        /* 여백 확보 */
+/* 내용 열(6번째) 줄바꿈 허용 */
+.data-table td:nth-child(6) {
+	white-space: normal;
+	text-align: left;
+	padding-left: 15px;
 }
 
 .data-table tbody tr:hover {
 	background: #f8fbff;
 }
 
-.data-table input[type=checkbox] {
-	cursor: pointer;
-}
-
-.time {
-	color: #1976d2;
-	font-weight: bold;
-}
-
-/* =========================하단========================= */
+/* =========================하단 페이징 및 내보내기 ========================= */
 .bottom-area {
 	margin-top: 30px;
 	position: relative;
 	min-height: 40px;
 	display: flex;
-	justify-content: center; /* 중앙 정렬 */
+	justify-content: center;
 	align-items: center;
 }
 
-/* 페이징 컨테이너 */
 .paging {
 	display: flex;
 	align-items: center;
-	gap: 10px; /* 버튼과 숫자 사이 간격 */
-	font-size: 14px;
-	color: #666;
+	gap: 10px;
 }
 
-/* 이전/다음 버튼 스타일 */
 .page-btn {
 	border: none;
 	background: none;
@@ -559,11 +643,6 @@ body {
 	padding: 5px 10px;
 }
 
-.page-btn:hover {
-	color: #1976d2;
-}
-
-/* 숫자 링크 스타일 */
 .paging a {
 	width: 28px;
 	height: 28px;
@@ -573,21 +652,14 @@ body {
 	text-decoration: none;
 	color: #666;
 	border-radius: 4px;
-	transition: all 0.2s;
 }
 
-/* 활성화된 페이지 (파란색 박스) */
 .paging a.active {
 	background: #1976d2;
 	color: #fff;
 	font-weight: bold;
 }
 
-.paging a:hover:not(.active) {
-	background: #f0f0f0;
-}
-
-/* CSV 버튼 영역을 우측 하단으로 고정 */
 .export-area {
 	position: absolute;
 	right: 0;
@@ -602,42 +674,25 @@ body {
 	font-weight: 600;
 }
 
-.csv-btn:hover {
-	text-decoration: underline;
-}
+/* 열별 정렬 및 너비 설정 수정 */
+.data-table th:nth-child(1) { width: 5%; }   /* 체크박스 */
+.data-table th:nth-child(2) { width: 8%; }  /* 프로젝트 */
+.data-table th:nth-child(3) { width: 10%; }  /* 작업일자 */
+.data-table th:nth-child(4) { width: 10%; }  /* 사용자 */
+.data-table th:nth-child(5) { width: 10%; }  /* 작업분류 (일감과 붙이기 위해 설정) */
+.data-table th:nth-child(6) { width: auto; }   /* 일감 (남은 공간 모두 차지) */
+.data-table th:nth-child(7) { width: auto; }   /* 내용 */
+.data-table th:nth-child(8) { width: 10%; }   /* 시간 */
+.data-table th:nth-child(9) { width: 10%; }   /* 관리 */
 
-/* =========================반응형========================= */
-@media ( max-width :900px) {
+/* =========================반응형 ========================= */
+@media ( max-width : 900px) {
 	.search-top {
 		flex-direction: column;
 		align-items: flex-start;
 		gap: 15px;
 	}
-	.bottom-area {
-		display: flex;
-		flex-direction: column;
-		gap: 20px;
-	}
-	.paging {
-		position: static;
-		transform: none;
-		justify-content: center;
-	}
-	.export-area {
-		justify-content: center;
-	}
 }
-
-/* 이제 각 열의 너비를 비율에 맞게 설정하세요 */
-.data-table th:nth-child(1) { width: 5%; }/* 체크박스 */
-.data-table th:nth-child(2) { width: 10%; }/* 프로젝트 */
-.data-table th:nth-child(3) { width: 10%; }/* 작업일자 */
-.data-table th:nth-child(4) { width: 12%; }/* 사용자 */
-.data-table th:nth-child(5) { width: 10%; }/* 작업분류 */
-.data-table th:nth-child(6) { width: 20%; } /* 일감 */
-.data-table th:nth-child(7) { width: auto; } /* 일감 */
-.data-table th:nth-child(8) { width: 8%; }/* 시간 */
-.data-table th:nth-child(9) { width: 7%; }/* 관리 */
 </style>
 	</section>
 

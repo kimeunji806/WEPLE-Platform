@@ -182,28 +182,23 @@
 }
 
 /* ===== 날짜 영역 ===== */
-.date-row {
-    display: flex;
-    gap: 16px;
-    flex: 1;
+.date-row{
+    display:flex;
+    gap:16px;
+    width:100%;
 }
 
-.date-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex: 1;
+.date-field{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
 }
 
-.date-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: #8a99b5;
-}
-
-.date-label.required::after {
-    content: ' *';
-    color: #e53935;
+.date-label{
+    font-size:13px;
+    font-weight:700;
+    color:#4b525a;
 }
 
 .date-input {
@@ -216,6 +211,23 @@
     border: 1px solid #d9e1f2;
     border-radius: 8px;
     transition: border-color 0.2s;
+}
+
+.date-input{
+    width:100%;
+    height:40px;
+    padding:0 14px;
+    border:1px solid #d1d5db;
+    border-radius:6px;
+    background:#fff;
+    font-size:14px;
+    transition:border-color .2s, box-shadow .2s;
+}
+
+.date-input:focus{
+    border-color:#4d84ff;
+    box-shadow:0 0 0 3px rgba(77,132,255,.1);
+    outline:none;
 }
 
 
@@ -237,11 +249,14 @@
 .date-input.flatpickr-input {
     background-color: #fff !important;
     color: #222 !important;
+    cursor: pointer !important;
 }
 
-.date-input:not([readonly]):focus {
+.date-input:not([readonly]):focus,
+.date-input.flatpickr-input:focus {
     border-color: #4d84ff;
     outline: none;
+    box-shadow: 0 0 0 3px rgba(77, 132, 255, 0.1);
 }
 
 /* ===== flatpickr 캘린더 UI (작업내역 동일) ===== */

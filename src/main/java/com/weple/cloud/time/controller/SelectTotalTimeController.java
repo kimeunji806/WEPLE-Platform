@@ -49,8 +49,8 @@ public class SelectTotalTimeController {
 
 	// 삭제
 	@GetMapping("/deleteTotalTime")
-	public String deleteWork(@RequestParam("workId") long workId, @RequestParam("projectId") long projectId) {
-		long result = selectTotalTimeService.removeSelectTotalTime(workId);
-		return "redirect:/totalTimeList?projectId=" + projectId;
+	public String deleteWork(@RequestParam("workId") long workId) {
+	    selectTotalTimeService.removeSelectTotalTime(workId);
+	    return "redirect:/totalTimeList";
 	}
 }

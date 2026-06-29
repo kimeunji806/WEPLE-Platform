@@ -46,30 +46,38 @@
                 </div>
             </div>
 
-            <!-- ②~⑧ 권한 섹션 -->
             <div class="perm-box-outer">
                 <th:block th:each="entry, stat : ${groupedPermissions}">
                     <div class="perm-group">
-                        <div class="perm-group-label" th:text="${entry.key}"></div>
-                        <div class="perm-checks">
-                            <label class="perm-check-item"
-                                   th:each="perm : ${entry.value}">
-                                <input type="checkbox"
-                                       name="permissionCodes"
-                                       th:value="${perm.permissionCode}"
-                                       th:checked="${mode == 'edit'
-                                                     and checkedCodes != null
-                                                     and #lists.contains(checkedCodes,
-                                                                         perm.permissionCode)}">
-                                <span class="custom-check-box"></span>
-                                <span class="perm-text" th:text="${perm.permissionName}"></span>
-                            </label>
-                        </div>
-                    </div>
+					    <div class="perm-group-label" th:text="${entry.key}"></div>
+					
+					    <div class="perm-content">
+					        <button type="button"
+					                class="group-all-btn"
+					                onclick="toggleGroup(this)">
+					            전체
+					        </button>
+					
+					        <div class="perm-checks">
+					            <label class="perm-check-item"
+					                   th:each="perm : ${entry.value}">
+					                <input type="checkbox"
+					                       name="permissionCodes"
+					                       th:value="${perm.permissionCode}"
+					                       th:checked="${mode == 'edit'
+					                                     and checkedCodes != null
+					                                     and #lists.contains(checkedCodes, perm.permissionCode)}">
+					
+					                <span class="custom-check-box"></span>
+					                <span class="perm-text"
+					                      th:text="${perm.permissionName}"></span>
+					            </label>
+					        </div>
+					    </div>
+					</div>
                     <hr th:if="${!stat.last}" class="perm-divider">
                 </th:block>
             </div>
-
             <div class="btn-area">
                 <button type="button" class="page-btn btn-cancel"
                         onclick="history.back()">취소</button>
@@ -81,13 +89,54 @@
     </div>
 
     <script>
+        /* 전체선택/해제 (상단 버튼) */
         document.getElementById("selectAll").addEventListener("click", function () {
-            document.querySelectorAll('input[name="permissionCodes"]')
-                .forEach(cb => cb.checked = true);
+            document.querySelectorAll('input[name="permissionCodes"]').forEach(cb => cb.checked = true);
+            document.querySelectorAll('.group-select-all').forEach(h => { h.checked = true; h.indeterminate = false; });
         });
         document.getElementById("deselectAll").addEventListener("click", function () {
-            document.querySelectorAll('input[name="permissionCodes"]')
-                .forEach(cb => cb.checked = false);
+            document.querySelectorAll('input[name="permissionCodes"]').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.group-select-all').forEach(h => { h.checked = false; h.indeterminate = false; });
+        });
+
+        function toggleGroup(btn) {
+            const group = btn.closest('.perm-group');
+            const checks = group.querySelectorAll(
+                'input[name="permissionCodes"]'
+            );
+            const allChecked = [...checks].every(cb => cb.checked);
+            checks.forEach(cb => {cb.checked = !allChecked;
+            });
+
+        }
+
+        /* 하위 체크박스 변경 → 헤더 상태 동기화 */
+        function syncGroupHeader(itemCb) {
+            const group = itemCb.closest('.perm-group');
+            const all   = group.querySelectorAll('input[name="permissionCodes"]');
+            const checked = group.querySelectorAll('input[name="permissionCodes"]:checked');
+            const header  = group.querySelector('.group-select-all');
+            if (checked.length === 0) {
+                header.checked = false; header.indeterminate = false;
+            } else if (checked.length === all.length) {
+                header.checked = true;  header.indeterminate = false;
+            } else {
+                header.checked = false; header.indeterminate = true;
+            }
+        }
+
+        /* 수정 모드: 페이지 로드 시 헤더 초기 상태 동기화 */
+        document.querySelectorAll('.group-select-all').forEach(header => {
+            const group   = header.closest('.perm-group');
+            const all     = group.querySelectorAll('input[name="permissionCodes"]');
+            const checked = group.querySelectorAll('input[name="permissionCodes"]:checked');
+            if (checked.length === 0) {
+                header.checked = false; header.indeterminate = false;
+            } else if (checked.length === all.length) {
+                header.checked = true;  header.indeterminate = false;
+            } else {
+                header.checked = false; header.indeterminate = true;
+            }
         });
     </script>
 </section>

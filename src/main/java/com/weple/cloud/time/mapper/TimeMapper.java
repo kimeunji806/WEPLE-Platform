@@ -11,6 +11,9 @@ public interface TimeMapper {
 	// 전체조회
 	public List<WorkTimeVO> projectTimeAll(@Param("projectId") Long projectId);
 
+	// 단건 조회
+	public WorkTimeVO projectTimeOne(@Param("workId") long workId);
+
 	// 등록
 	public long insertProjectTime(WorkTimeVO workTimeVO);
 

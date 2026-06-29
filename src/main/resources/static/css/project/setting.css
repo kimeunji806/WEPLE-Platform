@@ -1,38 +1,232 @@
-.project-setting-heading{
-    margin-bottom:30px;
+/* ===================== 프로젝트 설정 페이지 ===================== */
+.settings-page {
+    padding: 20px;
+    min-height: 100vh;
 }
 
-.repository-title{
-    margin:0;
-    font-size:38px;
-    font-weight:700;
-    color:#2b4c7e;
+.settings-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 20px 0;
 }
 
-.repository-setting-tabs{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin-top:22px;
-    padding-bottom:12px;
-    border-bottom:1px solid #E5EAF4;
+/* ── 탭 바 ── */
+.settings-tab-bar {
+    display: flex;
+    gap: 2px;
+    margin: 0 0 20px;
+    border-bottom: 1px solid #e6edf8;
 }
 
-.repository-setting-tabs a{
-    padding:11px 22px;
-    border-radius:6px 6px 0 0;
-    text-decoration:none;
-    color:#6b7a90;
-    font-size:14px;
-    font-weight:600;
-    transition:.2s;
+.settings-tab-bar a {
+    padding: 9px 20px;
+    color: #7b8aa3;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 6px 6px 0 0;
+    transition: .15s;
 }
 
-.repository-setting-tabs a:hover{
-    background:#EEF3FF;
+.settings-tab-bar a.active {
+    background: #4d84ff;
+    color: #fff;
 }
 
-.repository-setting-tabs a.active{
-    background:#5271ff;
-    color:#fff;
+.settings-tab-bar a:not(.active):hover {
+    color: #4d84ff;
+    background: #f0f4ff;
+}
+
+/* ── 카드 ── */
+.settings-card {
+    background: #fff;
+    border: 1px solid #e1e4e6;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    width: 100%;
+}
+
+/* ── 폼 행 ── */
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4b525a;
+}
+
+.form-label.required::after {
+    content: " *";
+    color: #e53e3e;
+    font-weight: bold;
+}
+
+/* ── 입력 필드 ── */
+.form-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    font-size: 14px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background: #fff;
+    color: #111;
+    transition: border-color .2s;
+}
+
+.form-input:focus {
+    border-color: #4a90e2;
+    outline: none;
+}
+
+.form-input.readonly {
+    background: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* ── 텍스트에리어 ── */
+.form-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    font-size: 14px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background: #fff;
+    color: #111;
+    height: 120px;
+    resize: none;
+}
+
+.form-textarea:focus {
+    border-color: #4a90e2;
+    outline: none;
+}
+
+/* ── 모듈 체크박스 ── */
+.module-row {
+    margin-bottom: 24px;
+}
+
+.module-checks {
+    border: 1px solid #e1e4e6;
+    padding: 24px 16px;
+    border-radius: 6px;
+    background: #fcfdfe;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.module-flex {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.module-item {
+    flex: 0 0 25%;
+    max-width: 25%;
+    box-sizing: border-box;
+    padding: 10px 8px;
+}
+
+.module-item label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+}
+
+.module-item input[type="checkbox"] {
+    display: none;
+}
+
+.custom-check-box {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    display: inline-block;
+    position: relative;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.module-item input[type="checkbox"]:checked + .custom-check-box {
+    background: #007bff;
+    border-color: #007bff;
+}
+
+.module-item input[type="checkbox"]:checked + .custom-check-box::after {
+    content: "✓";
+    position: absolute;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* ── 버튼 영역 ── */
+.form-btn-area {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
+    border-top: 1px solid #f1f3f5;
+    padding-top: 20px;
+}
+
+.btn-save {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    background: #4d84ff;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.btn-save:hover {
+    background: #3970eb;
+}
+
+/* ── 토스트 ── */
+.toast-message {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: #fff;
+    padding: 13px 20px;
+    border-radius: 8px;
+    z-index: 999999;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }

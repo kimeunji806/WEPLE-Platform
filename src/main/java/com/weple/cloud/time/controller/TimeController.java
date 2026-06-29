@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -37,7 +38,10 @@ public class TimeController {
 	// -------------------------------프로젝트 내 소요시간------------------------------
 	// 전체조회
 	@GetMapping("/projectTimeList")
-	public String projectTimeList(@RequestParam("projectId") long projectId, Model model) {
+	public String projectTimeList(@RequestParam("projectId") long projectId,
+			@ModelAttribute("toastMessage") String toastMessage,
+			@ModelAttribute("toastError") String toastError,
+			Model model) {
 		List<WorkTimeVO> list = timeService.findProjectTimeAll(projectId);
 		model.addAttribute("projectTimeList", list);
 		if (!list.isEmpty()) {
@@ -64,15 +68,18 @@ public class TimeController {
 	    }
 	    model.addAttribute("currentProject", currentProject);
 		
-		// 일감 목록 조회
-		List<TaskVO> taskList = taskService.findAll(projectId);
+		// 일감 목록 조회 (projectId 없으면 빈 리스트)
+		List<TaskVO> taskList = (projectId != null) ? taskService.findAll(projectId) : new java.util.ArrayList<>();
 		for(TaskVO t : taskList) {
 		    System.out.println("데이터 확인 -> 제목: " + t.getTaskTitle() + ", 설명: " + t.getTaskDescribe());
 		}
 		model.addAttribute("taskList", taskList);
 		
-		//사용자 목록 조회(String으로 변환)
-		List<UserVO> userList = userService.findUsersByProjectId(String.valueOf(projectId));
+		//사용자 목록 조회 - projectId 없으면(관리자) 전체 사용자, 있으면 프로젝트 참여자만
+		// projectId가 없거나 0이면(관리자 전체 등록) 전체 사용자, 아니면 프로젝트 참여자만
+		List<UserVO> userList = (projectId == null || projectId == 0)
+		        ? userService.findAllActiveUsers()
+		        : userService.findUsersByProjectId(String.valueOf(projectId));
 		model.addAttribute("userList", userList);
 		
 		// WorkTimeVO 생성 및 projectId 할당
@@ -105,8 +112,12 @@ public class TimeController {
 	@PostMapping("/insertProjectTime")
 	public String insertProjectTimeProcess(WorkTimeVO workTimeVO, RedirectAttributes redirectAttributes) {
 	    timeService.addProjectTime(workTimeVO);
-	    redirectAttributes.addAttribute("projectId", workTimeVO.getProjectId());
-	    return "redirect:/projectTimeList";
+	    redirectAttributes.addFlashAttribute("toastMessage", "소요시간이 등록되었습니다.");
+	    if (workTimeVO.getProjectId() != null && workTimeVO.getProjectId() != 0) {
+	        redirectAttributes.addAttribute("projectId", workTimeVO.getProjectId());
+	        return "redirect:/projectTimeList";
+	    }
+	    return "redirect:/totalTimeList";
 	}
 
 	//일감 설명 가져옴
@@ -115,18 +126,48 @@ public class TimeController {
 	public TaskVO getTaskDetail(@RequestParam("taskId") String taskId) {
 	    return taskService.findTaskDetail(taskId);
 	}
+
+	// 프로젝트별 일감 목록 (관리자 소요시간 등록 시 프로젝트 선택 후 Ajax 호출)
+	@GetMapping("/getTasksByProject")
+	@ResponseBody
+	public List<TaskVO> getTasksByProject(@RequestParam("projectId") Long projectId) {
+	    return taskService.findAll(projectId);
+	}
 	
 	// 수정 폼
 	@GetMapping("/updateProjectTime")
 	public String updateProjectTimeForm(@RequestParam("workId") long workId, Model model) {
-		return "weple/time/insert";
+		WorkTimeVO workTime = timeService.findProjectTimeOne(workId);
+		if (workTime == null) return "redirect:/projectTimeList";
+
+		// 작업분류 목록
+		List<CodeValueVO> workTypeList = codeValueService.findCodeValueAll().stream()
+			.filter(vo -> vo.getWorkName() != null && !vo.getWorkName().isEmpty())
+			.collect(Collectors.toList());
+
+		// 사용자 목록 (프로젝트 참여자)
+		List<UserVO> userList = userService.findUsersByProjectId(String.valueOf(workTime.getProjectId()));
+
+		model.addAttribute("workTime", workTime);
+		model.addAttribute("workTypeList", workTypeList);
+		model.addAttribute("userList", userList);
+		model.addAttribute("currentMenu", "time");
+		model.addAttribute("sidebarMenu", "project");
+		List<String> moduleNames = projectService.findModuleNames(workTime.getProjectId());
+		model.addAttribute("moduleNames", moduleNames);
+		return "weple/time/edit";
 	}
 	
 	// 수정 처리
 	@PostMapping("/updateProjectTime")
-	public String updateProjectTimeProcess(WorkTimeVO workTimeVO) {
+	public String updateProjectTimeProcess(WorkTimeVO workTimeVO, RedirectAttributes ra) {
 		timeService.modifyProjectTime(workTimeVO);
-		return "redirect:/projectTimeList";
+		ra.addFlashAttribute("toastMessage", "소요시간이 수정되었습니다.");
+		// projectId가 있으면 프로젝트 소요시간 목록으로, 없으면 전체 소요시간 목록으로
+		if (workTimeVO.getProjectId() != null && workTimeVO.getProjectId() != 0) {
+			return "redirect:/projectTimeList?projectId=" + workTimeVO.getProjectId();
+		}
+		return "redirect:/totalTimeList";
 	}
 	
 	// 삭제

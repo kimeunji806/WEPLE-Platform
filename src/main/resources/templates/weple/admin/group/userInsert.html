@@ -8,6 +8,7 @@
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 <title>그룹 사용자 관리</title>
+    <link rel="stylesheet" href="/css/system/project-create.css">
 </head>
 <body>
 	<section>
@@ -44,20 +45,19 @@
 						<input type="hidden" name="groupId" th:value="${groupId}" />
 
 						<div class="list-section">
-
-							<div class="group-box-card">
-								<div class="group-title">현재 소속되어있는 사용자 목록</div>
-								<div class="user-grid">
-									<th:block th:each="user : ${currentGroupUsers}">
-										<label class="user-item"> <input type="checkbox"
-											name="currentUserIds" th:value="${user.userCode}" /> <span
-											class="checkbox-custom"></span> <span class="user-name"
-											th:text="${user.userName}">사용자명</span>
-										</label>
-									</th:block>
-								</div>
+							<div class="group-box-card" id="availableGroup">
+							    <div class="group-title">추가할 사용자 목록</div>
+							    <div class="user-grid">
+							        <th:block th:each="user : ${availableUsers}">
+							            <label class="user-item"> 
+							                <input type="checkbox" name="availableUserIds" th:value="${user.userCode}" /> 
+							                <span class="checkbox-custom"></span> 
+							                <span class="user-name" th:text="${user.userName}">사용자명</span>
+							            </label>
+							        </th:block>
+							    </div>
 							</div>
-
+							
 							<div class="direction-arrows">
 								<svg id="btnMoveDown" xmlns="http://www.w3.org/2000/svg"
 									width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -73,17 +73,17 @@
         						</svg>
 							</div>
 
-							<div class="group-box-card">
-								<div class="group-title">추가할 사용자 목록</div>
-								<div class="user-grid">
-									<th:block th:each="user : ${availableUsers}">
-										<label class="user-item"> <input type="checkbox"
-											name="availableUserIds" th:value="${user.userCode}" /> <span
-											class="checkbox-custom"></span> <span class="user-name"
-											th:text="${user.userName}">사용자명</span>
-										</label>
-									</th:block>
-								</div>
+							<div class="group-box-card" id="currentGroup">
+							    <div class="group-title">현재 소속되어있는 사용자 목록</div>
+							    <div class="user-grid">
+							        <th:block th:each="user : ${currentGroupUsers}">
+							            <label class="user-item"> 
+							                <input type="checkbox" name="currentUserIds" th:value="${user.userCode}" /> 
+							                <span class="checkbox-custom"></span> 
+							                <span class="user-name" th:text="${user.userName}">사용자명</span>
+							            </label>
+							        </th:block>
+							    </div>
 							</div>
 
 						</div>
@@ -102,6 +102,25 @@
 		</div>
 
 		<script>
+        function showToast(msg, type) {
+            var old = document.getElementById('_toastWrap');
+            if (old) old.remove();
+            var wrap = document.createElement('div');
+            wrap.id = '_toastWrap';
+            wrap.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;';
+            var box = document.createElement('div');
+            box.style.cssText = 'padding:16px 28px;border-radius:8px;font-size:15px;font-weight:500;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.25);text-align:center;min-width:220px;';
+            box.style.backgroundColor = (type === 'error') ? '#e53e3e' : '#38a169';
+            box.textContent = msg;
+            wrap.appendChild(box);
+            document.body.appendChild(wrap);
+            setTimeout(function() {
+                wrap.style.transition = 'opacity 0.4s';
+                wrap.style.opacity = '0';
+                setTimeout(function() { wrap.remove(); }, 400);
+            }, 2500);
+        }
+
 		document.addEventListener('DOMContentLoaded', () => {
 
 		    const form = document.getElementById('groupUserForm');
@@ -114,17 +133,16 @@
 
 		    // 2. 검색
 		    const searchInput = document.getElementById('userSearchInput');
-		    if (searchInput) {
-		        searchInput.addEventListener('input', function () {
-		            const keyword = this.value.trim().toLowerCase();
-		            const targetUsers = document.querySelectorAll('.list-section .group-box-card:last-child .user-item');
-
-		            targetUsers.forEach(item => {
-		                const name = item.querySelector('.user-name').textContent.toLowerCase();
-		                item.style.display = name.includes(keyword) ? 'flex' : 'none';
-		            });
-		        });
-		    }
+			if (searchInput) {
+			    searchInput.addEventListener('input', function () {
+			        const keyword = this.value.trim().toLowerCase();
+			        const targetUsers = document.querySelectorAll('#availableGroup .user-item');
+			        targetUsers.forEach(item => {
+			            const name = item.querySelector('.user-name').textContent.toLowerCase();
+			            item.style.display = name.includes(keyword) ? 'flex' : 'none';
+			        });
+			    });
+			}
 
 		    // 3. 이동 기능
 		    const arrows = document.querySelectorAll('.direction-arrows svg');
@@ -134,33 +152,16 @@
 		        const downArrow = arrows[0];
 		        const upArrow = arrows[1];
 
-		        const currentGrid = document.querySelectorAll('.user-grid')[0];
-		        const availableGrid = document.querySelectorAll('.user-grid')[1];
+		        const availableGrid = document.getElementById('availableGroup').querySelector('.user-grid');
+		        const currentGrid = document.getElementById('currentGroup').querySelector('.user-grid');
 
 		        downArrow.style.cursor = 'pointer';
 		        downArrow.addEventListener('click', () => {
-
-		            const checkedItems = currentGrid.querySelectorAll('.user-item input:checked');
-
-		            if (checkedItems.length === 0) {
-		                alert('이동할 사용자를 선택해주세요.');
-		                return;
-		            }
-
-		            checkedItems.forEach(checkbox => {
-		                const userItem = checkbox.closest('.user-item');
-		                checkbox.checked = false;
-		                availableGrid.appendChild(userItem);
-		            });
-		        });
-
-		        upArrow.style.cursor = 'pointer';
-		        upArrow.addEventListener('click', () => {
-
+		            // 아래 화살표: 추가할 목록 → 현재 소속으로 이동
 		            const checkedItems = availableGrid.querySelectorAll('.user-item input:checked');
 
 		            if (checkedItems.length === 0) {
-		                alert('이동할 사용자를 선택해주세요.');
+		                showToast('이동할 사용자를 선택해주세요.', 'error');
 		                return;
 		            }
 
@@ -170,6 +171,23 @@
 		                currentGrid.appendChild(userItem);
 		            });
 		        });
+
+		        upArrow.style.cursor = 'pointer';
+		        upArrow.addEventListener('click', () => {
+		            // 위 화살표: 현재 소속 → 추가할 목록으로 이동
+		            const checkedItems = currentGrid.querySelectorAll('.user-item input:checked');
+
+		            if (checkedItems.length === 0) {
+		                showToast('이동할 사용자를 선택해주세요.', 'error');
+		                return;
+		            }
+
+		            checkedItems.forEach(checkbox => {
+		                const userItem = checkbox.closest('.user-item');
+		                checkbox.checked = false;
+		                availableGrid.appendChild(userItem);
+		            });
+		        });
 		    }
 
 		    // 4. submit 처리 (핵심)
@@ -177,7 +195,7 @@
 		        form.addEventListener('submit', (e) => {
 		            e.preventDefault();
 
-		            const currentGrid = document.querySelectorAll('.user-grid')[0];
+		            const currentGrid = document.getElementById('currentGroup').querySelector('.user-grid');
 		            const finalUserIds = Array.from(
 		                currentGrid.querySelectorAll('.user-item input')
 		            ).map(cb => cb.value);
@@ -421,7 +439,35 @@ section .btn-submit {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
-</style>
+
+        /* ===== 토스트 (project-create.css 동일) ===== */
+        .toast-wrap {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            animation: toastFadeOut 3.5s forwards;
+            pointer-events: none;
+        }
+        .toast-msg {
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            text-align: center;
+            white-space: nowrap;
+        }
+        .toast-error   { background-color: #e53e3e; }
+        .toast-success { background-color: #38a169; }
+        @keyframes toastFadeOut {
+            0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            75%  { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.97); }
+        }
+        </style>
 	</section>
 </body>
 </html>

@@ -21,6 +21,9 @@ public class LoginUserVO {
     // 소속 기업 ID. USERS.COMPANY_ID 
     private Long companyId;
 
+    // 회사별 로그인 URL 검증에 사용할 회사 코드. COMPANIES.COMPANY_CODE
+    private String companyCode;
+
     // 로그인 아이디. USERS.LOGIN_ID
     private String loginId;
 

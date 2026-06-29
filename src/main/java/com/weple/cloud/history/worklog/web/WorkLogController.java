@@ -42,6 +42,7 @@ public class WorkLogController {
             @RequestParam(required = false) String userCode,
             @RequestParam(required = false) List<String> typeNames,
             @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "search", required = false) String search,
 			Model model) {
 		
 		 // 날짜 기본값: 최근 5일
@@ -58,36 +59,52 @@ public class WorkLogController {
 		        for (String t : typeNames) redirectUrl.append("&typeNames=").append(t);
 		    return redirectUrl.toString();
 		}
+		
+		List<WorkLogVO> list = null;
+        int totalPages = 0;
+        String targetDate = null;
+        Double totalSpentHour = null;
 
-        int pageSize = 10;
-        int offset = (page - 1) * pageSize;
-		
-        List<WorkLogVO> list = workLogService.findAll(
-                projectId, startDate, endDate, userCode, typeNames, offset, pageSize);
-
-        int totalCount = workLogService.countAll(
-                projectId, startDate, endDate, userCode, typeNames);
-
-        int totalPages = (int) Math.ceil((double) totalCount / pageSize);
-		
-		List<ProjectVO> projectList = projectService.findAll("");
-		model.addAttribute("projects", projectList);
-		
-		List<UserVO> userList = userService.findAllActiveUsers();
-		model.addAttribute("users", userList);
-		
-		model.addAttribute("workLogList", list);
-		model.addAttribute("projectId", projectId);
-		model.addAttribute("startDate", startDate);
-		model.addAttribute("endDate", endDate);
-		model.addAttribute("userCode", userCode);
-		model.addAttribute("typeNames", typeNames);
-		model.addAttribute("currentPage", page);      
-		model.addAttribute("totalPages", totalPages); 
-		
-		model.addAttribute("sidebarMenu", "work-history");
-		model.addAttribute("currentMenu", "none");
-		
-		return "weple/history/worklog";
-	}
+     // 검색 버튼 클릭 시에만 데이터 조회
+        if ("true".equals(search)) {
+            // 날짜 목록 조회 (날짜 단위 페이징)
+            List<String> allDates = workLogService.findDistinctDates(
+                    projectId, startDate, endDate, userCode, typeNames);
+ 
+            totalPages = allDates.size();
+ 
+            // 현재 페이지의 날짜 데이터 조회
+            if (!allDates.isEmpty() && page <= allDates.size()) {
+                targetDate = allDates.get(page - 1);
+                list = workLogService.findByDate(
+                        targetDate, projectId, userCode, typeNames);
+            }
+ 
+            totalSpentHour = workLogService.sumSpentHour(
+                    projectId, startDate, endDate, userCode, typeNames);
+        }
+ 
+        List<ProjectVO> projectList = projectService.findAll("");
+        model.addAttribute("projects", projectList);
+ 
+        List<UserVO> userList = userService.findAllActiveUsers();
+        model.addAttribute("users", userList);
+ 
+        model.addAttribute("workLogList", list);
+        model.addAttribute("targetDate", targetDate);
+        model.addAttribute("searched", "true".equals(search));
+        model.addAttribute("projectId", projectId);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("userCode", userCode);
+        model.addAttribute("typeNames", typeNames);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalSpentHour", totalSpentHour);
+ 
+        model.addAttribute("sidebarMenu", "work-history");
+        model.addAttribute("currentMenu", "none");
+ 
+        return "weple/history/worklog";
+    }
 }

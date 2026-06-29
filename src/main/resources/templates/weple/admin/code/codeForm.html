@@ -75,39 +75,83 @@
 			</div>
 		</form>
 
-		<script>
+		<script th:inline="javascript">
+
+function showToast(msg, type) {
+  var old = document.getElementById('_toastWrap');
+  if (old) old.remove();
+  var wrap = document.createElement('div');
+  wrap.id = '_toastWrap';
+  wrap.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;';
+  var box = document.createElement('div');
+  box.style.cssText = 'padding:16px 28px;border-radius:8px;font-size:15px;font-weight:500;color:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.25);text-align:center;min-width:220px;';
+  box.style.backgroundColor = (type === 'error') ? '#e53e3e' : '#38a169';
+  box.textContent = msg;
+  wrap.appendChild(box);
+  document.body.appendChild(wrap);
+  setTimeout(function() {
+    wrap.style.transition = 'opacity 0.4s';
+    wrap.style.opacity = '0';
+    setTimeout(function() { wrap.remove(); }, 400);
+  }, 2500);
+}
+
+function showConfirm(msg, onOk, onCancel) {
+  var old = document.getElementById('_confirmWrap');
+  if (old) old.remove();
+  var overlay = document.createElement('div');
+  overlay.id = '_confirmWrap';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:10px;padding:28px 32px;min-width:280px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.18);';
+  var txt = document.createElement('p');
+  txt.style.cssText = 'font-size:15px;font-weight:500;color:#1a1a2e;margin:0 0 24px;line-height:1.6;';
+  txt.textContent = msg;
+  var btnWrap = document.createElement('div');
+  btnWrap.style.cssText = 'display:flex;justify-content:center;gap:12px;';
+  var btnCancel = document.createElement('button');
+  btnCancel.textContent = '취소';
+  btnCancel.style.cssText = 'height:36px;padding:0 24px;background:#fff;border:1px solid #d1d5db;border-radius:6px;font-size:14px;cursor:pointer;';
+  btnCancel.onclick = function() { overlay.remove(); if (onCancel) onCancel(); };
+  var btnOk = document.createElement('button');
+  btnOk.textContent = '확인';
+  btnOk.style.cssText = 'height:36px;padding:0 24px;background:#e53e3e;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;';
+  btnOk.onclick = function() { overlay.remove(); if (onOk) onOk(); };
+  btnWrap.appendChild(btnCancel);
+  btnWrap.appendChild(btnOk);
+  box.appendChild(txt);
+  box.appendChild(btnWrap);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
 		document.addEventListener('DOMContentLoaded', function() {
-	        const form = document.getElementById('codeForm');
+		    const form = document.getElementById('codeForm');
+		    
+		    // 서버에서 넘어온 현재 기본값 이름 (Thymeleaf 인라인)
+		    const currentDefaultName = /*[[${defaultItemName}]]*/ '기본값';
+		
+		    form.addEventListener('submit', function(e) {
+		        const defaultCheckbox = document.querySelector('input[name="defaultYn"]');
+		        const isDefaultChecked = defaultCheckbox ? defaultCheckbox.checked : false;
 
-	        form.addEventListener('submit', function(e) {
-	            const defaultCheckbox = document.querySelector('input[name="defaultYn"]');
-	            const usingCheckbox = document.querySelector('input[name="usingYn"]');
-	            
-	            const isDefaultChecked = defaultCheckbox ? defaultCheckbox.checked : false;
-	            const isUsingChecked = usingCheckbox ? usingCheckbox.checked : false;
-
-	            //사용중이 아닌데 기본값 체크
-	            if (isDefaultChecked && !isUsingChecked) {
-	                e.preventDefault();
-	                alert("사용중이 아닌 항목은 기본값으로 설정할 수 없습니다.");
-	                return false;
-	            }
-
-	            //기본값 체크
-	            if (isDefaultChecked) {
-	                e.preventDefault(); 
-	                
-	                if (confirm("이미 기본값이 설정되어 있습니다. 현재 항목을 기본값으로 변경하시겠습니까?")) {
-	                    form.submit();
-	                } else {
-	                    if (typeof tui !== 'undefined') {
-	                        const toast = new tui.Notification({ position: 'top-right' });
-	                        toast.error("기본값 변경이 취소되었습니다.");
-	                    }
-	                }
-	            }
-	        });
-	    });
+		        if (isDefaultChecked && !form.dataset.confirmed) {
+		            e.preventDefault();
+		
+		            // 2. 동적 메시지 생성
+		            const message = `이미 '${currentDefaultName}'으(로) 기본값이 설정되어 있습니다. 현재 항목을 기본값으로 변경하시겠습니까?`;
+		            showConfirm(message,
+		                function() {
+		                    form.dataset.confirmed = "true";
+		                    form.submit();
+		                },
+		                function() {
+		                    showToast("기본값 변경이 취소되었습니다.", 'error');
+		                }
+		            );
+		        }
+		    });
+		});
 		</script>
 		
 		<style>

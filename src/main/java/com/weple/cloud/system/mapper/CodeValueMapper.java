@@ -29,4 +29,11 @@ public interface CodeValueMapper {
 	
 	// 수정 (드래그 앤 드랍으로 순서 변경한 데이터 저장)
 //	public void updateOrderNum(@Param("type") String type, @Param("id") String id, @Param("orderNum") long orderNum);
+	
+	// 기본값인 항목의 이름을 조회
+	String findDefaultNameByType(@Param("type") String type, @Param("cno") String cno);
+	
+	// 드래그앤드랍
+    public void insertCodeValueReorder(@Param("type") String type, @Param("item") CodeValueVO item);
+    public void updateCodeOrder(@Param("list") List<CodeValueVO> list);
 }

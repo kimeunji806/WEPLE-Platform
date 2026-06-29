@@ -9,8 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+import com.weple.cloud.project.service.ProjectService;
 import com.weple.cloud.repository.service.RepositoryService;
-import com.weple.cloud.system.mapper.SystemProjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityModelAdvice {
 
     private final RepositoryService repositoryService;
-    private final SystemProjectMapper systemProjectMapper;
+    private final ProjectService projectService;
 
     // 상단 메뉴에서 가입승인 탭을 노출할 수 있는지 판단합니다.
     @ModelAttribute("canApproveSignup")
@@ -52,14 +52,22 @@ public class SecurityModelAdvice {
     
     // 선택한 모듈만 노출 - 은지
     @ModelAttribute("moduleNames")
-    public List<String> moduleNames(HttpServletRequest request){
-    	String projectId = request.getParameter("projectId");
-    	if(projectId == null)
-    		return Collections.emptyList();
-    	try {
-    		return systemProjectMapper.selectModuleNames(Long.valueOf(projectId));
-    	} catch (NumberFormatException e) {
-    		return Collections.emptyList();
-    	}
+    public List<String> moduleNames(HttpServletRequest request) {
+        String projectId = request.getParameter("projectId");
+
+        // Path Variable도 처리 (/project/{id}/setting 등)
+        if (projectId == null) {
+            String uri = request.getRequestURI();
+            java.util.regex.Matcher m =
+                java.util.regex.Pattern.compile("/project/(\\d+)").matcher(uri);
+            if (m.find()) projectId = m.group(1);
+        }
+
+        if (projectId == null) return Collections.emptyList();
+        try {
+            return projectService.findActiveModuleNames(Long.valueOf(projectId));
+        } catch (NumberFormatException e) {
+            return Collections.emptyList();
+        }
     }
 }

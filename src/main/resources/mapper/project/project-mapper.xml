@@ -116,12 +116,20 @@
         WHERE p.project_id = #{projectId}
     </select>
     
-    <!-- 프로젝트 모듈 목록 조회 -->
+    <!-- 관리에서 선택된 프로젝트 모듈 목록 조회 -->
 	<select id="selectModuleNames" parameterType="long" resultType="string">
 	    SELECT module_name
 	    FROM module_mapping
 	    WHERE project_id = #{projectId}
 	</select>
+	
+	<!-- 네비바 활성화된 모듈만 조회 -->
+	<select id="selectActiveModuleNames" parameterType="long" resultType="string">
+        SELECT module_name
+        FROM module_mapping
+        WHERE project_id = #{projectId}
+          AND is_active = 'Y'
+    </select>
 	
 	<!-- 설정 페이지 - 프로젝트 설정 정보 단건 조회 (식별자 포함) -->
 	<select id="selectSettingById" parameterType="long" resultType="com.weple.cloud.project.service.ProjectVO">
@@ -158,8 +166,24 @@
 		VALUES (
 						(SELECT NVL(MAX(module_map_id), 0) + 1 FROM module_mapping),
 						#{projectId},
-						#{module_name}
+						#{moduleCode}
 				)
 	</insert>
 	
+	<!-- 설정 페이지 활성여부 업데이트 -->
+	<update id="updateModuleActive">
+        UPDATE module_mapping
+        SET is_active = #{isActive}
+        WHERE project_id = #{projectId}
+          AND module_name = #{moduleName}
+    </update>
+	
+	<!-- URL 접근 제어 -->
+	<select id="isModuleActive" resultType="int">
+		SELECT COUNT(*)
+		FROM module_mapping
+		WHERE project_id = #{projectId}
+		  AND module_name = #{moduleName}
+		  AND is_active   = 'Y'
+	</select>
 </mapper>

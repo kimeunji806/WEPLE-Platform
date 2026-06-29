@@ -29,7 +29,14 @@
 				  AND status IN ('a2', 'a3')
 				  <if test="keyword != null and keyword != ''">
 				      AND (LOWER(login_id) LIKE '%' || LOWER(#{keyword}) || '%'
-				           OR LOWER(user_name) LIKE '%' || LOWER(#{keyword}) || '%')
+				           OR LOWER(user_name) LIKE '%' || LOWER(#{keyword}) || '%'
+				           OR LOWER(
+				               CASE
+				                   WHEN owner_yn = 1 THEN '최고관리자'
+				                   WHEN NVL(admin_yn, 0) = 1 THEN '관리자'
+				                   ELSE '일반 사용자'
+				               END
+				           ) LIKE '%' || LOWER(#{keyword}) || '%')
 				  </if>
             <!-- 권한이 높은 계정과 활성 사용자를 먼저 보여주고, 같은 분류 안에서는 아이디순으로 정렬합니다. -->
             ORDER BY NVL(owner_yn, 0) DESC,
@@ -50,7 +57,14 @@
           AND status IN ('a2', 'a3')
           <if test="keyword != null and keyword != ''">
               AND (LOWER(login_id) LIKE '%' || LOWER(#{keyword}) || '%'
-                   OR LOWER(user_name) LIKE '%' || LOWER(#{keyword}) || '%')
+                   OR LOWER(user_name) LIKE '%' || LOWER(#{keyword}) || '%'
+                   OR LOWER(
+                       CASE
+                           WHEN owner_yn = 1 THEN '최고관리자'
+                           WHEN NVL(admin_yn, 0) = 1 THEN '관리자'
+                           ELSE '일반 사용자'
+                       END
+                   ) LIKE '%' || LOWER(#{keyword}) || '%')
           </if>
     </select>
 

@@ -8,6 +8,9 @@ public interface TimeService {
 	// 전체조회
 	public List<WorkTimeVO> findProjectTimeAll(Long projectId);
 
+	// 단건 조회
+	public WorkTimeVO findProjectTimeOne(long workId);
+
 	// 등록
 	public long addProjectTime(WorkTimeVO workTimeVO);
 

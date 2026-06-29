@@ -57,24 +57,33 @@
             </div>
 
             <div class="form-group-row">
-                <label class="form-label">날짜</label>
-                <div class="date-row">
-                    <div class="date-field">
-                        <label for="startDate" class="date-label">시작일자</label>
-                        <input type="text" id="startDate" name="startDate"
-                               class="form-input-text date-input"
-                               th:value="${project.startDate != null ? #dates.format(project.startDate, 'yyyy-MM-dd') : ''}"
-                               readonly>
-                    </div>
-                    <div class="date-field">
-                        <label for="finishDate" class="date-label required">마감일자</label>
-                        <input type="text" id="finishDate" name="finishDate"
-                               class="form-input-text date-input"
-                               th:value="${project.finishDate != null ? #dates.format(project.finishDate, 'yyyy-MM-dd') : ''}"
-                               placeholder="마감일자를 선택하세요"
-                               required>
-                    </div>
-                </div>
+			    <label class="form-label">날짜</label>
+			
+			    <div class="date-row">
+			
+			        <div class="date-field">
+			            <label for="startDate" class="date-label">시작일자</label>
+			            <input type="text"
+			                   id="startDate"
+			                   name="startDate"
+			                   class="form-input-text date-input"
+			                   th:value="${project.startDate != null ? #dates.format(project.startDate,'yyyy-MM-dd') : ''}"
+			                   placeholder="시작일자를 선택하세요">
+			        </div>
+			
+			        <div class="date-field">
+			            <label for="finishDate" class="date-label required">마감일자</label>
+			            <input type="text"
+			                   id="finishDate"
+			                   name="finishDate"
+			                   class="form-input-text date-input"
+			                   th:value="${project.finishDate != null ? #dates.format(project.finishDate,'yyyy-MM-dd') : ''}"
+			                   placeholder="마감일자를 선택하세요"
+			                   required>
+			        </div>
+			
+			    </div>
+			</div>
             </div>
 
             <div class="form-group-row">
@@ -216,10 +225,24 @@
 
         flatpickr.localize(flatpickr.l10ns.ko);
 
-        flatpickr("#finishDate", {
+        const startPicker = flatpickr("#startDate", {
             dateFormat: "Y-m-d",
-            allowInput: false
-            // 수정 시엔 minDate 제한 없음 (기존 마감일이 과거일 수 있으므로)
+            allowInput: false,
+            onChange: function(selectedDates) {
+                if (selectedDates[0]) {
+                    finishPicker.set('minDate', selectedDates[0]);
+                }
+            }
+        });
+
+        const finishPicker = flatpickr("#finishDate", {
+            dateFormat: "Y-m-d",
+            allowInput: false,
+            onChange: function(selectedDates) {
+                if (selectedDates[0]) {
+                    startPicker.set('maxDate', selectedDates[0]);
+                }
+            }
         });
 
         // 전체선택

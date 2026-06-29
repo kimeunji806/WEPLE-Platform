@@ -24,7 +24,8 @@ public class ProjectWorkLogController {
 	private final ProjectWorkLogService projectWorkLogService;
 	private final ProjectService projectService;
 	private final UserService userService;
-
+	
+	// 프로젝트 내 작업내역 조회
     @GetMapping("/project/worklog")
     public String projectWorkLogList(
             @RequestParam String projectId,
@@ -33,8 +34,10 @@ public class ProjectWorkLogController {
             @RequestParam(required = false) String userCode,
             @RequestParam(required = false) List<String> typeNames,
             @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "search", required = false) String search,
             Model model) {
     	
+    	// 날짜 기본값: 최근 5일
     	if (startDate == null || startDate.isBlank()) {
     	    LocalDate today = LocalDate.now();
     	    
@@ -54,25 +57,39 @@ public class ProjectWorkLogController {
     	    return redirectUrl.toString();
     	}
         
-        int pageSize = 10;
-        int offset = (page - 1) * pageSize;
-
-        List<WorkLogVO> list = projectWorkLogService.findAll(
-                projectId, startDate, endDate, userCode, typeNames, offset, pageSize);
-
-        int totalCount = projectWorkLogService.countAll(
-                projectId, startDate, endDate, userCode, typeNames);
-
-        int totalPages = (int) Math.ceil((double) totalCount / pageSize);
-        
+    	List<WorkLogVO> list = null;
+        int totalPages = 0;
+        String targetDate = null;
+        Double totalSpentHour = null;
+ 
+     // 검색 버튼 클릭 시에만 데이터 조회
+        if ("true".equals(search)) {
+            // 날짜 목록 조회 (날짜 단위 페이징)
+            List<String> allDates = projectWorkLogService.findDistinctDates(
+                    projectId, startDate, endDate, userCode, typeNames);
+ 
+            totalPages = allDates.size();
+ 
+            // 현재 페이지의 날짜 데이터 조회
+            if (!allDates.isEmpty() && page <= allDates.size()) {
+                targetDate = allDates.get(page - 1);
+                list = projectWorkLogService.findByDate(
+                        targetDate, projectId, userCode, typeNames);
+            }
+ 
+            totalSpentHour = projectWorkLogService.sumSpentHour(
+                    projectId, startDate, endDate, userCode, typeNames);
+        }
+ 
         ProjectVO project = projectService.findById(projectId);
-        List<String> moduleNames = projectService.findModuleNames(Long.parseLong(projectId));
-        
-        // 프로젝트 구성원 사용자 목록
+        List<String> moduleNames = projectService.findActiveModuleNames(Long.parseLong(projectId));
+ 
         List<UserVO> userList = userService.findUsersByProjectId(projectId);
         model.addAttribute("users", userList);
-
+ 
         model.addAttribute("workLogList", list);
+        model.addAttribute("targetDate", targetDate);
+        model.addAttribute("searched", "true".equals(search));
         model.addAttribute("project", project);
         model.addAttribute("moduleNames", moduleNames);
         model.addAttribute("projectId", projectId);
@@ -82,11 +99,11 @@ public class ProjectWorkLogController {
         model.addAttribute("typeNames", typeNames);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
-        
-        
+        model.addAttribute("totalSpentHour", totalSpentHour);
+ 
         model.addAttribute("sidebarMenu", "project");
         model.addAttribute("currentMenu", "worklog");
-
+ 
         return "weple/project/projectworklog";
     }
 }

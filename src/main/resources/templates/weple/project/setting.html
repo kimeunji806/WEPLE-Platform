@@ -8,21 +8,7 @@
 </head>
 <body>
 <section class="settings-page">
-
-    <h3 class="settings-title">설정</h3>
-
-    <!-- 설정 탭 -->
-    <div class="settings-tab-bar">
-        <a th:href="@{/project/{id}/setting(id=${setting.projectId})}"
-           th:class="${activeTab == 'project' or activeTab == null} ? 'active' : ''">프로젝트</a>
-        <a th:href="@{/project/{id}/setting/members(id=${setting.projectId})}"
-           th:class="${activeTab == 'member'} ? 'active' : ''">구성원</a>
-        <a th:href="@{/project/{id}/setting/repository(id=${setting.projectId})}"
-           th:class="${activeTab == 'repository/management(projectId=${projectId})'} ? 'active' : ''">저장소</a>
-        <a th:href="@{/project/{id}/setting/time(id=${setting.projectId})}"
-           th:class="${activeTab == 'time'} ? 'active' : ''">시간추적</a>
-    </div>
-
+	<div th:replace="~{common/fragments/project-setting-tabs :: projectSettingTabs}"></div>
     <div class="settings-card">
         <form method="post"
               th:action="@{/project/{id}/setting(id=${setting.projectId})}">

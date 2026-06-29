@@ -5,19 +5,44 @@
 <body>
 <section>
     <link rel="stylesheet" th:href="@{/css/repository/repository.css}">
-    <div class="repository-page">
-        <div class="repository-diff-heading">
+    <div class="repository-page repository-commit-page repository-diff-page">
+        <div class="repository-commit-page-heading">
             <div>
+                <p class="repository-commit-path" th:text="${fileDiff != null ? repository.repositoryName + ' / ' + fileDiff.filePath : '저장소 / 파일'}">저장소 / 파일</p>
                 <h1 class="repository-title">파일 변경 비교</h1>
-                <p th:text="${fileDiff != null ? repository.repositoryName + ' / ' + fileDiff.filePath : '선택한 파일의 변경 내용을 조회합니다.'}">저장소 / 파일 경로</p>
             </div>
-            <a th:if="${repository != null}" th:href="@{/repository/detail(projectId=${projectId}, repositoryId=${repository.repositoryId})}">저장소로 돌아가기</a>
+            <div class="repository-commit-actions">
+                <a class="repository-button repository-button-secondary"
+                   th:if="${repository != null}"
+                   th:href="@{/repository/detail(projectId=${projectId}, repositoryId=${repository.repositoryId})}">저장소로 돌아가기</a>
+            </div>
         </div>
 
         <p class="repository-message repository-message-error" th:if="${githubError}" th:text="${githubError}">GitHub 비교 정보를 조회할 수 없습니다.</p>
         <p class="repository-message repository-message-error" th:if="${fileDiff != null and !#strings.isEmpty(fileDiff.message)}" th:text="${fileDiff.message}">비교할 이전 커밋이 없습니다.</p>
 
         <th:block th:if="${fileDiff != null}">
+            <section class="repository-commit-summary repository-diff-summary" aria-label="비교 커밋 정보">
+                <div class="repository-commit-message-block">
+                    <span>비교 파일</span>
+                    <strong th:text="${fileDiff.filePath ?: '선택한 파일'}">src/main/App.java</strong>
+                </div>
+                <dl class="repository-commit-meta">
+                    <div>
+                        <dt>이전 커밋</dt>
+                        <dd th:text="${fileDiff.previousCommitSha ?: '-'}">이전 SHA</dd>
+                    </div>
+                    <div>
+                        <dt>최신 커밋</dt>
+                        <dd th:text="${fileDiff.currentCommitSha ?: '-'}">최신 SHA</dd>
+                    </div>
+                    <div>
+                        <dt>브랜치</dt>
+                        <dd th:text="${branch ?: 'main'}">main</dd>
+                    </div>
+                </dl>
+            </section>
+
             <div class="repository-diff-meta">
                 <div><span>이전 커밋</span><strong th:text="${fileDiff.previousCommitMessage ?: '이전 버전'}">이전 커밋 메시지</strong><small th:text="${fileDiff.previousCommitSha ?: '-'}">이전 SHA</small></div>
                 <i class="fa fa-arrow-right"></i>
@@ -25,11 +50,17 @@
             </div>
             <div class="repository-diff-grid">
                 <section>
-                    <h2 th:text="${fileDiff.previousCommitMessage ?: '이전 버전'}">이전 버전</h2>
+                    <div class="repository-section-title repository-diff-section-title">
+                        <h2>이전 버전</h2>
+                        <span>OLD</span>
+                    </div>
                     <pre class="repository-diff-code"><code th:if="${fileDiff.previousLines != null}" th:each="line : ${fileDiff.previousLines}"><span class="repository-diff-line" th:classappend="${line.type == 'removed'} ? ' diff-remove' : (${line.type == 'placeholder'} ? ' diff-placeholder' : '')"><em th:text="${line.lineNumber ?: ''}">1</em><b th:text="${line.type == 'removed' ? '-' : ' '}"> </b><span th:text="${line.content}">이전 파일 내용</span></span></code><code th:unless="${fileDiff.previousLines != null}" th:text="${fileDiff.previousContent ?: ''}">이전 파일 내용</code></pre>
                 </section>
                 <section>
-                    <h2 th:text="${fileDiff.currentCommitMessage ?: '최신 버전'}">최신 버전</h2>
+                    <div class="repository-section-title repository-diff-section-title">
+                        <h2>최신 버전</h2>
+                        <span>NEW</span>
+                    </div>
                     <pre class="repository-diff-code"><code th:if="${fileDiff.currentLines != null}" th:each="line : ${fileDiff.currentLines}"><span class="repository-diff-line" th:classappend="${line.type == 'added'} ? ' diff-add' : (${line.type == 'placeholder'} ? ' diff-placeholder' : '')"><em th:text="${line.lineNumber ?: ''}">1</em><b th:text="${line.type == 'added' ? '+' : ' '}"> </b><span th:text="${line.content}">최신 파일 내용</span></span></code><code th:unless="${fileDiff.currentLines != null}" th:text="${fileDiff.currentContent ?: ''}">최신 파일 내용</code></pre>
                 </section>
             </div>

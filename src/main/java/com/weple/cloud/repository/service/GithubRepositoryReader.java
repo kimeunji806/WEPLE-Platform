@@ -6,10 +6,21 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -17,13 +28,13 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-// GitHub REST API 응답을 저장소 상세와 파일 비교 화면용 데이터로 가공하는 서비스임.
+// GitHub REST API 응답을 저장소 상세, 커밋 상세, 파일 비교 화면에서 쓰기 좋은 데이터로 가공하는 서비스입니다.
 @Service
 public class GithubRepositoryReader {
 
     private static final String GITHUB_API = "https://api.github.com/repos/";
     
-    // 토큰은 선택값입니다. 없으면 공개 GitHub API를 비인증으로 호출.
+    // 토큰은 선택 값입니다. 없으면 공개 GitHub API를 비인증으로 호출합니다.
     @Value("${github.api.token:}")
     private String githubToken;
     
@@ -32,11 +43,16 @@ public class GithubRepositoryReader {
 
     private static final int COMMIT_PAGE_SIZE = 10;
     private static final int COMMIT_PAGE_BLOCK_SIZE = 10;
+    private static final Pattern TASK_CODE_PATTERN = Pattern.compile("TSK-\\d{6}_\\d+");
+    private static final ZoneId DISPLAY_TIME_ZONE = ZoneId.of("Asia/Seoul");
+    private static final DateTimeFormatter COMMIT_DATE_FORMATTER =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(DISPLAY_TIME_ZONE);
 
-    // 상세 화면 최초 진입 시 메타데이터, 브랜치, 폴더, 선택 페이지의 커밋을 한 번에 준비함.
+    // 저장소 상세 화면 최초 진입에 필요한 메타데이터, 브랜치, 파일 목록, 커밋 목록을 한 번에 준비합니다.
     public GithubRepositoryInfo readRepository(String repositoryUrl, String requestedBranch,
                                                String requestedDirectory, String requestedFilePath,
-                                               int requestedCommitPage) {
+                                               int requestedCommitPage,
+                                               LocalDate commitStartDate, LocalDate commitEndDate) {
         String repositoryPath = toRepositoryPath(repositoryUrl);
         JsonNode repository = getJson(GITHUB_API + repositoryPath);
 
@@ -55,7 +71,8 @@ public class GithubRepositoryReader {
         CompletableFuture<List<GithubFileInfo>> filesFuture = CompletableFuture.supplyAsync(
                 () -> readFilesOrEmpty(repositoryPath, info.getSelectedBranch(), info.getCurrentDirectory()));
         CompletableFuture<GithubCommitPage> commitsFuture = CompletableFuture.supplyAsync(
-                () -> readCommitsOrEmpty(repositoryPath, info.getSelectedBranch(), info.getCommitPage()));
+                () -> readCommitsOrEmpty(repositoryPath, info.getSelectedBranch(), info.getCommitPage(),
+                        commitStartDate, commitEndDate));
 
         info.setBranches(branchesFuture.join());
         info.setFiles(filesFuture.join());
@@ -67,7 +84,7 @@ public class GithubRepositoryReader {
         info.setEndCommitPage(Math.min(info.getStartCommitPage() + COMMIT_PAGE_BLOCK_SIZE - 1,
                 info.getTotalCommitPages()));
 
-        // 파일 본문은 사용자가 선택했을 때만 요청해 초기 진입을 가볍게 합니다.
+        // 파일 본문은 사용자가 파일을 선택했을 때만 조회해 초기 진입을 가볍게 유지합니다.
         if (requestedFilePath == null || requestedFilePath.isBlank()) {
             info.setSelectedFileContent("왼쪽 목록에서 파일을 선택하세요.");
         } else {
@@ -76,7 +93,7 @@ public class GithubRepositoryReader {
         return info;
     }
 
-    // 선택 파일만 대상으로 최근 두 변경 커밋을 조회해 이전·최신 파일 내용을 만듦.
+    // 선택 파일을 대상으로 최근 두 변경 커밋을 조회해 이전/최신 파일 내용을 만듭니다.
     public GithubFileDiffInfo readFileDiff(String repositoryUrl, String branch, String filePath) {
         if (filePath == null || filePath.isBlank()) {
             throw new IllegalArgumentException("비교할 파일을 먼저 선택해 주세요.");
@@ -113,12 +130,38 @@ public class GithubRepositoryReader {
         return diffInfo;
     }
 
+    // 선택한 커밋 1건의 기본 정보와 변경 파일 목록을 GitHub commit detail API에서 조회합니다.
+    public GithubCommitDetailInfo readCommitDetail(String repositoryUrl, String commitSha) {
+        if (commitSha == null || commitSha.isBlank()) {
+            throw new IllegalArgumentException("조회할 커밋 해시코드가 없습니다.");
+        }
 
-    // LCS 기반 줄 비교 수행함. 공통 줄은 유지하고 이전에만 있으면 removed, 최신에만 있으면 added로 분류함.
+        String repositoryPath = toRepositoryPath(repositoryUrl);
+        JsonNode commit = getJson(GITHUB_API + repositoryPath + "/commits/" + encodeQueryValue(commitSha));
+
+        GithubCommitDetailInfo detailInfo = new GithubCommitDetailInfo();
+        String fullSha = commit.path("sha").asText(commitSha);
+        detailInfo.setSha(fullSha);
+        detailInfo.setShortSha(fullSha.substring(0, Math.min(fullSha.length(), 8)));
+        detailInfo.setMessage(commit.path("commit").path("message").asText("커밋 메시지가 없습니다."));
+        detailInfo.setAuthorEmail(commit.path("commit").path("author").path("email").asText("-"));
+        detailInfo.setCommittedAt(formatCommitDate(commit.path("commit").path("author").path("date").asText("-")));
+        detailInfo.setCommitUrl(commit.path("html_url").asText("https://github.com/" + repositoryPath + "/commit/" + fullSha));
+        detailInfo.setTotalAdditions(commit.path("stats").path("additions").asInt());
+        detailInfo.setTotalDeletions(commit.path("stats").path("deletions").asInt());
+        detailInfo.setTotalChanges(commit.path("stats").path("total").asInt());
+        List<GithubCommitFileChangeInfo> files = readCommitFiles(commit.path("files"));
+        detailInfo.setFiles(files);
+        detailInfo.setFileTree(toCommitFileTree(files));
+        return detailInfo;
+    }
+
+
+    // LCS 기반 줄 비교를 수행해 공통 줄은 context, 이전에만 있으면 removed, 최신에만 있으면 added로 분류합니다.
     private void setLineDiff(GithubFileDiffInfo diffInfo) {
         String[] previousLines = splitLines(diffInfo.getPreviousContent());
         String[] currentLines = splitLines(diffInfo.getCurrentContent());
-        // 지나치게 큰 파일은 메모리 사용을 막기 위해 줄 강조 없이 원문만 보여 줍니다.
+        // 지나치게 큰 파일은 메모리 사용을 막기 위해 강조 diff 없이 원문만 보여 줍니다.
         if (previousLines.length > 1500 || currentLines.length > 1500) {
             return;
         }
@@ -144,11 +187,11 @@ public class GithubRepositoryReader {
                 currentIndex++;
             } else if (lcs[previousIndex + 1][currentIndex] >= lcs[previousIndex][currentIndex + 1]) {
                 previousResult.add(new GithubDiffLine(previousIndex + 1, previousLines[previousIndex], "removed"));
-                // 좌우 비교 행을 맞추기 위해 최신 파일 쪽에는 빈 행을 함께 추가함.
+                // 좌우 비교 행을 맞추기 위해 최신 파일 쪽에 빈 행을 함께 추가합니다.
                 currentResult.add(new GithubDiffLine(null, "", "placeholder"));
                 previousIndex++;
             } else {
-                // 좌우 비교 행을 맞추기 위해 이전 파일 쪽에는 빈 행을 함께 추가함.
+                // 좌우 비교 행을 맞추기 위해 이전 파일 쪽에 빈 행을 함께 추가합니다.
                 previousResult.add(new GithubDiffLine(null, "", "placeholder"));
                 currentResult.add(new GithubDiffLine(currentIndex + 1, currentLines[currentIndex], "added"));
                 currentIndex++;
@@ -166,12 +209,132 @@ public class GithubRepositoryReader {
         diffInfo.setCurrentLines(currentResult);
     }
 
-    // 빈 파일은 빈 줄 한 개가 아니라 줄이 없는 파일로 처리해야 가짜 삭제 표시가 생기지 않음.
+    // 빈 파일은 빈 줄 1개가 아니라 줄이 없는 파일로 처리합니다.
     private String[] splitLines(String content) {
         return content == null || content.isEmpty() ? new String[0] : content.split("\\R", -1);
     }
 
-    // 브랜치 목록 실패 시 상세 화면 전체를 막지 않고 기본 브랜치만 보여 주기 위한 보조 메서드임.
+    // GitHub commit detail 응답의 files 배열을 화면 출력용 변경 파일 정보로 변환합니다.
+    private List<GithubCommitFileChangeInfo> readCommitFiles(JsonNode files) {
+        List<GithubCommitFileChangeInfo> fileChanges = new ArrayList<>();
+        if (files == null || !files.isArray()) {
+            return fileChanges;
+        }
+
+        int fileIndex = 0;
+        for (JsonNode file : files) {
+            GithubCommitFileChangeInfo fileChange = new GithubCommitFileChangeInfo();
+            fileChange.setFilename(file.path("filename").asText());
+            fileChange.setPreviousFilename(file.path("previous_filename").asText(""));
+            fileChange.setAnchorId("commit-file-" + fileIndex++);
+            fileChange.setStatus(file.path("status").asText());
+            fileChange.setStatusLabel(toFileStatusLabel(fileChange.getStatus()));
+            fileChange.setAdditions(file.path("additions").asInt());
+            fileChange.setDeletions(file.path("deletions").asInt());
+            fileChange.setChanges(file.path("changes").asInt());
+            fileChange.setPatch(file.path("patch").asText(""));
+            fileChange.setPatchLines(toPatchLines(fileChange.getPatch()));
+            fileChanges.add(fileChange);
+        }
+        return fileChanges;
+    }
+
+    // 파일 경로를 폴더/파일 행으로 펼쳐 왼쪽 파일트리에서 사용할 데이터를 만듭니다.
+    private List<GithubCommitFileTreeItem> toCommitFileTree(List<GithubCommitFileChangeInfo> files) {
+        List<GithubCommitFileTreeItem> treeItems = new ArrayList<>();
+        Set<String> addedDirectories = new HashSet<>();
+        List<GithubCommitFileChangeInfo> sortedFiles = new ArrayList<>(files);
+        sortedFiles.sort(Comparator.comparing(GithubCommitFileChangeInfo::getFilename));
+
+        for (GithubCommitFileChangeInfo file : sortedFiles) {
+            String[] pathSegments = file.getFilename().split("/");
+            StringBuilder currentPath = new StringBuilder();
+
+            for (int index = 0; index < pathSegments.length - 1; index++) {
+                if (currentPath.length() > 0) {
+                    currentPath.append("/");
+                }
+                currentPath.append(pathSegments[index]);
+
+                String directoryPath = currentPath.toString();
+                if (addedDirectories.add(directoryPath)) {
+                    treeItems.add(createDirectoryTreeItem(pathSegments[index], directoryPath, index));
+                }
+            }
+
+            treeItems.add(createFileTreeItem(pathSegments[pathSegments.length - 1], file.getFilename(),
+                    Math.max(pathSegments.length - 1, 0), file));
+        }
+        return treeItems;
+    }
+
+    // 폴더 행은 실제 파일 변경 정보가 없고, 하위 파일을 묶는 용도로만 사용합니다.
+    private GithubCommitFileTreeItem createDirectoryTreeItem(String name, String path, int level) {
+        GithubCommitFileTreeItem treeItem = new GithubCommitFileTreeItem();
+        treeItem.setName(name);
+        treeItem.setPath(path);
+        treeItem.setType("directory");
+        treeItem.setLevel(level);
+        treeItem.setIndent(level * 16);
+        return treeItem;
+    }
+
+    // 파일 행은 오른쪽 diff 영역으로 이동할 수 있도록 실제 변경 파일 정보를 연결합니다.
+    private GithubCommitFileTreeItem createFileTreeItem(String name, String path, int level,
+                                                        GithubCommitFileChangeInfo file) {
+        GithubCommitFileTreeItem treeItem = new GithubCommitFileTreeItem();
+        treeItem.setName(name);
+        treeItem.setPath(path);
+        treeItem.setType("file");
+        treeItem.setLevel(level);
+        treeItem.setIndent(level * 16);
+        treeItem.setFile(file);
+        return treeItem;
+    }
+
+    // GitHub patch 문자열을 줄 단위로 나누고 추가/삭제/헤더/문맥 줄로 구분합니다.
+    private List<GithubPatchLine> toPatchLines(String patch) {
+        List<GithubPatchLine> patchLines = new ArrayList<>();
+        if (patch == null || patch.isBlank()) {
+            return patchLines;
+        }
+
+        for (String line : patch.split("\\R", -1)) {
+            patchLines.add(new GithubPatchLine(toPatchLineType(line), line));
+        }
+        return patchLines;
+    }
+
+    // patch 줄의 앞 글자를 기준으로 화면에서 사용할 diff 표시 타입을 결정합니다.
+    private String toPatchLineType(String line) {
+        if (line.startsWith("@@")) {
+            return "header";
+        }
+        if (line.startsWith("+") && !line.startsWith("+++")) {
+            return "added";
+        }
+        if (line.startsWith("-") && !line.startsWith("---")) {
+            return "removed";
+        }
+        return "context";
+    }
+
+    // GitHub API의 영문 변경 상태를 화면에서 쓰는 한국어 상태명으로 바꿉니다.
+    private String toFileStatusLabel(String status) {
+        if (status == null || status.isBlank()) {
+            return "\uBCC0\uACBD";
+        }
+
+        return switch (status) {
+            case "added" -> "\uCD94\uAC00";
+            case "removed" -> "\uC0AD\uC81C";
+            case "renamed" -> "\uC774\uB984\uBCC0\uACBD";
+            case "modified" -> "\uC218\uC815";
+            default -> status;
+        };
+    }
+
+    // 브랜치 목록 조회에 실패해도 상세 화면 전체가 깨지지 않도록 기본 브랜치만 반환합니다.
     private List<String> readBranchesOrDefault(String repositoryPath, String defaultBranch) {
         try {
             return readBranches(repositoryPath);
@@ -180,7 +343,7 @@ public class GithubRepositoryReader {
         }
     }
 
-    // 파일 목록 실패 시 빈 트리를 반환해 다른 상세 정보는 계속 표시되게 함.
+    // 파일 목록 조회 실패 시 빈 목록을 반환해 나머지 상세 정보는 계속 표시합니다.
     private List<GithubFileInfo> readFilesOrEmpty(String repositoryPath, String branch, String directory) {
         try {
             return readFiles(repositoryPath, branch, directory);
@@ -189,16 +352,17 @@ public class GithubRepositoryReader {
         }
     }
 
-    // 커밋 목록 실패도 상세 화면 전체 실패로 번지지 않게 빈 페이지 정보로 처리함.
-    private GithubCommitPage readCommitsOrEmpty(String repositoryPath, String branch, int page) {
+    // 커밋 목록 조회 실패가 상세 화면 전체 실패로 번지지 않게 빈 페이지 정보로 처리합니다.
+    private GithubCommitPage readCommitsOrEmpty(String repositoryPath, String branch, int page,
+                                                LocalDate commitStartDate, LocalDate commitEndDate) {
         try {
-            return readCommits(repositoryPath, branch, page);
+            return readCommits(repositoryPath, branch, page, commitStartDate, commitEndDate);
         } catch (IllegalStateException ex) {
             return new GithubCommitPage(List.of(), page, false);
         }
     }
 
-    // /branches API에서 최대 100개 브랜치 이름만 추려 화면 선택 목록으로 반환함.
+    // /branches API에서 최대 100개 브랜치 이름만 추려 화면 선택 목록으로 반환합니다.
     private List<String> readBranches(String repositoryPath) {
         JsonNode branches = getJson(GITHUB_API + repositoryPath + "/branches?per_page=100");
         List<String> branchNames = new ArrayList<>();
@@ -208,10 +372,13 @@ public class GithubRepositoryReader {
         return branchNames;
     }
 
-    // /commits API의 Link 헤더에서 다음·마지막 페이지를 확인해 10개 단위 페이징에 사용함.
-    private GithubCommitPage readCommits(String repositoryPath, String branch, int page) {
-        GithubApiResponse response = getJsonResponse(GITHUB_API + repositoryPath + "/commits?sha="
-                + encodeQueryValue(branch) + "&per_page=" + COMMIT_PAGE_SIZE + "&page=" + page);
+    // /commits API의 Link 헤더에서 다음/마지막 페이지를 확인해 10개 단위 페이징에 사용합니다.
+    private GithubCommitPage readCommits(String repositoryPath, String branch, int page,
+                                         LocalDate commitStartDate, LocalDate commitEndDate) {
+        String commitUrl = GITHUB_API + repositoryPath + "/commits?sha="
+                + encodeQueryValue(branch) + "&per_page=" + COMMIT_PAGE_SIZE + "&page=" + page
+                + toCommitDateQuery(commitStartDate, commitEndDate);
+        GithubApiResponse response = getJsonResponse(commitUrl);
         JsonNode commits = response.getBody();
         List<GithubCommitInfo> commitInfos = new ArrayList<>();
         for (JsonNode commit : commits) {
@@ -221,8 +388,9 @@ public class GithubRepositoryReader {
             commitInfo.setSha(fullSha.substring(0, Math.min(fullSha.length(), 8)));
             commitInfo.setCommitUrl("https://github.com/" + repositoryPath + "/commit/" + fullSha);
             commitInfo.setMessage(commit.path("commit").path("message").asText());
+            commitInfo.setTaskId(extractTaskId(commitInfo.getMessage()));
             commitInfo.setAuthorEmail(commit.path("commit").path("author").path("email").asText("-"));
-            commitInfo.setCommittedAt(commit.path("commit").path("author").path("date").asText("-"));
+            commitInfo.setCommittedAt(formatCommitDate(commit.path("commit").path("author").path("date").asText("-")));
             commitInfos.add(commitInfo);
         }
         String linkHeader = response.getLinkHeader();
@@ -231,7 +399,44 @@ public class GithubRepositoryReader {
         return new GithubCommitPage(commitInfos, totalPages, hasNextPage);
     }
 
-    // /contents API 사용함. 빈 directory는 루트, 값이 있으면 해당 폴더의 직계 항목을 조회함.
+    // 구분자 설정을 적용하기 전 단계에서는 커밋 메시지 안의 TSK-YYMMDD_번호 형식만 자동 인식합니다.
+    private String extractTaskId(String commitMessage) {
+        if (commitMessage == null || commitMessage.isBlank()) {
+            return null;
+        }
+        Matcher matcher = TASK_CODE_PATTERN.matcher(commitMessage);
+        return matcher.find() ? matcher.group() : null;
+    }
+
+    // 화면에서 선택한 날짜를 GitHub API가 받는 UTC ISO 시간 조건으로 변환합니다.
+    private String toCommitDateQuery(LocalDate commitStartDate, LocalDate commitEndDate) {
+        StringBuilder query = new StringBuilder();
+        if (commitStartDate != null) {
+            String since = commitStartDate.atStartOfDay(DISPLAY_TIME_ZONE).toInstant().toString();
+            query.append("&since=").append(encodeQueryValue(since));
+        }
+        if (commitEndDate != null) {
+            String until = commitEndDate.atTime(LocalTime.of(23, 59, 59)).atZone(DISPLAY_TIME_ZONE)
+                    .toInstant().toString();
+            query.append("&until=").append(encodeQueryValue(until));
+        }
+        return query.toString();
+    }
+
+    // GitHub API의 UTC ISO 시간을 화면에서 읽기 쉬운 한국 시간으로 변환합니다.
+    private String formatCommitDate(String githubDate) {
+        if (githubDate == null || githubDate.isBlank() || "-".equals(githubDate)) {
+            return "-";
+        }
+
+        try {
+            return COMMIT_DATE_FORMATTER.format(Instant.parse(githubDate));
+        } catch (DateTimeParseException ex) {
+            return githubDate;
+        }
+    }
+
+    // /contents API를 사용해 현재 폴더의 직계 파일/폴더만 조회합니다.
     private List<GithubFileInfo> readFiles(String repositoryPath, String branch, String directory) {
         String contentsPath = directory.isBlank() ? "/contents" : "/contents/" + directory;
         JsonNode contents = getJson(GITHUB_API + repositoryPath + contentsPath + "?ref=" + encodeQueryValue(branch));
@@ -246,7 +451,7 @@ public class GithubRepositoryReader {
         return files;
     }
 
-    // 선택 파일 본문을 Contents API에서 Base64로 받아 UTF-8 문자열로 복호화함.
+    // 선택 파일 본문을 Contents API에서 Base64로 받아 UTF-8 문자열로 복호화합니다.
     private void setSelectedFileContent(GithubRepositoryInfo info, String repositoryPath, String requestedFilePath) {
         String filePath = requestedFilePath;
         if (filePath == null) {
@@ -261,13 +466,13 @@ public class GithubRepositoryReader {
             info.setSelectedFilePath(file.path("path").asText(filePath));
             info.setSelectedFileContent(new String(Base64.getDecoder().decode(encodedContent), StandardCharsets.UTF_8));
         } catch (IllegalStateException ex) {
-            // 일부 대용량·바이너리 파일은 Contents API에서 본문을 제공하지 않을 수 있음.
+            // 일부 대용량/바이너리 파일은 Contents API에서 본문을 제공하지 않을 수 있습니다.
             info.setSelectedFilePath(filePath);
             info.setSelectedFileContent("이 파일의 내용은 GitHub API에서 바로 표시할 수 없습니다.");
         }
     }
 
-    // 특정 SHA를 ref로 넘겨 해당 커밋 시점 파일을 읽음. 404만 빈 값으로 처리해 추가·삭제를 표현함.
+    // 특정 SHA를 ref로 넘겨 해당 커밋 시점의 파일 내용을 읽습니다. 404는 추가/삭제 파일 표현을 위해 빈 값으로 처리합니다.
     private String readFileContentAtCommit(String repositoryPath, String filePath, String commitSha) {
         try {
             JsonNode file = getJson(GITHUB_API + repositoryPath + "/contents/" + encodePath(filePath)
@@ -275,7 +480,7 @@ public class GithubRepositoryReader {
             String encodedContent = file.path("content").asText().replaceAll("\\s", "");
             return new String(Base64.getDecoder().decode(encodedContent), StandardCharsets.UTF_8);
         } catch (GithubApiException ex) {
-            // 해당 커밋에 파일이 없는 경우만 추가·삭제 파일로 판단함.
+            // 해당 커밋에 파일이 없는 경우만 추가/삭제 파일로 판단합니다.
             if (ex.getStatusCode() == 404) {
                 return "";
             }
@@ -283,19 +488,19 @@ public class GithubRepositoryReader {
         }
     }
 
-    // JSON 본문만 필요한 GitHub API 요청에서 공통 응답 처리부를 재사용합니다.
+    // JSON 본문만 필요한 GitHub API 요청에서 공통 응답 처리를 재사용합니다.
     private JsonNode getJson(String url) {
         return getJsonResponse(url).getBody();
     }
 
-    // GitHub의 Link 헤더까지 필요한 커밋 페이징을 위해 본문과 헤더를 함께 반환합니다.
+    // GitHub Link 헤더까지 필요한 요청을 위해 본문과 헤더를 함께 반환합니다.
     private GithubApiResponse getJsonResponse(String url) {
         try {
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder(URI.create(url))
                     .header("Accept", "application/vnd.github+json")
                     .header("User-Agent", "weple-repository-viewer")
                     .GET();
-            // 빈 Bearer 헤더는 GitHub에서 잘못된 인증 요청으로 처리될 수 있습니다.
+            // 빈 Bearer 헤더는 GitHub에서 잘못된 인증 요청으로 처리될 수 있어 토큰이 있을 때만 추가합니다.
             if (githubToken != null && !githubToken.isBlank()) {
                 requestBuilder.header("Authorization", "Bearer " + githubToken.trim());
             }
@@ -322,11 +527,11 @@ public class GithubRepositoryReader {
         if (matcher.find()) {
             return Integer.parseInt(matcher.group(1));
         }
-        // 마지막 페이지 정보가 생략된 경우에도 다음 이동은 가능하도록 한 페이지를 더 노출합니다.
+        // 마지막 페이지 정보가 생략된 경우에도 다음 이동이 가능하도록 현재 페이지를 기준으로 계산합니다.
         return hasNextPage ? currentPage + 1 : currentPage;
     }
 
-    // HTTP 상태 코드를 보존해 404와 인증·요청 제한 오류를 서로 다르게 처리하기 위한 예외임.
+    // HTTP 상태 코드를 보존해 404와 인증/요청 제한 오류를 구분하기 위한 예외입니다.
     private static class GithubApiException extends IllegalStateException {
 
         private final int statusCode;
@@ -387,19 +592,19 @@ public class GithubRepositoryReader {
         }
     }
 
-    // 저장된 GitHub URL을 API가 요구하는 owner/repository 형식으로 정규화함.
+    // 저장된 GitHub URL을 API가 요구하는 owner/repository 형식으로 정규화
     private String toRepositoryPath(String repositoryUrl) {
         String path = repositoryUrl.replaceFirst("^https://github\\.com/", "");
         return path.replaceFirst("\\.git/?$", "").replaceAll("/$", "");
     }
 
-    // 현재 폴더의 상위 폴더 경로 계산함. 루트면 빈 문자열 반환함.
+    // 현재 폴더의 상위 폴더 경로를 계산합니다. 루트면 빈 문자열을 반환
     private String parentDirectory(String directory) {
         int separatorIndex = directory.lastIndexOf('/');
         return separatorIndex < 0 ? "" : directory.substring(0, separatorIndex);
     }
 
-    // 파일 경로는 슬래시 유지하고 각 경로 조각만 인코딩해야 GitHub API가 정상 인식함.
+    // 파일 경로의 슬래시는 유지하고 각 경로 조각만 인코딩해 GitHub API가 인식할 수 있게 함
     private String encodePath(String path) {
         String[] pathSegments = path.split("/");
         List<String> encodedSegments = new ArrayList<>();
@@ -409,7 +614,7 @@ public class GithubRepositoryReader {
         return String.join("/", encodedSegments);
     }
 
-    // 공백을 + 대신 %20으로 바꿔 query string과 path segment 양쪽에서 안전하게 사용함.
+    // 공백을 + 대신 %20으로 바꿔 query string과 path segment에서 안전하게 사용
     private String encodeQueryValue(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }

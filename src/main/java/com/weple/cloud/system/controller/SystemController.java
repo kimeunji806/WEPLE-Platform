@@ -36,6 +36,7 @@ import com.weple.cloud.system.service.TaskTypeService;
 import com.weple.cloud.system.service.TaskTypeVO;
 import com.weple.cloud.system.service.UserManagementCreateVO;
 import com.weple.cloud.system.service.UserManagementService;
+import com.weple.cloud.system.service.UserManagementUpdateVO;
 import com.weple.cloud.system.service.UserManagementVO;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -713,12 +714,59 @@ public class SystemController {
 			return "redirect:/userList";
 		}
 
+		boolean isCompanyOwner = Integer.valueOf(1).equals(loginUser.getLoginUser().getOwnerYn());
 		model.addAttribute("userDetail", userDetail);
 		model.addAttribute("projectList", userManagementService.findUserProjects(companyId, userCode));
+		model.addAttribute("canEditUser", canEditManagedUser(isCompanyOwner, userDetail));
 		model.addAttribute("sidebarMenu", "system");
 		model.addAttribute("currentMenu", "systemuser");
 		model.addAttribute("menu", "user");
 		return "weple/admin/user/detail";
+	}
+
+	// 사용자 상세조회에서 수정 버튼을 누르면 기본 정보 수정 화면으로 이동합니다.
+	@GetMapping("/userList/{userCode}/edit")
+	public String userManagementEditForm(@AuthenticationPrincipal LoginUserDetails loginUser,
+			@PathVariable String userCode,
+			Model model,
+			RedirectAttributes redirectAttributes) {
+		Long companyId = loginUser.getLoginUser().getCompanyId();
+		UserManagementVO userDetail = userManagementService.findUserDetail(companyId, userCode);
+		if (userDetail == null) {
+			redirectAttributes.addFlashAttribute("userError", "수정할 사용자를 찾을 수 없습니다.");
+			return "redirect:/userList";
+		}
+		boolean isCompanyOwner = Integer.valueOf(1).equals(loginUser.getLoginUser().getOwnerYn());
+		if (!canEditManagedUser(isCompanyOwner, userDetail)) {
+			redirectAttributes.addFlashAttribute("userError", "관리자 계정은 기업 최고관리자만 수정할 수 있습니다.");
+			return "redirect:/userList/" + userCode;
+		}
+
+		model.addAttribute("userDetail", userDetail);
+		model.addAttribute("isCompanyOwner", isCompanyOwner);
+		model.addAttribute("sidebarMenu", "system");
+		model.addAttribute("currentMenu", "systemuser");
+		model.addAttribute("menu", "user");
+		return "weple/admin/user/edit";
+	}
+
+	// 사용자 기본정보 수정 화면에서 허용한 항목만 저장하고, 관리자 여부는 기업 최고관리자만 변경할 수 있습니다.
+	@PostMapping("/userList/{userCode}/edit")
+	public String userManagementEdit(@AuthenticationPrincipal LoginUserDetails loginUser,
+			@PathVariable String userCode,
+			@ModelAttribute UserManagementUpdateVO user,
+			RedirectAttributes redirectAttributes) {
+		user.setUserCode(userCode);
+		try {
+			int actorOwnerYn = Integer.valueOf(1).equals(loginUser.getLoginUser().getOwnerYn()) ? 1 : 0;
+			userManagementService.updateUserBasicInfo(loginUser.getLoginUser().getCompanyId(), actorOwnerYn, user);
+			redirectAttributes.addFlashAttribute("userSuccess", "사용자 정보가 수정되었습니다.");
+			return "redirect:/userList/" + userCode;
+		} catch (IllegalArgumentException | IllegalStateException ex) {
+			redirectAttributes.addFlashAttribute("userError", ex.getMessage());
+			redirectAttributes.addFlashAttribute("userForm", user);
+			return "redirect:/userList/" + userCode + "/edit";
+		}
 	}
 
 	// 화면에서 입력한 신규 사용자 정보를 현재 관리자의 회사 사용자로 등록합니다.
@@ -767,6 +815,14 @@ public class SystemController {
 		String searchParameter = keyword == null || keyword.isBlank()
 				? "" : "&keyword=" + java.net.URLEncoder.encode(keyword.trim(), java.nio.charset.StandardCharsets.UTF_8);
 		return "redirect:/userList?page=" + Math.max(page, 1) + searchParameter;
+	}
+
+	private boolean canEditManagedUser(boolean isCompanyOwner, UserManagementVO userDetail) {
+		if (isCompanyOwner) {
+			return true;
+		}
+		return !Integer.valueOf(1).equals(userDetail.getOwnerYn())
+				&& !Integer.valueOf(1).equals(userDetail.getAdminYn());
 	}
 		
 }

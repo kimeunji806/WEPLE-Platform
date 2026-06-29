@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import com.weple.cloud.system.service.UserManagementCreateVO;
 import com.weple.cloud.system.service.UserManagementProjectVO;
+import com.weple.cloud.system.service.UserManagementUpdateVO;
 import com.weple.cloud.system.service.UserManagementVO;
 
 @Mapper
@@ -42,6 +43,19 @@ public interface UserManagementMapper {
     // 신규 사용자 등록 전 같은 이메일이 이미 사용 중인지 확인합니다.
     int countUserByEmail(@Param("email") String email);
 
+    // 수정 대상 자신을 제외하고 같은 로그인 아이디가 이미 사용 중인지 확인합니다.
+    int countUserByLoginIdExcept(@Param("loginId") String loginId,
+                                 @Param("userCode") String userCode);
+
+    // 수정 대상 자신을 제외하고 같은 이메일이 이미 사용 중인지 확인합니다.
+    int countUserByEmailExcept(@Param("email") String email,
+                               @Param("userCode") String userCode);
+
     // 기업 관리자 화면에서 입력한 신규 사용자를 같은 회사의 활성 사용자로 등록합니다.
     int insertUser(UserManagementCreateVO user);
+
+    // 사용자 기본정보 수정 화면에서 허용한 아이디, 이름, 이메일, 연락처만 변경합니다.
+    int updateUserBasicInfo(@Param("companyId") Long companyId,
+                            @Param("actorOwnerYn") int actorOwnerYn,
+                            @Param("user") UserManagementUpdateVO user);
 }

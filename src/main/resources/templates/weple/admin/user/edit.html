@@ -1,14 +1,82 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{common/layouts/default_layout :: layout(~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org/"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
-    <title>WEPLE - 공통 관리</title>
+    <title>WEPLE - 사용자 수정</title>
 </head>
 <body>
+<section>
+    <link rel="stylesheet" th:href="@{/css/admin/user-list.css}">
+    <div class="user-management-page">
+        <div class="user-detail-header">
+            <h1 class="user-management-title">사용자관리</h1>
+            <a class="user-cancel-button"
+               th:href="@{/userList/{userCode}(userCode=${userDetail.userCode})}">상세로 돌아가기</a>
+        </div>
 
-    <section>
-        본인 작성 내역 여기다 넣기
-    </section>
+        <div class="user-management-panel user-register-panel">
+            <h2 class="user-register-form-title">
+                <i class="fa fa-user" aria-hidden="true"></i>
+                사용자 기본정보 수정
+            </h2>
 
+            <p class="user-register-message error"
+               th:if="${userError}"
+               th:text="${userError}">입력값을 확인해주세요.</p>
+            <p class="user-register-message success"
+               th:if="${userError == null and isCompanyOwner}">아이디, 이름, 이메일 주소, 연락처와 관리자 여부를 수정할 수 있습니다.</p>
+            <p class="user-register-message success"
+               th:if="${userError == null and !isCompanyOwner}">아이디, 이름, 이메일 주소, 연락처만 수정할 수 있습니다.</p>
+
+            <form class="user-register-form" method="post"
+                  th:action="@{/userList/{userCode}/edit(userCode=${userDetail.userCode})}">
+                <div class="user-form-fields">
+                    <label class="user-form-field user-form-field-short">
+                        <span>사용자 아이디 <em>*</em></span>
+                        <input type="text"
+                               name="loginId"
+                               th:value="${userForm != null ? userForm.loginId : userDetail.loginId}"
+                               autocomplete="off">
+                    </label>
+                    <label class="user-form-field user-form-field-short">
+                        <span>성명 (이름) <em>*</em></span>
+                        <input type="text"
+                               name="userName"
+                               th:value="${userForm != null ? userForm.userName : userDetail.userName}"
+                               autocomplete="off">
+                    </label>
+                    <label class="user-form-field user-form-field-short">
+                        <span>이메일 주소 <em>*</em></span>
+                        <input type="email"
+                               name="email"
+                               th:value="${userForm != null ? userForm.email : userDetail.email}"
+                               autocomplete="off">
+                    </label>
+                    <label class="user-form-field user-form-field-short">
+                        <span>연락처 <em>*</em></span>
+                        <input type="tel"
+                               name="phoneNumber"
+                               th:value="${userForm != null ? userForm.phoneNumber : userDetail.phoneNumber}"
+                               autocomplete="off">
+                    </label>
+                </div>
+
+                <label class="user-admin-check" th:if="${isCompanyOwner}">
+                    <input type="checkbox"
+                           name="adminYn"
+                           value="1"
+                           th:checked="${userForm != null ? userForm.adminYn == 1 : userDetail.adminYn == 1}">
+                    <span>관리자</span>
+                </label>
+
+                <div class="user-form-actions">
+                    <a class="user-cancel-button"
+                       th:href="@{/userList/{userCode}(userCode=${userDetail.userCode})}">취소</a>
+                    <button class="user-submit-button" type="submit">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
 </body>
 </html>

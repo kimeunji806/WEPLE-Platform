@@ -17,10 +17,10 @@
 					   user_name AS userName,
 					   email AS email,
 					   status AS status,
-					   owner_yn AS ownerYn,
-					   admin_yn AS adminYn,
+					   NVL(owner_yn, 0) AS ownerYn,
+					   NVL(admin_yn, 0) AS adminYn,
 					   CASE
-					       WHEN owner_yn = 1 THEN '최고관리자'
+					       WHEN NVL(owner_yn, 0) = 1 THEN '최고관리자'
 					       WHEN NVL(admin_yn, 0) = 1 THEN '관리자'
 					       ELSE '일반 사용자'
 					   END AS roleName
@@ -32,7 +32,7 @@
 				           OR LOWER(user_name) LIKE '%' || LOWER(#{keyword}) || '%'
 				           OR LOWER(
 				               CASE
-				                   WHEN owner_yn = 1 THEN '최고관리자'
+				                   WHEN NVL(owner_yn, 0) = 1 THEN '최고관리자'
 				                   WHEN NVL(admin_yn, 0) = 1 THEN '관리자'
 				                   ELSE '일반 사용자'
 				               END
@@ -60,7 +60,7 @@
                    OR LOWER(user_name) LIKE '%' || LOWER(#{keyword}) || '%'
                    OR LOWER(
                        CASE
-                           WHEN owner_yn = 1 THEN '최고관리자'
+                           WHEN NVL(owner_yn, 0) = 1 THEN '최고관리자'
                            WHEN NVL(admin_yn, 0) = 1 THEN '관리자'
                            ELSE '일반 사용자'
                        END
@@ -80,10 +80,10 @@
                TO_CHAR(u.create_date, 'YYYY-MM-DD HH24:MI') AS createdAt,
                TO_CHAR(u.last_login_time, 'YYYY-MM-DD HH24:MI') AS lastLoginTime,
                g.group_name AS groupName,
-               u.owner_yn AS ownerYn,
-               u.admin_yn AS adminYn,
+               NVL(u.owner_yn, 0) AS ownerYn,
+               NVL(u.admin_yn, 0) AS adminYn,
                CASE
-                   WHEN u.owner_yn = 1 THEN '최고관리자'
+                   WHEN NVL(u.owner_yn, 0) = 1 THEN '최고관리자'
                    WHEN NVL(u.admin_yn, 0) = 1 THEN '관리자'
                    ELSE '일반 사용자'
                END AS roleName
@@ -142,6 +142,22 @@
         SELECT COUNT(*)
         FROM users
         WHERE UPPER(email) = UPPER(#{email})
+    </select>
+
+    <!-- 수정 시에는 현재 사용자 자신을 제외하고 로그인 아이디 중복 여부를 확인합니다. -->
+    <select id="countUserByLoginIdExcept" resultType="int">
+        SELECT COUNT(*)
+        FROM users
+        WHERE login_id = #{loginId}
+          AND user_code != #{userCode}
+    </select>
+
+    <!-- 수정 시에는 현재 사용자 자신을 제외하고 이메일 중복 여부를 확인합니다. -->
+    <select id="countUserByEmailExcept" resultType="int">
+        SELECT COUNT(*)
+        FROM users
+        WHERE UPPER(email) = UPPER(#{email})
+          AND user_code != #{userCode}
     </select>
 
     <!-- 관리자가 직접 생성한 계정은 가입승인 없이 같은 회사의 활성 사용자로 등록합니다. -->
@@ -205,10 +221,34 @@
             SYSDATE,
             'a2',
             0,
-            NVL(#{adminYn}, 0),
+            CASE
+                WHEN #{adminYn} = 1 THEN 1
+                ELSE 0
+            END,
             #{webNotificationYn},
             #{emailNotificationYn},
             'ALL'
         )
     </insert>
+
+    <!-- 사용자 기본정보 수정 화면에서 허용한 항목만 변경합니다. -->
+    <update id="updateUserBasicInfo">
+        UPDATE users
+        SET login_id = #{user.loginId},
+            user_name = #{user.userName},
+            email = #{user.email},
+            phone_number = #{user.phoneNumber},
+            admin_yn = CASE
+                           WHEN #{actorOwnerYn} = 1 THEN
+                               CASE
+                                   WHEN #{user.adminYn} = 1 THEN 1
+                                   ELSE 0
+                               END
+                           ELSE admin_yn
+                       END
+        WHERE company_id = #{companyId}
+          AND user_code = #{user.userCode}
+          AND status IN ('a2', 'a3')
+          AND (#{actorOwnerYn} = 1 OR (NVL(owner_yn, 0) = 0 AND NVL(admin_yn, 0) = 0))
+    </update>
 </mapper>

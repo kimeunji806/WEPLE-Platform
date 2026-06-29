@@ -21,4 +21,7 @@ public interface UserManagementService {
 
     // 관리자가 입력한 신규 사용자 정보를 검증한 뒤 같은 회사의 활성 사용자로 등록
     void createUser(Long companyId, int actorOwnerYn, UserManagementCreateVO user);
+
+    // 사용자 기본정보 수정 화면에서 허용한 항목만 검증 후 변경
+    void updateUserBasicInfo(Long companyId, int actorOwnerYn, UserManagementUpdateVO user);
 }

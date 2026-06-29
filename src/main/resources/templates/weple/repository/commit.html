@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
+<head><title>WEPLE - 커밋 상세</title></head>
+<body>
+<section>
+    <link rel="stylesheet" th:href="@{/css/repository/repository.css}">
+    <div id="top" class="repository-page repository-commit-page">
+        <div class="repository-commit-page-heading">
+            <div>
+                <p class="repository-commit-path" th:text="${repository != null ? repository.repositoryName + ' / ' + displayBranch : '저장소 / main'}">저장소 / main</p>
+                <h1 class="repository-title">커밋 상세</h1>
+            </div>
+            <div class="repository-commit-actions">
+                <a class="repository-button repository-button-secondary"
+                   th:if="${repository != null}"
+                   th:href="@{/repository/detail(projectId=${projectId}, repositoryId=${repository.repositoryId}, branch=${branch})}">저장소로 돌아가기</a>
+                <a class="repository-button repository-button-secondary"
+                   th:unless="${repository != null}"
+                   th:href="@{/repository/list(projectId=${projectId})}">저장소 목록</a>
+                <a class="repository-button repository-button-primary"
+                   th:if="${!#strings.isEmpty(commitDetail?.commitUrl)}"
+                   th:href="${commitDetail.commitUrl}"
+                   target="_blank"
+                   rel="noopener">
+                    <i class="fa fa-github" aria-hidden="true"></i>
+                    GitHub에서 보기
+                </a>
+            </div>
+        </div>
+
+        <p class="repository-message repository-message-error" th:if="${githubError}" th:text="${githubError}">GitHub 커밋 정보를 조회할 수 없습니다.</p>
+
+        <section class="repository-commit-summary" aria-label="커밋 기본 정보">
+            <div class="repository-commit-message-block">
+                <span>커밋 메시지</span>
+                <strong th:text="${commitDetail?.message ?: '커밋 메시지가 없습니다.'}">커밋 메시지</strong>
+            </div>
+            <dl class="repository-commit-meta">
+                <div>
+                    <dt>해시코드</dt>
+                    <dd th:text="${commitDetail?.sha ?: '-'}">c7c824b8</dd>
+                </div>
+                <div>
+                    <dt>작성자</dt>
+                    <dd th:text="${commitDetail?.authorEmail ?: '-'}">team@weple.com</dd>
+                </div>
+                <div>
+                    <dt>작성일시</dt>
+                    <dd th:text="${commitDetail?.committedAt ?: '-'}">2026-06-19 15:58</dd>
+                </div>
+            </dl>
+        </section>
+
+        <div class="repository-commit-statbar">
+            <span>변경 파일 <strong th:text="${commitDetail?.files != null ? #lists.size(commitDetail.files) : 0}">0</strong></span>
+            <span>전체 변경 <strong th:text="${commitDetail?.totalChanges ?: 0}">0</strong></span>
+            <span class="is-added">추가 <strong th:text="${commitDetail?.totalAdditions ?: 0}">0</strong></span>
+            <span class="is-removed">삭제 <strong th:text="${commitDetail?.totalDeletions ?: 0}">0</strong></span>
+        </div>
+
+        <div class="repository-commit-main">
+            <section class="repository-commit-files" aria-label="변경 파일 목록">
+                <div class="repository-section-title">
+                    <h2>변경 파일</h2>
+                    <span><strong th:text="${commitDetail?.files != null ? #lists.size(commitDetail.files) : 0}">0</strong>개</span>
+                </div>
+
+                <div class="repository-commit-tools" th:if="${commitDetail?.fileTree != null and !#lists.isEmpty(commitDetail.fileTree)}">
+                    <label class="repository-commit-search">
+                        <i class="fa fa-search" aria-hidden="true"></i>
+                        <input id="commitFileSearch" type="search" placeholder="파일명 검색" autocomplete="off">
+                    </label>
+                    <div class="repository-commit-filters" aria-label="변경 유형 필터">
+                        <button type="button" class="active" data-commit-filter="all">전체</button>
+                        <button type="button" data-commit-filter="modified">수정</button>
+                        <button type="button" data-commit-filter="added">추가</button>
+                        <button type="button" data-commit-filter="removed">삭제</button>
+                    </div>
+                </div>
+
+                <div class="repository-commit-file-tree" th:if="${commitDetail?.fileTree != null and !#lists.isEmpty(commitDetail.fileTree)}">
+                    <th:block th:each="item : ${commitDetail.fileTree}">
+                        <button th:if="${item.type == 'directory'}"
+                                type="button"
+                                class="repository-commit-tree-folder"
+                                data-commit-tree-folder
+                                aria-expanded="true"
+                                th:attr="data-folder-path=${item.path}"
+                                th:style="|--tree-indent:${item.indent}px|">
+                            <i class="fa fa-caret-down repository-tree-toggle" aria-hidden="true"></i>
+                            <i class="fa fa-folder-open repository-tree-folder-icon" aria-hidden="true"></i>
+                            <span th:text="${item.name}">src</span>
+                        </button>
+
+                        <a th:if="${item.type == 'file'}"
+                           th:href="|#${item.file.anchorId}|"
+                           class="repository-commit-tree-file"
+                           data-commit-tree-file
+                           th:attr="data-file-path=${item.path},data-file-name=${item.name},data-file-status=${item.file.status},data-target-id=${item.file.anchorId}"
+                           th:style="|--tree-indent:${item.indent}px|">
+                            <i class="fa fa-file-code-o" aria-hidden="true"></i>
+                            <span class="repository-file-status"
+                                  th:classappend="| status-${item.file.status}|"
+                                  th:text="${item.file.statusLabel}">수정</span>
+                            <strong th:text="${item.name}">App.java</strong>
+                            <em>
+                                <b class="is-added" th:text="|+${item.file.additions}|">+0</b>
+                                <b class="is-removed" th:text="|-${item.file.deletions}|">-0</b>
+                            </em>
+                        </a>
+                    </th:block>
+                </div>
+                <p id="commitFileEmpty" class="repository-tree-search-empty" hidden>검색 결과가 없습니다.</p>
+
+                <div class="repository-commit-empty-state" th:if="${commitDetail?.fileTree == null or #lists.isEmpty(commitDetail.fileTree)}">
+                    <strong>변경 파일 목록이 없습니다.</strong>
+                    <p>GitHub 커밋 상세 정보를 가져오지 못했거나, 표시할 파일 변경 내역이 없습니다.</p>
+                </div>
+            </section>
+
+            <section class="repository-commit-preview" aria-label="변경 내용">
+                <div class="repository-section-title">
+                    <h2>변경 내용</h2>
+                    <span>Diff</span>
+                </div>
+                <div class="repository-commit-diff-list" th:if="${commitDetail?.files != null and !#lists.isEmpty(commitDetail.files)}">
+                    <article class="repository-commit-diff-file"
+                             th:each="file : ${commitDetail.files}"
+                             th:id="${file.anchorId}"
+                             data-commit-diff-file>
+                        <header>
+                            <div>
+                                <span class="repository-file-status"
+                                      th:classappend="| status-${file.status}|"
+                                      th:text="${file.statusLabel}">수정</span>
+                                <strong th:text="${file.filename}">src/main/App.java</strong>
+                            </div>
+                            <small>
+                                <b class="is-added" th:text="|+${file.additions}|">+0</b>
+                                <b class="is-removed" th:text="|-${file.deletions}|">-0</b>
+                            </small>
+                        </header>
+                        <pre th:if="${file.patchLines != null and !#lists.isEmpty(file.patchLines)}"><code><span th:each="line : ${file.patchLines}"
+                                  class="repository-patch-line"
+                                  th:classappend="| patch-${line.type}|"
+                                  th:text="${line.content}">+ changed line</span></code></pre>
+                        <div class="repository-commit-empty-state is-compact" th:unless="${file.patchLines != null and !#lists.isEmpty(file.patchLines)}">
+                            <strong>표시할 patch가 없습니다.</strong>
+                            <p>바이너리 파일이거나 GitHub API 응답에 라인 변경 정보가 포함되지 않은 파일입니다.</p>
+                        </div>
+                    </article>
+                </div>
+                <div class="repository-commit-empty-state" th:if="${commitDetail?.files == null or #lists.isEmpty(commitDetail.files)}">
+                    <strong>변경 내용을 표시할 수 없습니다.</strong>
+                    <p>변경 파일 목록을 조회한 뒤 파일별 diff를 이 영역에 표시합니다.</p>
+                </div>
+            </section>
+        </div>
+        <a class="repository-commit-top" href="#top" aria-label="맨 위로 이동">
+            <i class="fa fa-arrow-up" aria-hidden="true"></i>
+        </a>
+    </div>
+    <script th:src="@{/js/repository/repository-commit.js}"></script>
+</section>
+</body>
+</html>

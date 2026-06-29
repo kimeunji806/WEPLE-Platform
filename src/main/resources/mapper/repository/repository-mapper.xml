@@ -80,6 +80,18 @@
           AND repository_main_yn = 'Y'
     </select>
 
+    <!-- 커밋 메시지에서 추출한 일감 코드 중 현재 프로젝트에 실제 존재하는 일감 제목을 함께 조회합니다. -->
+    <select id="selectTaskLinkInfos" resultType="com.weple.cloud.repository.service.RepositoryTaskLinkInfo">
+        SELECT task_id AS taskId,
+               task_title AS taskTitle
+        FROM task
+        WHERE project_id = #{projectId}
+          AND task_id IN
+          <foreach collection="taskIds" item="taskId" open="(" separator="," close=")">
+              #{taskId}
+          </foreach>
+    </select>
+
     <!-- 새 주 저장소 등록 전에는 같은 프로젝트의 기존 주 저장소 표시를 해제합니다. -->
     <update id="clearMainRepository">
         UPDATE repository_setting

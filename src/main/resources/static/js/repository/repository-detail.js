@@ -6,6 +6,11 @@
     const repositoryDetail = document.getElementById('repositoryDetail');
     const commitRows = document.querySelectorAll('[data-github-commit-row]');
     const commitLinks = document.querySelectorAll('[data-github-commit-link]');
+    const commitSearchInput = document.getElementById('commitSearchInput');
+    const commitSearchEmpty = document.getElementById('commitSearchEmpty');
+    const commitStartDate = document.getElementById('commitStartDate');
+    const commitEndDate = document.getElementById('commitEndDate');
+    const commitRangeButtons = document.querySelectorAll('[data-commit-range]');
 
     // 외부 GitHub 상세를 연 커밋 SHA를 저장해 새로고침 후에도 열람 표시를 유지함.
     const viewedCommitStorageKey = repositoryDetail && repositoryDetail.dataset.repositoryId
@@ -43,6 +48,57 @@
     commitLinks.forEach((link) => {
         link.addEventListener('click', () => {
             markCommitAsViewed(link.closest('[data-github-commit-row]').dataset.commitSha);
+        });
+    });
+
+    const filterCommitRows = () => {
+        if (!commitSearchInput || !commitSearchEmpty) {
+            return;
+        }
+        const keyword = commitSearchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        commitRows.forEach((row) => {
+            const searchableText = [
+                row.dataset.commitSha,
+                row.dataset.commitMessage,
+                row.dataset.commitEmail,
+                row.dataset.commitDate,
+                row.dataset.commitTask
+            ].join(' ').toLowerCase();
+            const isMatched = !keyword || searchableText.includes(keyword);
+            row.hidden = !isMatched;
+            if (isMatched) {
+                visibleCount += 1;
+            }
+        });
+
+        commitSearchEmpty.hidden = commitRows.length === 0 || visibleCount > 0;
+    };
+
+    if (commitSearchInput) {
+        filterCommitRows();
+        commitSearchInput.addEventListener('input', filterCommitRows);
+    }
+
+    const formatLocalDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    commitRangeButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            if (!commitStartDate || !commitEndDate) {
+                return;
+            }
+            const rangeDays = Number(button.dataset.commitRange || 30);
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - rangeDays);
+            commitStartDate.value = formatLocalDate(startDate);
+            commitEndDate.value = formatLocalDate(endDate);
         });
     });
 

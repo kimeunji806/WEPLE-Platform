@@ -490,6 +490,21 @@
     cursor: pointer;
 }
 
+.user-submit-button-disabled,
+.user-submit-button:disabled {
+    border-color: #cbd5e1;
+    background: #dbe2ec;
+    color: #7b8798;
+    cursor: not-allowed;
+}
+
+.user-form-field input[readonly] {
+    border-color: #cbd5e1;
+    background: #eef2f7;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
 .user-detail-header {
     display: flex;
     align-items: center;

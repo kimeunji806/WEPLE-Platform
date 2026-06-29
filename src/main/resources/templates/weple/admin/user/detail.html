@@ -11,8 +11,13 @@
         <div class="user-detail-header">
             <h1 class="user-management-title">사용자관리</h1>
             <a class="user-edit-button"
+               th:if="${canEditUser}"
                th:href="@{/userList/{userCode}/edit(userCode=${userDetail.userCode})}">수정</a>
         </div>
+
+        <div class="user-register-message error"
+             th:if="${userError}"
+             th:text="${userError}">사용자 정보를 수정할 수 없습니다.</div>
 
         <div class="user-management-panel user-detail-panel">
             <section class="user-detail-card">
@@ -42,6 +47,10 @@
                     <div class="user-detail-info-box">
                         <span>이메일 주소</span>
                         <strong th:text="${userDetail.email}">song@weple.com</strong>
+                    </div>
+                    <div class="user-detail-info-box">
+                        <span>연락처</span>
+                        <strong th:text="${userDetail.phoneNumber != null and userDetail.phoneNumber != '' ? userDetail.phoneNumber : '-'}">010-1234-5678</strong>
                     </div>
                     <div class="user-detail-info-box">
                         <span>계정 상태</span>

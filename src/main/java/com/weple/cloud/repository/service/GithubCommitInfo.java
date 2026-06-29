@@ -14,6 +14,12 @@ public class GithubCommitInfo {
     private String commitUrl;
     // 커밋 메세지
     private String message;
+    // 커밋 메시지에서 자동 인식한 일감 코드
+    private String taskId;
+    // 자동 인식한 일감 코드와 매칭되는 일감 제목
+    private String taskTitle;
+    // 인식한 일감 코드가 현재 프로젝트의 task 테이블에 실제로 존재하는지 여부
+    private boolean taskExists;
     // 이메일
     private String authorEmail;
     // 커밋 일시

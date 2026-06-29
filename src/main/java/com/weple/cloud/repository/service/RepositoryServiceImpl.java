@@ -1,6 +1,8 @@
 package com.weple.cloud.repository.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +29,7 @@ public class RepositoryServiceImpl implements RepositoryService {
 
         confirmAndClearExistingMainRepository(repository);
 
-        // 저장소별 기본 관리 설정을 먼저 만들어 외래 키로 연결합니다.
+        // 저장소별 기본 관리 설정을 먼저 만들어 외래 키로 연결
         if (repositoryMapper.insertRepositoryManageSetting(repository) != 1) {
             throw new IllegalStateException("저장소 관리 설정 생성 중 오류가 발생했습니다.");
         }
@@ -71,7 +73,7 @@ public class RepositoryServiceImpl implements RepositoryService {
             throw new IllegalArgumentException("삭제 확인을 위해 저장소명을 정확히 입력해 주세요.");
         }
 
-        // 외래 키를 가진 저장소 행을 먼저 지운 뒤 연결된 관리 설정을 정리합니다.
+        // 외래 키를 가진 저장소 행을 먼저 지운 뒤 연결된 관리 설정을 정리
         if (repositoryMapper.deleteRepository(companyId, projectId, repositoryId) != 1) {
             throw new IllegalStateException("저장소 삭제 중 오류가 발생했습니다.");
         }
@@ -98,7 +100,19 @@ public class RepositoryServiceImpl implements RepositoryService {
         return repositoryMapper.selectMainRepository(companyId, projectId);
     }
 
-    // 다른 저장소가 이미 주 저장소라면 사용자의 명시적 확인 후에만 교체합니다.
+    @Override
+    public Map<String, String> findTaskTitles(Long projectId, List<String> taskIds) {
+        if (taskIds == null || taskIds.isEmpty()) {
+            return Map.of();
+        }
+        return repositoryMapper.selectTaskLinkInfos(projectId, taskIds).stream()
+                .collect(Collectors.toMap(
+                        RepositoryTaskLinkInfo::getTaskId,
+                        RepositoryTaskLinkInfo::getTaskTitle,
+                        (savedTitle, ignoredTitle) -> savedTitle));
+    }
+
+    // 다른 저장소가 이미 주 저장소라면 사용자의 명시적 확인 후에만 교체
     private void confirmAndClearExistingMainRepository(RepositoryVO repository) {
         if (!"Y".equals(repository.getMainYn())) {
             return;

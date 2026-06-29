@@ -97,6 +97,25 @@ public class UserManagementServiceImpl implements UserManagementService {
         }
     }
 
+    @Override
+    @Transactional
+    public void updateUserBasicInfo(Long companyId, int actorOwnerYn, UserManagementUpdateVO user) {
+        validateUpdateUser(companyId, user);
+        normalizeUpdateUser(actorOwnerYn, user);
+
+        // 수정 시에는 현재 사용자 본인의 기존 아이디와 이메일은 중복으로 보지 않습니다.
+        if (userManagementMapper.countUserByLoginIdExcept(user.getLoginId(), user.getUserCode()) > 0) {
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
+        }
+        if (userManagementMapper.countUserByEmailExcept(user.getEmail(), user.getUserCode()) > 0) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+
+        if (userManagementMapper.updateUserBasicInfo(companyId, actorOwnerYn, user) != 1) {
+            throw new IllegalStateException("사용자 정보를 수정할 수 없습니다.");
+        }
+    }
+
     private void validateCreateUser(Long companyId, int actorOwnerYn, UserManagementCreateVO user) {
         if (companyId == null) {
             throw new IllegalArgumentException("회사 정보가 없습니다.");
@@ -143,6 +162,45 @@ public class UserManagementServiceImpl implements UserManagementService {
         user.setAdminYn(actorOwnerYn == 1 && Integer.valueOf(1).equals(user.getAdminYn()) ? 1 : 0);
         user.setWebNotificationYn(toYn(user.getWebNotificationYn()));
         user.setEmailNotificationYn(toYn(user.getEmailNotificationYn()));
+    }
+
+    private void validateUpdateUser(Long companyId, UserManagementUpdateVO user) {
+        if (companyId == null) {
+            throw new IllegalArgumentException("회사 정보가 없습니다.");
+        }
+        if (user == null || user.getUserCode() == null || user.getUserCode().isBlank()) {
+            throw new IllegalArgumentException("사용자 정보가 없습니다.");
+        }
+
+        requireText(user.getLoginId(), "사용자 아이디를 입력해주세요.");
+        requireText(user.getUserName(), "이름을 입력해주세요.");
+        requireText(user.getEmail(), "이메일을 입력해주세요.");
+        requireText(user.getPhoneNumber(), "연락처를 입력해주세요.");
+
+        if (!user.getLoginId().matches("^[a-zA-Z0-9._-]{4,30}$")) {
+            throw new IllegalArgumentException("아이디는 영문, 숫자, 특수문자 ._- 조합 4~30자로 입력해주세요.");
+        }
+        if (!user.getEmail().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            throw new IllegalArgumentException("이메일 형식이 올바르지 않습니다.");
+        }
+        if (!user.getPhoneNumber().matches("^\\d{2,3}-?\\d{3,4}-?\\d{4}$")) {
+            throw new IllegalArgumentException("연락처 형식이 올바르지 않습니다.");
+        }
+    }
+
+    private void normalizeUpdateUser(int actorOwnerYn, UserManagementUpdateVO user) {
+        user.setUserCode(user.getUserCode().trim());
+        user.setLoginId(user.getLoginId().trim());
+        user.setUserName(user.getUserName().trim());
+        user.setEmail(user.getEmail().trim());
+        user.setPhoneNumber(user.getPhoneNumber().trim());
+
+        // 기업 최고관리자가 아닌 경우 요청값에 adminYn이 포함되어도 관리자 여부는 변경하지 않습니다.
+        if (actorOwnerYn != 1) {
+            user.setAdminYn(null);
+        } else {
+            user.setAdminYn(Integer.valueOf(1).equals(user.getAdminYn()) ? 1 : 0);
+        }
     }
 
     private void requireText(String value, String message) {

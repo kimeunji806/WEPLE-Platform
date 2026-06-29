@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.weple.cloud.repository.service.RepositoryVO;
+import com.weple.cloud.repository.service.RepositoryTaskLinkInfo;
 
 @Mapper
 public interface RepositoryMapper {
@@ -35,6 +36,10 @@ public interface RepositoryMapper {
 
     // 프로젝트에서 현재 주 저장소로 지정된 한 건을 조회
     RepositoryVO selectMainRepository(@Param("companyId") Long companyId, @Param("projectId") Long projectId);
+
+    // 커밋 메시지에서 인식한 일감 코드 중 현재 프로젝트에 실제 존재하는 일감의 제목을 함께 조회
+    List<RepositoryTaskLinkInfo> selectTaskLinkInfos(@Param("projectId") Long projectId,
+                                                     @Param("taskIds") List<String> taskIds);
 
     // 새 주 저장소 등록 전 기존 주 저장소 표시를 해제
     int clearMainRepository(@Param("companyId") Long companyId, @Param("projectId") Long projectId);

@@ -33,7 +33,7 @@ public interface FileMapper {
     
     // -------------------------------파일관리------------------------------
  	// 전체조회
-    public List<ProjectFileVO> projectFileAll();
+    public List<ProjectFileVO> projectFileAll(@Param("projectId") String projectId);
     
     // 상세조회
     public ProjectFileVO projectFileInfo(String fileId);
@@ -43,6 +43,9 @@ public interface FileMapper {
     
     // 삭제
     public long deleteProjectFile(String fileId);
+    
+    // 프로젝트별 구분
+    public long deleteProjectFileVersionByFileId(String fileId);
     
     // -------------------------------파일 버전------------------------------
   	// 전체조회

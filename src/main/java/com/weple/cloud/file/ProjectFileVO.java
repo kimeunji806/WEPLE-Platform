@@ -31,5 +31,6 @@ public class ProjectFileVO {
     private String uploader;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date uploadedAt;
-
+    private String userName;
+    private String typeName;
 }

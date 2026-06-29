@@ -18,8 +18,8 @@ public class ProjectFileServiceImpl implements ProjectFileService {
 	// -------------------------------파일관리------------------------------
 	// 전체조회
 	@Override
-	public List<ProjectFileVO> findProjectFileAll() {
-		return fileMapper.projectFileAll();
+	public List<ProjectFileVO> findProjectFileAll(String projectId) {
+		return fileMapper.projectFileAll(projectId);
 	}
 
 	// 상세조회
@@ -40,6 +40,12 @@ public class ProjectFileServiceImpl implements ProjectFileService {
 	public long removeProjectFile(String fileId) {
 		long result = fileMapper.deleteProjectFile(fileId);
 		return result;
+	}
+	
+	// 프로젝트별 구분
+	@Override
+	public long removeProjectFileVersionByFileId(String fileId) {
+	    return fileMapper.deleteProjectFileVersionByFileId(fileId);
 	}
 
 	// -------------------------------파일 버전------------------------------

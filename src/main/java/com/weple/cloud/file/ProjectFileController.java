@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.weple.cloud.project.service.ProjectService;
+import com.weple.cloud.project.service.ProjectVO;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -17,20 +19,19 @@ import lombok.RequiredArgsConstructor;
 public class ProjectFileController {
 	
 	private final ProjectFileService projectFileService;
+	private final ProjectService projectService;
 	
 	// -------------------------------파일관리------------------------------
 	// 전체조회
 	@GetMapping({"", "/projectFileList"})
 	public String projectFileList(@PathVariable String projectId, Model model) {
-        List<ProjectFileVO> list = projectFileService.findProjectFileAll();
-        System.out.println("조회된 파일 개수: " + (list == null ? "null" : list.size()));
-        if (!list.isEmpty()) {
-            System.out.println("첫 번째 파일명: " + list.get(0).getLogicalName());
-            System.out.println("첫 번째 파일ID: " + list.get(0).getFileId());
-        }
+        List<ProjectFileVO> list = projectFileService.findProjectFileAll(projectId);
+        ProjectVO project = projectService.findById(projectId);
         model.addAttribute("projectFileList", list);
         model.addAttribute("projectId", projectId);
+        model.addAttribute("project", project);
         model.addAttribute("currentMenu", "file");
+        model.addAttribute("sidebarMenu", "project");
         return "weple/file/list";
     }
 		
@@ -38,7 +39,14 @@ public class ProjectFileController {
 	@GetMapping("/projectFileInfo")
 	public String projectFileInfo(@PathVariable String projectId, String fileId, Model model) {
 		ProjectFileVO projectFileInfoVO = projectFileService.findProjectFileInfo(fileId);
+		List<ProjectFileVersionsVO> versionList = projectFileService.findProjectFileVersionAll(fileId);
+		ProjectVO project = projectService.findById(projectId);
 		model.addAttribute("projectFileInfo", projectFileInfoVO);
+		model.addAttribute("projectFileVersionList", versionList);
+		model.addAttribute("projectId", projectId);
+		model.addAttribute("project", project);
+		model.addAttribute("currentMenu", "file");
+		model.addAttribute("sidebarMenu", "project");
 		return "weple/file/detail";
 	}
 		
@@ -57,12 +65,24 @@ public class ProjectFileController {
 	// 삭제
 	@GetMapping("/deleteProjectFile")
 	public String deleteProjectFile(@PathVariable String projectId, String fileId) {
-		long result = projectFileService.removeProjectFile(fileId);
+		projectFileService.removeProjectFileVersionByFileId(fileId);
+		projectFileService.removeProjectFile(fileId);
 		return "redirect:/project/" + projectId + "/file";
 	}
 	
 	// -------------------------------파일 버전------------------------------
   	// 전체조회
+    @GetMapping("/downloader")
+    public String downloader(@PathVariable String projectId, Model model) {
+        ProjectVO project = projectService.findById(projectId);
+        model.addAttribute("projectId", projectId);
+        model.addAttribute("project", project);
+        model.addAttribute("currentMenu", "file");
+        model.addAttribute("sidebarMenu", "project");
+        model.addAttribute("downloadHistoryList", projectFileService.findProjectFileAll(projectId));
+        return "weple/file/downloader";
+    }
+
     @GetMapping("/projectFileVersionList")
     public String projectFileVersionList(String fileId, Model model) {
     	List<ProjectFileVersionsVO> list = projectFileService.findProjectFileVersionAll(fileId);

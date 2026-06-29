@@ -92,10 +92,10 @@
 								th:text="${file.taskTitle != null} ? ${file.taskTitle} : ${file.taskId}"></span>
 								<span th:if="${file.taskId == null}" class="task-badge-none">-</span>
 							</td>
-							<td>-</td>
+							<td th:text="${file.typeName != null} ? ${file.typeName} : '-'">-</td>
 							<td
 								th:text="${file.fileSize != null and file.fileSize != 0} ? ${file.fileSize} + ' B' : '-'">-</td>
-							<td th:text="${file.uploader != null} ? ${file.uploader} : '-'">-</td>
+							<td th:text="${file.uploader != null} ? ${file.userName} : '-'">-</td>
 							<td
 								th:text="${file.uploadedAt != null} ? ${#dates.format(file.uploadedAt, 'yyyy-MM-dd')} : (${file.createdAt != null} ? ${#dates.format(file.createdAt, 'yyyy-MM-dd')} : '-')">-</td>
 							<td><span class="version-badge"
@@ -406,9 +406,9 @@ dropZone.addEventListener('drop', e => {
 }
 
 .file-wrap {
-	max-width: 1200px;
-	margin: 24px auto;
-	padding: 0 20px;
+	width: 95%;
+    margin: 24px auto;
+    padding: 0;
 }
 
 /* 툴바 */

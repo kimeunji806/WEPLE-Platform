@@ -63,23 +63,21 @@
 				<div class="detail-preview-label">파일 미리보기</div>
 				<div class="preview-box" id="previewBox">
 					<!-- 이미지 미리보기 -->
-					<div
-						th:if="${projectFileInfo.logicalName != null and
-                   (#strings.endsWith(projectFileInfo.logicalName, '.png') or
-                    #strings.endsWith(projectFileInfo.logicalName, '.jpg') or
-                    #strings.endsWith(projectFileInfo.logicalName, '.jpeg') or
-                    #strings.endsWith(projectFileInfo.logicalName, '.gif') or
-                    #strings.endsWith(projectFileInfo.logicalName, '.webp'))}">
-						<img th:src="@{/files/{path}(path=${projectFileInfo.savedName})}"
-							th:alt="${projectFileInfo.logicalName}" class="preview-img"
-							onerror="this.parentElement.innerHTML='<p class=\'preview-unavail\'>이미지를 불러올 수 없습니다.</p>'">
+					<div th:if="${projectFileInfo.logicalName != null and
+					             (#strings.endsWith(projectFileInfo.logicalName, '.png') or
+					              #strings.endsWith(projectFileInfo.logicalName, '.jpg') or
+					              #strings.endsWith(projectFileInfo.logicalName, '.jpeg') or
+					              #strings.endsWith(projectFileInfo.logicalName, '.gif') or
+					              #strings.endsWith(projectFileInfo.logicalName, '.webp'))}">
+					    <img th:src="@{/files/{path}(path=${projectFileVersionList[0].savedName})}"
+					         th:alt="${projectFileInfo.logicalName}" class="preview-img"
+					         onerror="this.parentElement.innerHTML='<p class=\'preview-unavail\'>이미지를 불러올 수 없습니다.</p>'">
 					</div>
+					
 					<!-- PDF 미리보기 -->
-					<div
-						th:if="${projectFileInfo.logicalName != null and #strings.endsWith(projectFileInfo.logicalName, '.pdf')}">
-						<iframe
-							th:src="@{/files/{path}(path=${projectFileInfo.savedName})}"
-							class="preview-pdf" title="PDF 미리보기"></iframe>
+					<div th:if="${projectFileInfo.logicalName != null and #strings.endsWith(projectFileInfo.logicalName, '.pdf')}">
+					    <iframe th:src="@{/files/{path}(path=${projectFileVersionList[0].savedName})}"
+					            class="preview-pdf" title="PDF 미리보기"></iframe>
 					</div>
 					<!-- 텍스트 미리보기 -->
 					<div
@@ -199,9 +197,9 @@ function showToast(msg, type) {
 }
 
 .file-wrap {
-	max-width: 1000px;
-	margin: 24px auto;
-	padding: 0 20px;
+	width: 95%;
+    margin: 24px auto;
+    padding: 0;
 }
 
 .file-toolbar {

@@ -3,7 +3,7 @@
 <mapper namespace="com.weple.cloud.file.mapper.FileMapper">
 	<!-- 프로젝트 내 파일관리 -->
 	<!-- 전체조회 -->
-	<select id="projectFileAll" resultType="ProjectFileVO">
+	<select id="projectFileAll" parameterType="String" resultType="ProjectFileVO">
 		SELECT f.file_id
 	           , f.logical_name
 	           , f.is_deleted
@@ -16,6 +16,8 @@
 	           , fv.file_size
 	           , fv.uploader
 	           , fv.uploaded_at
+	           , u.user_name
+	           , tk.type_name
 	    FROM files f
 	    LEFT JOIN task t ON f.task_id = t.task_id
 	    LEFT JOIN project p ON t.project_id = p.project_id
@@ -32,21 +34,48 @@
 	            GROUP BY file_id
 	        )
 	    ) fv ON f.file_id = fv.file_id
+	    LEFT JOIN users u ON fv.uploader = u.user_code
+	    LEFT JOIN task_types tk ON tk.type_id = t.type_id
 	    WHERE f.is_deleted = 'N'
+	      AND p.project_id = #{projectId}
 	    ORDER BY f.created_at DESC
 	</select>
 	
 	<!-- 상세조회 -->
 	<select id="projectFileInfo" parameterType="String" resultType="ProjectFileVO">
-		SELECT f.file_id
-       		   , f.task_id
-       		   , f.post_id
-       		   , f.logical_name
-       		   , f.is_deleted
-       		   , f.created_at
-		FROM files f
-		JOIN file_versions fs ON f.file_id = fs.file_id
-		WHERE f.file_id = #{fileId}
+	    SELECT f.file_id
+	           , f.task_id
+	           , f.post_id
+	           , f.logical_name
+	           , f.is_deleted
+	           , f.created_at
+	           , t.task_title
+	           , p.project_title
+	           , fv.version_number
+	           , fv.file_size
+	           , fv.uploader
+	           , fv.uploaded_at
+	           , u.user_name
+	           , tk.type_name
+	    FROM files f
+	    LEFT JOIN task t ON f.task_id = t.task_id
+	    LEFT JOIN project p ON t.project_id = p.project_id
+	    LEFT JOIN (
+	        SELECT file_id
+	             , version_number
+	             , file_size
+	             , uploader
+	             , uploaded_at
+	        FROM file_versions
+	        WHERE (file_id, version_number) IN (
+	            SELECT file_id, MAX(version_number)
+	            FROM file_versions
+	            GROUP BY file_id
+	        )
+	    ) fv ON f.file_id = fv.file_id
+	    LEFT JOIN users u ON fv.uploader = u.user_code
+	    LEFT JOIN task_types tk ON tk.type_id = t.type_id
+	    WHERE f.file_id = #{fileId}
 	</select>
 	
 	<!-- 등록 -->

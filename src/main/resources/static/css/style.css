@@ -101,7 +101,7 @@ body.nav-md .container.body .left_col,
     width: 20px !important;
     margin-right: 10px !important;
     display: inline-block !important;
-    color: #111827 !important;
+    color: #6366A3 !important;
     text-align: left !important;
 }
 
@@ -113,8 +113,8 @@ body.nav-md .container.body .left_col,
 }
 
 .nav.side-menu > li > a:hover {
-    background: #EFEAFF !important;
-    color: #5B4FEA !important;
+    background: #EFEAFF !important; 
+    color: #6F5EF5 !important;    
     border-radius: 8px !important;
 }
 
@@ -172,7 +172,7 @@ body.nav-sm .container.body .right_col {
 .header-title-left {
     font-size: 20px !important;
     font-weight: bold !important;
-    color: #111827 !important;
+    color: #433D74 !important;
     margin: 0 !important;
     line-height: 60px !important;
 }
@@ -187,7 +187,7 @@ body.nav-sm .container.body .right_col {
 .header-profile-right .user-name {
     font-size: 14px !important;
     font-weight: 600 !important;
-    color: #374151 !important;
+    color: #4B5563 !important;
 }
 
 .header-profile-right img {
@@ -195,7 +195,7 @@ body.nav-sm .container.body .right_col {
     height: 34px !important;
     border-radius: 50% !important;
     object-fit: cover;
-    border: 2px solid #6D5EF7 !important;
+    border: 2px solid #5B4FEA !important;
 }
 
 /* 5. [중단 서브 메뉴바] - 창 축소 시 글자 찌그러짐 및 강제 줄바꿈 방지 수정 */
@@ -239,8 +239,8 @@ body.nav-sm .container.body .right_col {
 .sub_menu_nav ul li.active a,
 .sub_menu_nav ul li a.active,
 .sub_menu_nav ul li a:hover {
-    color: #6D5EF7 !important;
-    border-bottom: 2px solid #6D5EF7 !important;
+    color: #5B4FEA !important;
+    border-bottom: 2px solid #5B4FEA !important;
 }
 
 /* 6. [메인 캔버스 영역] */
@@ -264,14 +264,14 @@ body.nav-sm .container.body .right_col {
 .table td span[class*="label-"] {
     background-color: #F1EDFF !important;
     color: #6D5EF7 !important;
-    border-radius: 6px !important;
+    border-radius: 6px !important; 
     padding: 4px 10px !important;
     font-weight: 600 !important;
     border: none !important;
 }
 
 .pagination li a {
-    color: #111827 !important;
+    color: #6366A3 !important;
     border-radius: 6px !important;
     padding: 4px 10px !important;
     border: 1px solid #DDD6FE !important;
@@ -301,14 +301,14 @@ body.nav-sm .container.body .right_col {
    ========================================================================== */
 
 #nprogress .bar {
-    background: #6D5EF7 !important;
+    background: #5B4FEA !important;
 }
 #nprogress .peg {
-    box-shadow: 0 0 10px #6D5EF7, 0 0 5px #6D5EF7 !important;
+    box-shadow: 0 0 10px #5B4FEA, 0 0 5px #5B4FEA !important;
 }
 #nprogress .spinner-icon {
-    border-top-color: #6D5EF7 !important;
-    border-left-color: #6D5EF7 !important;
+    border-top-color: #5B4FEA !important;
+    border-left-color: #5B4FEA !important;
 }
 
 .top_nav .dropdown-menu,

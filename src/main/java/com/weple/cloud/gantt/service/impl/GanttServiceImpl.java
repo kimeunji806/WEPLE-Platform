@@ -48,25 +48,78 @@ public class GanttServiceImpl implements GanttService {
     public GanttResponseDTO getGanttChartData(Long projectId) {
         List<GanttTaskElementVO> ganttDataList = new ArrayList<>();
 
-        // 1. 기존에 만드신 쿼리로 계층형 마일스톤 데이터 가져오기 (부모-자식 트리구조)
-        List<MilestoneInfoVO> parentMilestones = milestoneMapper.selectMilestoneAll(projectId);
+        // 1. [수정] 새로 만든 간트차트 전용 경량 쿼리 호출 (속도 극대화)
+        List<MilestoneInfoVO> parentMilestones = ganttMapper.selectMilestoneForGantt(projectId);
         
         // 2. 해당 프로젝트의 전체 일감(Task) 가져오기
         List<TaskVO> allTasks = ganttMapper.selectTaskAll(projectId);
         
-        // ★ [추가] 각 하위 마일스톤별 일감의 "가장 빠른 시작일" 추출하기
+        // ==========================================================
+        // 💡 [TaskProgress Long 타입 반영] 마일스톤 진척도 계산
+        // ==========================================================
+        // 마일스톤 ID별 일감들의 진척도(Long) 리스트를 수집하는 맵
+        Map<Long, List<Long>> milestoneTaskProgressMap = new HashMap<>();
+        for (TaskVO task : allTasks) {
+            if (task.getMilestoneId() != null) {
+                milestoneTaskProgressMap.computeIfAbsent(task.getMilestoneId(), k -> new ArrayList<>())
+                                        .add(task.getTaskProgress() != null ? task.getTaskProgress() : 0L);
+            }
+        }
+
+        for (MilestoneInfoVO parent : parentMilestones) {
+            int totalChildProgress = 0;
+            int childCount = 0;
+
+            // A. 하위 마일스톤(자식)들의 진척도 계산
+            if (parent.getChildMilestones() != null) {
+                for (MilestoneInfoVO child : parent.getChildMilestones()) {
+                    if (child.getMilestoneId() == null) continue;
+                    
+                    List<Long> childTasks = milestoneTaskProgressMap.get(child.getMilestoneId());
+                    double childAvg = 0;
+                    
+                    if (childTasks != null && !childTasks.isEmpty()) {
+                        // mapToLong()과 average()를 사용하여 Long 리스트의 평균(double) 계산
+                        childAvg = childTasks.stream().mapToLong(Long::longValue).average().orElse(0.0);
+                    }
+                    
+                    // MilestoneInfoVO의 progressPercentage(int)에 맞게 반올림 후 주입
+                    child.setProgressPercentage((int) Math.round(childAvg));
+                    
+                    totalChildProgress += child.getProgressPercentage();
+                    childCount++;
+                }
+            }
+
+            // B. 상위 마일스톤(부모)의 진척도 계산 (자식 마일스톤들의 평균)
+            if (childCount > 0) {
+                parent.setProgressPercentage((int) Math.round((double) totalChildProgress / childCount));
+            } else {
+                // [방어 코드] 상위 마일스톤에 직속 일감이 있을 경우 처리
+                List<Long> parentTasks = milestoneTaskProgressMap.get(parent.getMilestoneId());
+                if (parentTasks != null && !parentTasks.isEmpty()) {
+                    double parentAvg = parentTasks.stream().mapToLong(Long::longValue).average().orElse(0.0);
+                    parent.setProgressPercentage((int) Math.round(parentAvg));
+                } else {
+                    parent.setProgressPercentage(0);
+                }
+            }
+        }
+        // ==========================================================
+
+        // 3. ★ 각 하위 마일스톤별 일감의 "가장 빠른 시작일" 추출하기 (이하 기존 코드 동일)
         Map<Long, LocalDateTime> childMilestoneStartMap = new HashMap<>();
         for (TaskVO task : allTasks) {
             if (task.getMilestoneId() != null && task.getStartDate() != null) {
                 childMilestoneStartMap.merge(
                     task.getMilestoneId(), 
                     task.getStartDate().atStartOfDay(), 
-                    (oldDate, newDate) -> newDate.isBefore(oldDate) ? newDate : oldDate // 더 빠른 날짜 선택
+                    (oldDate, newDate) -> newDate.isBefore(oldDate) ? newDate : oldDate
                 );
             }
         }
 
-        // ★ [추가] 하위 마일스톤 시작일을 기반으로 "상위 마일스톤의 가장 빠른 시작일" 추적
+        // 4. ★ 하위 마일스톤 시작일을 기반으로 "상위 마일스톤의 가장 빠른 시작일" 추적
         Map<Long, LocalDateTime> parentMilestoneStartMap = new HashMap<>();
         for (MilestoneInfoVO parent : parentMilestones) {
             if (parent.getChildMilestones() != null) {
@@ -83,31 +136,23 @@ public class GanttServiceImpl implements GanttService {
             }
         }
         
-	     // ==========================================================
-	     // 💡 [추가] 하위 일감의 마일스톤 역추적을 위한 사전 맵(Map) 생성
-	     // ==========================================================
-	     Map<String, Long> taskMilestoneMap = new HashMap<>();
-	     for (TaskVO task : allTasks) {
-	         if (task.getMilestoneId() != null) {
-	             // 일감 ID를 키로, 마일스톤 ID를 밸류로 저장
-	             taskMilestoneMap.put(task.getTaskId(), task.getMilestoneId()); 
-	         }
-	     }
+        // 5. 하위 일감의 마일스톤 역추적을 위한 사전 맵(Map) 생성
+        Map<String, Long> taskMilestoneMap = new HashMap<>();
+        for (TaskVO task : allTasks) {
+            if (task.getMilestoneId() != null) {
+                taskMilestoneMap.put(task.getTaskId(), task.getMilestoneId()); 
+            }
+        }
 
-     // ==========================================================
-        // 💡 [핵심 수정 1] 시작일 기준 정렬 (계단식 배열의 기초)
-        // ==========================================================
-        
-        // A. 상위 마일스톤(버전) 정렬
+        // 6. 시작일 기준 정렬
         parentMilestones.sort((p1, p2) -> {
             LocalDateTime t1 = parentMilestoneStartMap.get(p1.getMilestoneId());
             LocalDateTime t2 = parentMilestoneStartMap.get(p2.getMilestoneId());
             if (t1 == null) t1 = (p1.getFinishDate() != null) ? p1.getFinishDate().atStartOfDay() : LocalDateTime.now();
             if (t2 == null) t2 = (p2.getFinishDate() != null) ? p2.getFinishDate().atStartOfDay() : LocalDateTime.now();
-            return t1.compareTo(t2); // 오름차순 (빠른 날짜가 위로)
+            return t1.compareTo(t2);
         });
 
-        // B. 하위 마일스톤 정렬
         for (MilestoneInfoVO parent : parentMilestones) {
             if (parent.getChildMilestones() != null) {
                 parent.getChildMilestones().sort((c1, c2) -> {
@@ -120,18 +165,15 @@ public class GanttServiceImpl implements GanttService {
             }
         }
 
-        // C. 전체 일감(Task)을 시작일 순으로 먼저 정렬
         allTasks.sort((t1, t2) -> {
             LocalDateTime d1 = t1.getStartDate() != null ? t1.getStartDate().atStartOfDay() : LocalDateTime.MAX;
             LocalDateTime d2 = t2.getStartDate() != null ? t2.getStartDate().atStartOfDay() : LocalDateTime.MAX;
             return d1.compareTo(d2);
         });
 
-        // ==========================================================
-        // 💡 [핵심 수정 2] 일감 구조화 및 부모별 그룹핑
-        // ==========================================================
+        // 7. 일감 구조화 및 부모별 그룹핑
         Map<String, List<GanttTaskElementVO>> childrenTasksMap = new HashMap<>();
-        List<GanttTaskElementVO> rootTasks = new ArrayList<>(); // 마일스톤도, 상위일감도 없는 독립 일감용
+        List<GanttTaskElementVO> rootTasks = new ArrayList<>();
 
         for (TaskVO task : allTasks) {
             GanttTaskElementVO taskElement = new GanttTaskElementVO();
@@ -152,22 +194,17 @@ public class GanttServiceImpl implements GanttService {
             taskElement.setProgress((task.getTaskProgress() != null ? task.getTaskProgress() : 0) / 100.0);
             taskElement.setType("task");
 
-            // 💡 [핵심 수정] 일감의 계층을 무시하고 무조건 마일스톤 직속으로 부모를 설정합니다.
             Long targetMilestoneId = task.getMilestoneId();
-            
-            // 만약 하위 일감이라 본인 로우에 milestoneId가 없다면, 상위 일감의 milestoneId를 상단 맵에서 찾아옵니다.
             if (targetMilestoneId == null && task.getParentTaskId() != null && !task.getParentTaskId().isEmpty()) {
                 targetMilestoneId = taskMilestoneMap.get(task.getParentTaskId());
             }
 
-            // 최종 부모 ID 결정 (무조건 M_ 접두어를 붙여 마일스톤 밑으로 강제 배정)
             String parentId = null;
             if (targetMilestoneId != null) {
                 parentId = "M_" + targetMilestoneId;
             }
             taskElement.setParent(parentId);
 
-            // 그룹 맵에 바인딩 (이제 T_ 밑이 아니라 M_ 밑으로 쌓이게 됩니다)
             if (parentId == null) {
                 rootTasks.add(taskElement);
             } else {
@@ -175,9 +212,7 @@ public class GanttServiceImpl implements GanttService {
             }
         }
 
-        // ==========================================================
-        // 💡 [핵심 수정 3] 계층 역순 추적 트리 조립 (Pre-order 순서 배치)
-        // ==========================================================
+        // 8. 계층 역순 추적 트리 조립 (Pre-order 순서 배치)
         for (MilestoneInfoVO parent : parentMilestones) {
             GanttTaskElementVO parentElement = new GanttTaskElementVO();
             parentElement.setId("M_" + parent.getMilestoneId());
@@ -185,16 +220,10 @@ public class GanttServiceImpl implements GanttService {
             String parentStatusName = getMilestoneStatusText(parent.getMilestoneStatus());
             parentElement.setText("[" + parentStatusName + "] " + parent.getMilestoneTitle());
             
-            // 1) 기준 종료일 설정
-            LocalDateTime actualParentEnd = (parent.getFinishDate() != null) 
-                                            ? parent.getFinishDate().atStartOfDay() 
-                                            : LocalDateTime.now();
-            
-            // 2) 자식들로부터 계산된 시작일 가져오기
+            LocalDateTime actualParentEnd = (parent.getFinishDate() != null) ? parent.getFinishDate().atStartOfDay() : LocalDateTime.now();
             LocalDateTime parentStart = parentMilestoneStartMap.get(parent.getMilestoneId());
             LocalDateTime actualParentStart = (parentStart != null) ? parentStart : actualParentEnd;
             
-            // 💡 [핵심 변경] 자식 시작일이 본인 종료일을 넘어섰다면, 시작일을 종료일과 같게 제한
             if (actualParentStart.isAfter(actualParentEnd)) {
                 actualParentStart = actualParentEnd; 
             }
@@ -208,30 +237,22 @@ public class GanttServiceImpl implements GanttService {
             parentElement.setType("task"); 
             ganttDataList.add(parentElement);
             
-            // 버전에 직속된 일감 처리
             appendTasksRecursively("M_" + parent.getMilestoneId(), childrenTasksMap, ganttDataList);
 
-            // ==========================================================
-            // 💡 [수정] 3-B. 자식 마일스톤 가공
-            // ==========================================================
             if (parent.getChildMilestones() != null) {
                 for (MilestoneInfoVO child : parent.getChildMilestones()) {
+                    if (child.getMilestoneId() == null) continue;
+                    
                     GanttTaskElementVO childElement = new GanttTaskElementVO();
                     childElement.setId("M_" + child.getMilestoneId());
                     
                     String childStatusName = getMilestoneStatusText(child.getMilestoneStatus());
                     childElement.setText("[" + childStatusName + "] " + child.getMilestoneTitle());
                     
-                    // 1) 기준 종료일 설정
-                    LocalDateTime actualChildEnd = (child.getFinishDate() != null) 
-                                                   ? child.getFinishDate().atStartOfDay() 
-                                                   : LocalDateTime.now();
-                    
-                    // 2) 소속 일감들로부터 계산된 가장 빠른 시작일 가져오기
+                    LocalDateTime actualChildEnd = (child.getFinishDate() != null) ? child.getFinishDate().atStartOfDay() : LocalDateTime.now();
                     LocalDateTime childStart = childMilestoneStartMap.get(child.getMilestoneId());
                     LocalDateTime actualChildStart = (childStart != null) ? childStart : actualChildEnd;
                     
-                    // 💡 [핵심 변경] 자식 일감들의 시작일이 마일스톤 종료일을 넘어섰다면, 시작일을 종료일과 같게 제한
                     if (actualChildStart.isAfter(actualChildEnd)) {
                         actualChildStart = actualChildEnd;
                     }
@@ -245,13 +266,11 @@ public class GanttServiceImpl implements GanttService {
                     childElement.setType("task"); 
                     ganttDataList.add(childElement);
                     
-                    // 마일스톤에 속한 일감들 연동
                     appendTasksRecursively("M_" + child.getMilestoneId(), childrenTasksMap, ganttDataList);
                 }
             }
         }
 
-        // 완전히 독립된 루트 일감 처리
         for (GanttTaskElementVO rootTask : rootTasks) {
             ganttDataList.add(rootTask);
             appendTasksRecursively(rootTask.getId(), childrenTasksMap, ganttDataList);

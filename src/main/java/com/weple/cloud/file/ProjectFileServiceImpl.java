@@ -48,6 +48,18 @@ public class ProjectFileServiceImpl implements ProjectFileService {
 	    return fileMapper.deleteProjectFileVersionByFileId(fileId);
 	}
 	
+	// 파일 삭제 전 다운로드 이력 선삭제
+	@Override
+	public long removeDownloadHistoryByFileId(String fileId) {
+	    return fileMapper.deleteDownloadHistoryByFileId(fileId);
+	}
+	
+	// 같은 프로젝트 + 같은 일감(둘 다 미연결 포함) 내 동일 파일명 존재 여부 조회
+	@Override
+	public String findProjectFileIdByName(Long projectId, String taskId, String logicalName) {
+	    return fileMapper.findProjectFileIdByName(projectId, taskId, logicalName);
+	}
+	
 	// 다운로드
 	@Override
 	public ProjectFileVersionsVO findVersionForDownload(String versionId) {
@@ -72,6 +84,12 @@ public class ProjectFileServiceImpl implements ProjectFileService {
 	public String addProjectFileVersion(ProjectFileVersionsVO projectFileVersionsVO) {
 	    long result = fileMapper.insertProjectFileVersion(projectFileVersionsVO);
 	    return result == 1 ? projectFileVersionsVO.getVersionId() : "-1";
+	}
+
+	// 현재 파일의 최신(최대) 버전 번호 조회
+	@Override
+	public Long findMaxVersionNumber(String fileId) {
+	    return fileMapper.findMaxVersionNumber(fileId);
 	}
 
 	// 삭제

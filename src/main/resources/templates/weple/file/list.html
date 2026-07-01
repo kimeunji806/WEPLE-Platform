@@ -29,8 +29,7 @@
 					<div id="search-container">
 						<div class="search-item" id="fileName-filter">
 							<label>파일명</label> <input type="text" name="fileName"
-								placeholder="파일명을 입력하세요."
-								onkeydown="if(event.key==='Enter') applySearch()">
+								placeholder="파일명을 입력하세요.">
 						</div>
 					</div>
 					<div class="search-right-area">
@@ -48,8 +47,6 @@
 					            onchange="toggleFilter(this, 6)"> 업로드일</label><br>
 					        <label><input type="checkbox" value="7"
 					            onchange="toggleFilter(this, 7)"> 파일 버전</label>
-					        <label><input type="checkbox" value="2-hashtag"
-        						onchange="toggleFilter(this, '2-hashtag')"> 해시태그</label>
 					    </div>
 					</div>
 				</div>
@@ -95,7 +92,7 @@
 								th:text="${file.projectTitle != null} ? ${file.projectTitle} : '-'">-</td>
 							<td><span th:if="${file.taskId != null}"
 									    class="task-badge-linked"
-									    th:text="${(file.hashtag != null and !#strings.isEmpty(file.hashtag)) ? '[' + file.hashtag + '] ' + (file.taskTitle != null ? file.taskTitle : file.taskId) : (file.taskTitle != null ? file.taskTitle : file.taskId)}"></span>
+									    th:text="${file.taskTitle != null ? file.taskTitle : file.taskId}"></span>
 									    <span th:if="${file.taskId == null}" class="task-badge-none">-</span>
 									</td>
 							<td th:text="${file.typeName != null} ? ${file.typeName} : '-'">-</td>
@@ -105,7 +102,7 @@
 							<td
     th:text="${file.uploadedAt != null} ? ${#dates.format(file.uploadedAt, 'yyyy-MM-dd HH:mm')} : (${file.createdAt != null} ? ${#dates.format(file.createdAt, 'yyyy-MM-dd HH:mm')} : '-')">-</td>
 							<td><span class="version-badge"
-								th:text="${file.versionNumber != null and file.versionNumber != 0} ? 'v' + ${file.versionNumber} + '.0' : 'v1.0'">v1.0</span>
+								th:text="${file.versionNumber != null and file.versionNumber != 0} ? 'v' + ${file.versionNumber} : 'v1'">v1</span>
 							</td>
 							<td class="td-center">
     <button class="icon-btn" title="다운로드"
@@ -157,11 +154,6 @@
 		            <input type="hidden" id="taskIdHidden">
 		            <div id="taskAutocompleteList"
 		                style="display:none; position:absolute; left:24px; right:24px; top:68px; background:#fff; border:1px solid var(--weple-purple-border); border-radius:8px; max-height:180px; overflow-y:auto; z-index:10000; box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
-		        </div>
-		        <div class="modal-form-group">
-		            <label class="modal-label">태그 입력 <span class="req">*</span></label>
-		            <input type="text" id="fileTagInput" class="form-input-text"
-		                placeholder="#디자인 #피그마">
 		        </div>
 		        <div class="modal-footer">
 		            <button type="button" class="page-btn btn-cancel"
@@ -223,6 +215,21 @@ document.addEventListener('DOMContentLoaded', () => {
   allRows = Array.from(document.querySelectorAll('#fileTableBody tr[data-file-name]'));
   filteredRows = allRows.slice();
   showPage(1);
+
+  // 삭제/업로드 결과 안내
+  const params = new URLSearchParams(location.search);
+  if (params.get('deleted') === '1') {
+    showToast('파일이 삭제되었습니다.', 'success');
+  } else if (params.get('error') === 'delete_failed') {
+    showToast('파일 삭제 중 오류가 발생했습니다.', 'error');
+  } else if (params.get('error') === 'upload_failed') {
+    showToast('파일 업로드 중 오류가 발생했습니다.', 'error');
+  } else if (params.get('error') === 'insert_failed') {
+    showToast('파일 등록 중 오류가 발생했습니다.', 'error');
+  }
+  if (params.has('deleted') || params.has('error')) {
+    history.replaceState(null, '', location.pathname);
+  }
 });
 
 function showPage(page) {
@@ -279,7 +286,7 @@ function toggleFilter(checkbox, colIndex) {
 	    div.id = 'filter-col-' + colIndex;
 	    const label = checkbox.nextSibling.textContent.trim();
 	    const inputType = (colIndex === 6) ? 'date' : 'text';
-	    div.innerHTML = `<label>${label}</label><input type="${inputType}" data-col="${colIndex}" placeholder="검색어 입력" onkeydown="if(event.key==='Enter') applySearch()">`;
+	    div.innerHTML = `<label>${label}</label><input type="${inputType}" data-col="${colIndex}" placeholder="검색어 입력">`;
 	    container.appendChild(div);
 	  } else {
 	    const el = document.getElementById('filter-col-' + colIndex);
@@ -365,7 +372,6 @@ function getProjectId() {
 // 업로드 모달
 function openUploadModal() {
   document.getElementById('selectedFileName').textContent = '';
-  document.getElementById('fileTagInput').value = '';
   document.getElementById('fileInput').value = '';
   document.getElementById('taskSearchInput').value = '';
   document.getElementById('taskIdHidden').value = '';
@@ -390,16 +396,13 @@ function onFileSelected(input) {
 // 실제 업로드 처리
 function submitUpload() {
   const fileInput = document.getElementById('fileInput');
-  const tagInput = document.getElementById('fileTagInput');
   const taskIdHidden = document.getElementById('taskIdHidden');
 
   if (!fileInput.files[0]) { showToast('업로드할 파일을 선택해 주세요.', 'error'); return; }
-  if (!tagInput.value.trim()) { showToast('태그를 입력해 주세요.', 'error'); return; }
 
   const projectId = getProjectId();
   const formData = new FormData();
   formData.append('file', fileInput.files[0]);
-  formData.append('tag', tagInput.value.trim());
   if (taskIdHidden && taskIdHidden.value) {
     formData.append('taskId', taskIdHidden.value);
   }

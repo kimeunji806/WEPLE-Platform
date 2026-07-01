@@ -119,20 +119,12 @@
 						</div>
 					</div>
 
-					<!-- 사용자 -->
+					<!-- 사용자 (로그인한 계정으로 고정) -->
 					<div class="modal-field modal-field-user">
 						<label>사용자 <span class="req">*</span></label>
-						<div class="user-search-wrap">
-							<input type="text" id="userSearchInput" placeholder="이름으로 검색"
-								autocomplete="off"> <input type="hidden"
-								id="selectedUserCode" name="userCode" required>
-							<ul id="userDropdown" class="user-dropdown"></ul>
-						</div>
+						<span class="modal-static-user" th:text="${loginUserName}">-</span>
+						<input type="hidden" name="userCode" th:value="${loginUserCode}">
 					</div>
-					<!-- Thymeleaf로 userList JS 배열 생성 -->
-					<script th:inline="javascript">
-        const userList = /*[[${userList}]]*/ [];
-      </script>
 
 					<!-- 작업일자 -->
 					<div class="modal-field">
@@ -355,6 +347,7 @@ function clearSearch() {
 
 // ── 모달 ──
 let selectedRow = null;
+let progressLocked = false;
 
 function openModal() {
   const checked = document.querySelector('input[name="taskRadio"]:checked');
@@ -375,77 +368,30 @@ function openModal() {
   document.getElementById('progressRange').value = initProgress;
   document.getElementById('progressText').textContent = initProgress + '%';
   document.getElementById('spentHourInput').value = '';
-  resetUserSearch();
+
+  // 하위 일감 존재 여부 확인 - 있으면 진척도는 하위일감 기준으로 자동 계산되므로 수정 불가
+  lockProgressIfHasChild(selectedRow.id, initProgress);
 
   document.getElementById('timeModal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
 
-// ── 사용자 검색 자동완성 ──
-const userSearchInput = document.getElementById('userSearchInput');
-const userDropdown    = document.getElementById('userDropdown');
-const selectedUserCode = document.getElementById('selectedUserCode');
-
-// 초성 추출 함수
-function getChosung(str) {
-  const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-  return (str || '').split('').map(ch => {
-    const code = ch.charCodeAt(0) - 0xAC00;
-    return code >= 0 && code <= 11171 ? CHO[Math.floor(code / 588)] : ch;
-  }).join('');
+function lockProgressIfHasChild(taskId, currentProgress) {
+  const rangeEl = document.getElementById('progressRange');
+  progressLocked = false;
+  rangeEl.classList.remove('progress-locked');
+  fetch('/hasChildTask?taskId=' + encodeURIComponent(taskId))
+    .then(res => res.json())
+    .then(hasChild => {
+      progressLocked = !!hasChild;
+      rangeEl.classList.toggle('progress-locked', progressLocked);
+      if (progressLocked) {
+        rangeEl.value = currentProgress;
+        document.getElementById('progressText').textContent = currentProgress + '%';
+      }
+    })
+    .catch(() => { progressLocked = false; });
 }
-
-function matchUser(userName, kw) {
-  if (!kw) return true;
-  const name = (userName || '').toLowerCase();
-  // 일반 포함 검색
-  if (name.includes(kw)) return true;
-  // 초성 검색
-  const chosung = getChosung(userName);
-  return chosung.includes(kw);
-}
-
-userSearchInput.addEventListener('input', function() {
-  const kw = this.value.trim().toLowerCase();
-  userDropdown.innerHTML = '';
-  selectedUserCode.value = ''; // 직접 입력 시 선택 초기화
-
-  if (!kw) { userDropdown.style.display = 'none'; return; }
-
-  const matched = (typeof userList !== 'undefined' ? userList : [])
-    .filter(u => matchUser(u.userName, kw));
-
-  if (matched.length === 0) {
-    userDropdown.style.display = 'none'; return;
-  }
-
-  matched.forEach(u => {
-    const li = document.createElement('li');
-    li.textContent = u.userName;
-    li.dataset.code = u.userCode;
-    li.addEventListener('click', function() {
-      userSearchInput.value  = u.userName;
-      selectedUserCode.value = u.userCode;
-      userDropdown.style.display = 'none';
-    });
-    userDropdown.appendChild(li);
-  });
-  userDropdown.style.display = 'block';
-});
-
-// 모달 열릴 때 사용자 검색창 초기화
-function resetUserSearch() {
-  userSearchInput.value  = '';
-  selectedUserCode.value = '';
-  userDropdown.style.display = 'none';
-}
-
-// 모달 바깥 클릭 시 드롭다운 닫기
-document.addEventListener('click', function(e) {
-  if (!userSearchInput.contains(e.target) && !userDropdown.contains(e.target)) {
-    userDropdown.style.display = 'none';
-  }
-});
 
 function closeModal() {
   document.getElementById('timeModal').style.display = 'none';
@@ -453,8 +399,22 @@ function closeModal() {
 }
 
 document.getElementById('progressRange').addEventListener('input', function() {
+  if (progressLocked) {
+    this.value = selectedRow ? (selectedRow.progress || 0) : 0;
+    document.getElementById('progressText').textContent = this.value + '%';
+    return;
+  }
   document.getElementById('progressText').textContent = this.value + '%';
 });
+
+const blockProgressEdit = function(e) {
+  if (progressLocked) {
+    e.preventDefault();
+    showToast('현재 하위일감의 진척도로 고정되어있어 수정이 불가합니다.', 'error');
+  }
+};
+document.getElementById('progressRange').addEventListener('pointerdown', blockProgressEdit);
+document.getElementById('progressRange').addEventListener('keydown', blockProgressEdit);
 
 // 모달 바깥 클릭 시 닫기 - 비활성화 (취소 버튼으로만 닫힘)
 
@@ -476,15 +436,18 @@ if (urlTaskId) {
             tr.style.cursor = 'default';
         }
     });
+
+    // task detail에서 넘어온 경우 목록 선택 없이 바로 모달 오픈
+    openModal();
 }
 </script>
 
 		<style>
 /* ── 전체 래퍼 ── */
 .insert-wrap {
-	max-width: 1000px;
+	width: 95%;
 	margin: 32px auto;
-	padding: 0 16px;
+	padding: 0;
 	font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
 	font-size: 14px;
 	color: #333;
@@ -745,7 +708,7 @@ if (urlTaskId) {
 .modal-box {
 	background: #fff;
 	border-radius: 10px;
-	width: 480px;
+	width: 560px;
 	max-width: 95vw;
 	max-height: 90vh;
 	overflow-y: auto;
@@ -847,6 +810,13 @@ if (urlTaskId) {
 	color: #ef4444;
 }
 
+.modal-static-user {
+	flex: 1;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1e293b;
+}
+
 /* 사용자 검색 */
 .modal-field-user {
 	position: relative;
@@ -918,6 +888,12 @@ if (urlTaskId) {
 	font-weight: 700;
 	color: #6D5EF7;
 	text-align: right;
+}
+
+.progress-wrap input[type="range"].progress-locked {
+	opacity: .5;
+	cursor: not-allowed;
+	accent-color: #94a3b8;
 }
 
 .modal-field-textarea {

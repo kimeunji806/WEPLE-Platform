@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -26,12 +27,16 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriUtils;
 
+import com.weple.cloud.admin.service.UserService;
+import com.weple.cloud.admin.service.UserVO;
 import com.weple.cloud.auth.service.LoginUserDetails;
 import com.weple.cloud.file.FileDownloadDTO;
 import com.weple.cloud.history.task.service.TaskHistoryService;
 import com.weple.cloud.notification.service.AlarmType;
 import com.weple.cloud.notification.service.NotificationService;
 import com.weple.cloud.project.service.ProjectService;
+import com.weple.cloud.system.service.CodeValueService;
+import com.weple.cloud.system.service.CodeValueVO;
 import com.weple.cloud.task.service.TaskCommentVO;
 import com.weple.cloud.task.service.TaskHistoryDTO;
 import com.weple.cloud.task.service.TaskMemberVO;
@@ -41,6 +46,7 @@ import com.weple.cloud.task.service.TaskService;
 import com.weple.cloud.task.service.TaskSpentTimeVO;
 import com.weple.cloud.task.service.TaskTestCaseDTO;
 import com.weple.cloud.task.service.TaskVO;
+import com.weple.cloud.time.service.ProjectTimeSettingService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -53,6 +59,9 @@ public class TaskController {
 	private final ProjectService projectService;
 	private final TaskHistoryService taskHistoryService; // 작업내역 일감 불러오기
 	private final NotificationService notificationService;
+	private final UserService userService;
+	private final CodeValueService codeValueService;
+	private final ProjectTimeSettingService projectTimeSettingService;
 	
 	//프로젝트 내부 일감 목록 페이지 로드
 	@GetMapping("/project/task")
@@ -272,6 +281,22 @@ public class TaskController {
 		
 		System.out.println("항목 변경 이력 :" + updateHistoryList);
 		
+		// 일감 상세조회 페이지의 소요시간 등록 모달창 띄우기 - 민지
+		// 소요시간 등록 모달용 - 프로젝트 참여자 목록
+		List<UserVO> userList = userService.findUsersByProjectId(String.valueOf(pId));
+
+		// 소요시간 등록 모달용 - 작업분류 목록 (사용중인 것 중, 이 프로젝트가 사용 선택한 것만)
+		List<CodeValueVO> workTypeList = codeValueService.findCodeValueAll(loginUser.getLoginUser().getCompanyId()).stream()
+		        .filter(vo -> vo.getWorkName() != null && !vo.getWorkName().isEmpty())
+		        .filter(vo -> "Y".equals(vo.getUsingYn()))
+		        .collect(Collectors.toList());
+		List<String> selectedClassificationIds = projectTimeSettingService.findSelectedClassificationIds(pId);
+		if (selectedClassificationIds != null && !selectedClassificationIds.isEmpty()) {
+		    workTypeList = workTypeList.stream()
+		            .filter(vo -> selectedClassificationIds.contains(vo.getTaskClassificationId()))
+		            .collect(Collectors.toList());
+		} //여기까지 민지
+		
 		model.addAttribute("currentUserCode", userCode);
 		model.addAttribute("currentMenu", "task");
 		model.addAttribute("projectId", pId);
@@ -286,6 +311,10 @@ public class TaskController {
 		model.addAttribute("isAdminOrOwner",isAdminOrOwner);
 		model.addAttribute("sidebarMenu", "project");
 		model.addAttribute("project", projectService.findById(String.valueOf(pId)));
+		model.addAttribute("userList", userList);
+		model.addAttribute("workTypeList", workTypeList);
+		model.addAttribute("loginUserCode", userCode);
+		model.addAttribute("loginUserName", loginUser.getLoginUser().getUserName());
 		return "weple/task/detail";
 	}
 	

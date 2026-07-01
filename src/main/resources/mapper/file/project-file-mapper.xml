@@ -17,7 +17,6 @@
 	           , fv.file_size
 	           , fv.uploader
 	           , fv.uploaded_at
-	           , fv.hashtag
 	           , u.user_name
 	           , tk.type_name
 	    FROM files f
@@ -30,7 +29,6 @@
 	             , file_size
 	             , uploader
 	             , uploaded_at
-	             , hashtag
 	        FROM file_versions
 	        WHERE (file_id, version_number) IN (
 	            SELECT file_id, MAX(version_number)
@@ -109,6 +107,14 @@
 			  )
 	</insert>
 	
+	<!-- 파일 삭제 전 해당 파일 버전들에 걸린 다운로드 이력 선삭제 (FK 제약 위반 방지) -->
+	<delete id="deleteDownloadHistoryByFileId" parameterType="String">
+	    DELETE FROM file_download_history
+	    WHERE version_id IN (
+	        SELECT version_id FROM file_versions WHERE file_id = #{fileId}
+	    )
+	</delete>
+
 	<!-- 파일 삭제 전 버전 전체 삭제 -->
 	<delete id="deleteProjectFileVersionByFileId" parameterType="String">
 	    DELETE FROM file_versions
@@ -120,6 +126,27 @@
 		DELETE FROM files
 		WHERE file_id = #{fileId}
 	</delete>
+
+	<!-- 같은 프로젝트 + 같은 일감(둘 다 일감 미연결인 경우 포함) 안에 동일 파일명 존재 여부
+	     -> 있으면 그 file_id로 버전만 추가, 없으면 (다른 일감/미연결이라도) 별도 파일로 신규 등록 -->
+	<select id="findProjectFileIdByName" resultType="String">
+	    SELECT file_id
+	    FROM (
+	        SELECT file_id
+	        FROM files
+	        WHERE project_id = #{projectId}
+	          AND logical_name = #{logicalName}
+	          AND is_deleted = 'N'
+	          <if test="taskId != null">
+	          AND task_id = #{taskId}
+	          </if>
+	          <if test="taskId == null">
+	          AND task_id IS NULL
+	          </if>
+	        ORDER BY TO_NUMBER(file_id) DESC
+	    )
+	    WHERE ROWNUM = 1
+	</select>
 	
 	
 	<!-- 프로젝트 내 파일 버전 관리 -->
@@ -172,7 +199,6 @@
 	                              	, uploader
 	                              	, uploaded_at
 	                              	, saved_name
-	                              	, hashtag
 	                              )
 	    VALUES (
 	             #{versionId}
@@ -183,9 +209,13 @@
 	             , #{uploader}
 	           	 , SYSDATE
 	           	 , #{savedName}
-	           	 , #{hashtag}
 	           )
 	</insert>
+
+	<!-- 현재 파일의 최신(최대) 버전 번호 조회 -->
+	<select id="findMaxVersionNumber" parameterType="String" resultType="Long">
+	    SELECT MAX(version_number) FROM file_versions WHERE file_id = #{fileId}
+	</select>
 	
 	<!-- 삭제 -->
 	<delete id="deleteProjectFileVersion" parameterType="String">

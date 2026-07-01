@@ -42,7 +42,7 @@
 					</div>
 					<div class="meta-item">
 					    <span class="meta-label">버전</span> <span class="meta-value"
-					        th:text="${!#lists.isEmpty(projectFileVersionList)} ? 'v' + ${#lists.size(projectFileVersionList)} + '.0' : '-'">-</span>
+					        th:text="${!#lists.isEmpty(projectFileVersionList)} ? 'v' + ${#lists.size(projectFileVersionList)} : '-'">-</span>
 					</div>
 					<div class="meta-item">
 						<span class="meta-label">연결 일감</span> <span class="meta-value">
@@ -146,7 +146,7 @@
 							    <td th:text="${projectFileInfo.logicalName != null} ? ${projectFileInfo.logicalName} : '-'">-</td>
 							    <td th:text="${projectFileInfo.userName != null} ? ${projectFileInfo.userName} : '-'">-</td>
 							    <td th:text="${ver.uploadedAt != null} ? ${#dates.format(ver.uploadedAt, 'yyyy-MM-dd')} : '-'">-</td>
-							    <td><span class="version-badge" th:text="'v' + ${verStat.count} + '.0'">v1.0</span></td>
+							    <td><span class="version-badge" th:text="'v' + ${verStat.count}">v1</span></td>
 							    <td>
 							        <span th:if="${projectFileInfo.taskId != null}"
 							              class="task-badge-linked"

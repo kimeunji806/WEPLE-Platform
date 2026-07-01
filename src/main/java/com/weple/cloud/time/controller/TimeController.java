@@ -126,6 +126,8 @@ public class TimeController {
 	    model.addAttribute("projectList", projectList);
 	    model.addAttribute("taskList", taskList);
 	    model.addAttribute("workTypeList", workTypeList);
+	    model.addAttribute("loginUserCode", loginUser.getLoginUser().getUserCode());
+	    model.addAttribute("loginUserName", loginUser.getLoginUser().getUserName());
 		return "weple/time/insert";
 	}
 
@@ -133,17 +135,20 @@ public class TimeController {
 	@PostMapping("/insertProjectTime")
 	public String insertProjectTimeProcess(WorkTimeVO workTimeVO,
 										   @RequestParam(value="taskId", required=false) String taskId,
+										   @RequestParam(value="returnTo", required=false) String returnTo,
 										   RedirectAttributes redirectAttributes) {
 	    timeService.addProjectTime(workTimeVO);
 	    redirectAttributes.addFlashAttribute("toastMessage", "소요시간이 등록되었습니다.");
-	    if (workTimeVO.getProjectId() != null && workTimeVO.getProjectId() != 0) {
-	        String redirectUrl = "redirect:/projectTimeList?projectId=" + workTimeVO.getProjectId();
-	        if (taskId != null && !taskId.isEmpty()) {
-	            redirectUrl += "&taskId=" + taskId;  // ✅ taskId 있으면 추가
-	        }
-	        return redirectUrl;
+	    // 일감 상세 페이지의 모달에서 등록한 경우, 해당 일감 상세 페이지로 되돌아감
+	    if ("detail".equals(returnTo) && taskId != null && !taskId.isEmpty()) {
+	        return "redirect:/project/task/detail/" + taskId + "?projectId=" + workTimeVO.getProjectId();
 	    }
-	    return "redirect:/totalTimeList";
+	    // 그 외(프로젝트 소요시간 탭 / 전체 소요시간 목록에서 진입한 경우)는
+	    // 목록이 아니라 일감을 선택하던 등록 페이지 자체로 되돌아감
+	    if (workTimeVO.getProjectId() != null && workTimeVO.getProjectId() != 0) {
+	        return "redirect:/insertProjectTime?projectId=" + workTimeVO.getProjectId();
+	    }
+	    return "redirect:/insertProjectTime";
 	}
 
 	//일감 설명 가져옴
@@ -158,6 +163,14 @@ public class TimeController {
 	@ResponseBody
 	public List<TaskVO> getTasksByProject(@RequestParam("projectId") Long projectId) {
 	    return taskService.findAll(projectId);
+	}
+
+	// 하위 일감 존재 여부 확인 (소요시간 등록 모달에서 진척도 수정 가능 여부 판단용)
+	@GetMapping("/hasChildTask")
+	@ResponseBody
+	public boolean hasChildTask(@RequestParam("taskId") String taskId) {
+	    List<TaskVO> children = taskService.findChildTask(taskId);
+	    return children != null && !children.isEmpty();
 	}
 	
 	// 수정 폼

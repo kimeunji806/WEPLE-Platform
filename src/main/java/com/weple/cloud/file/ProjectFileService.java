@@ -19,6 +19,12 @@ public interface ProjectFileService {
 	// 프로젝트별 구분
 	public long removeProjectFileVersionByFileId(String fileId);
 	
+	// 파일 삭제 전 다운로드 이력 선삭제
+	public long removeDownloadHistoryByFileId(String fileId);
+	
+	// 같은 프로젝트 + 같은 일감(둘 다 미연결 포함) 내 동일 파일명 존재 여부 조회
+	public String findProjectFileIdByName(Long projectId, String taskId, String logicalName);
+	
 	// 다운로드
 	public ProjectFileVersionsVO findVersionForDownload(String versionId);
 	
@@ -31,6 +37,9 @@ public interface ProjectFileService {
     
     // 등록
 	public String addProjectFileVersion(ProjectFileVersionsVO projectFileVersionsVO);
+    
+    // 현재 파일의 최신(최대) 버전 번호 조회
+	public Long findMaxVersionNumber(String fileId);
     
     // 삭제
 	public long removeProjectFileVersion(String versionId);

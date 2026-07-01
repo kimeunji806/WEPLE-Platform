@@ -79,6 +79,28 @@
     font-size: 12px;
 }
 
+.notif-dropdown-loading {
+    padding: 24px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+.notif-loading-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #C4B5FD;
+    animation: notif-dot-bounce 1s ease-in-out infinite;
+}
+.notif-loading-dot:nth-child(1) { animation-delay: 0s; }
+.notif-loading-dot:nth-child(2) { animation-delay: .15s; }
+.notif-loading-dot:nth-child(3) { animation-delay: .3s; }
+@keyframes notif-dot-bounce {
+    0%, 80%, 100% { transform: scale(0.7); opacity: .4; }
+    40%            { transform: scale(1);   opacity: 1; }
+}
+
 /* ============================================================
    실시간 알림 토스트
    ============================================================ */

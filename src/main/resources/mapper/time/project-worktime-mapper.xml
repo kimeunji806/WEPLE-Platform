@@ -46,7 +46,7 @@
 		LEFT JOIN work_classification w_cls ON w_tme.work_name = w_cls.task_classification_id
 		LEFT JOIN task t ON t.task_id = w_tme.task_id
 		WHERE w_tme.project_id = #{projectId}
-		ORDER BY w_tme.work_id
+		ORDER BY w_tme.work_id DESC
 	</select>
 	
 	<!-- 단건 조회 (수정 폼용) -->

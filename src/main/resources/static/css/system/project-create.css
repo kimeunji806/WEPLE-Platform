@@ -135,8 +135,8 @@
 }
 
 .checkbox-inline input[type="checkbox"]:checked + .custom-check-box {
-    background: #007bff;
-    border-color: #007bff;
+    background: #6D5EF7;
+    border-color: #6D5EF7;
 }
 
 .checkbox-inline input[type="checkbox"]:checked + .custom-check-box::after {
@@ -172,8 +172,8 @@
 }
 
 .page-btn.active {
-    background: #007bff;
-    border-color: #007bff;
+    background: #6D5EF7;
+    border-color: #6D5EF7;
     color: #fff;
 }
 
@@ -318,8 +318,8 @@ span.flatpickr-weekday { font-size: 11px; font-weight: 700; color: #9aa8c4; }
 }
 
 .module-ctrl-btn:hover {
-    background: #007bff;
-    border-color: #007bff;
+    background: #5B4FEA;
+    border-color: #5B4FEA;
     color: #fff;
 }
 

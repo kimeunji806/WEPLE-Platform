@@ -686,6 +686,14 @@ END;
 <update id="updateHierarchicalProgress" statementType="CALLABLE" parameterType="string">
     { CALL UPDATE_PROGRESS_HIERARCHY(#{taskId}) }
 </update>
+
+<!-- 소요시간 등록/수정 시 입력한 진척도를 일감에 직접 반영 -민지- -->
+<update id="updateTaskProgress">
+    UPDATE task
+       SET task_progress = #{progress}
+     WHERE task_id = #{taskId}
+</update>
+
 <!-- 활성화 상태인 담당자 전체 목록 -->
 <select id="allMemberList" resultType="TaskMemberVO">
 	SELECT 

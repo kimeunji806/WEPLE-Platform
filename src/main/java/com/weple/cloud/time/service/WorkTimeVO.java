@@ -39,4 +39,6 @@ public class WorkTimeVO {
 	private Long totalSpentHour;
 	private long taskClassificationId;
 	private long estimatedTime;
+	// 소요시간 등록 모달에서 함께 넘어오는 진척도 값 (미전송/잠금 시 null)
+	private Long progress;
 }

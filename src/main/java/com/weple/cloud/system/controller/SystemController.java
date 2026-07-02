@@ -340,7 +340,7 @@ public class SystemController {
 		}
 		model.addAttribute("codeList", codeList);
 		model.addAttribute("codeList", codeList);
-		model.addAttribute("menu", "code");
+		model.addAttribute("menu", "codeValue");
 		model.addAttribute("sidebarMenu", "system");
 
 		return "weple/admin/code/list";

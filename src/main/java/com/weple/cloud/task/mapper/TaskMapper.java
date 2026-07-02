@@ -70,6 +70,7 @@ public interface TaskMapper {
   
     // 소요시간의 진척도 자동계산 프로시저 - 민지
     public void updateHierarchicalProgress(@Param("taskId") String taskId);
+    public int updateTaskProgress(@Param("taskId") String taskId, @Param("progress") Long progress);
     
     public List<TaskMemberVO> allMemberList();
     

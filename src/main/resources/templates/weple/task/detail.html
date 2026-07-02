@@ -462,6 +462,7 @@
 								th:text="|${taskDetail.taskProgress ?: 0}%|">0%</span>
 						</div>
 					</div>
+					<p class="trm-progress-hint" id="trmProgressHint" style="display: none;"></p>
 
 					<div class="trm-field trm-field-textarea">
 						<label>내용</label>
@@ -478,11 +479,11 @@
 
 		<script th:inline="javascript">
 			const TaskId = /*[[${taskDetail.taskId}]]*/'default_tId';
-			// 하위 일감 존재 여부 - 있으면 진척도는 하위일감 기준으로 자동 계산되므로 수정 불가
-			const trmHasChildTask = /*[[${chlidTaskList != null and !chlidTaskList.isEmpty()}]]*/ false;
+			const trmCurrentProgress = /*[[${taskDetail.taskProgress ?: 0}]]*/ 0;
 
 			// ── 소요시간 등록 모달 ──
 			function openTimeRegisterModal() {
+				applyTrmProgressLock(TaskId, trmCurrentProgress);
 				document.getElementById('timeRegisterModal').style.display = 'flex';
 				document.body.style.overflow = 'hidden';
 			}
@@ -492,27 +493,67 @@
 				document.body.style.overflow = '';
 			}
 
+			// range input의 트랙을 현재 값(min~max 대비 %)만큼 색이 채워지도록 갱신
+			function updateTrmRangeFill(rangeEl) {
+				const min = parseInt(rangeEl.min) || 0;
+				const max = parseInt(rangeEl.max) || 100;
+				const val = parseInt(rangeEl.value) || 0;
+				const percent = max > min ? ((val - min) / (max - min)) * 100 : 0;
+				const filledColor = rangeEl.disabled ? '#94a3b8' : '#6D5EF7';
+				rangeEl.style.background =
+					`linear-gradient(to right, ${filledColor} 0%, ${filledColor} ${percent}%, #e2e8f0 ${percent}%, #e2e8f0 100%)`;
+			}
+
+			// 하위일감 유무에 따라 진척도 편집 가능 여부/범위 결정
+			// - 하위일감 있음: 완전 잠금
+			// - 하위일감 없음: 편집 가능, 단 현재값보다 낮게는 불가
+			// (소요시간 탭의 등록 화면과 동일한 규칙)
+			function applyTrmProgressLock(taskId, currentProgress) {
+				const rangeEl = document.getElementById('trmProgressRange');
+				const hint = document.getElementById('trmProgressHint');
+				if (!rangeEl) return;
+
+				rangeEl.disabled = false;
+				rangeEl.classList.remove('trm-progress-locked');
+				rangeEl.min = 0;
+				rangeEl.value = currentProgress;
+				document.getElementById('trmProgressText').textContent = currentProgress + '%';
+				hint.style.display = 'none';
+				updateTrmRangeFill(rangeEl);
+
+				fetch('/hasChildTask?taskId=' + encodeURIComponent(taskId))
+					.then(res => res.json())
+					.then(hasChild => {
+						if (hasChild) {
+							rangeEl.disabled = true;
+							rangeEl.classList.add('trm-progress-locked');
+							rangeEl.value = currentProgress;
+							document.getElementById('trmProgressText').textContent = currentProgress + '%';
+							hint.textContent = '* 완료되지 않은 하위일감이 있어 진척도를 수정할 수 없습니다.';
+							hint.style.display = 'block';
+						} else {
+							rangeEl.disabled = false;
+							rangeEl.classList.remove('trm-progress-locked');
+							rangeEl.min = currentProgress;
+							hint.textContent = '* 진척도는 현재보다 낮게 설정할 수 없습니다.';
+							hint.style.display = 'block';
+						}
+						updateTrmRangeFill(rangeEl);
+					})
+					.catch(() => {
+						rangeEl.disabled = false;
+						rangeEl.min = 0;
+						hint.style.display = 'none';
+						updateTrmRangeFill(rangeEl);
+					});
+			}
+
 			const trmProgressRange = document.getElementById('trmProgressRange');
 			if (trmProgressRange) {
-				if (trmHasChildTask) {
-					// 하위 일감이 있으면 진척도 조절 잠금 + 시도 시 안내 토스트
-					trmProgressRange.classList.add('trm-progress-locked');
-					const blockTrmProgressEdit = function(e) {
-						e.preventDefault();
-						showToast('현재 하위일감의 진척도로 고정되어있어 수정이 불가합니다.', true);
-					};
-					trmProgressRange.addEventListener('pointerdown', blockTrmProgressEdit);
-					trmProgressRange.addEventListener('keydown', blockTrmProgressEdit);
-					trmProgressRange.addEventListener('input', function() {
-						// 혹시라도 값이 바뀌면 원래 값으로 즉시 복원
-						this.value = /*[[${taskDetail.taskProgress ?: 0}]]*/ 0;
-						document.getElementById('trmProgressText').textContent = this.value + '%';
-					});
-				} else {
-					trmProgressRange.addEventListener('input', function() {
-						document.getElementById('trmProgressText').textContent = this.value + '%';
-					});
-				}
+				trmProgressRange.addEventListener('input', function() {
+					document.getElementById('trmProgressText').textContent = this.value + '%';
+					updateTrmRangeFill(this);
+				});
 			}
 		</script>
 
@@ -673,7 +714,37 @@
 		}
 		.trm-progress-wrap input[type="range"] {
 			flex: 1;
-			accent-color: #6D5EF7;
+			-webkit-appearance: none;
+			appearance: none;
+			height: 6px;
+			border-radius: 3px;
+			outline: none;
+			cursor: pointer;
+			background: #e2e8f0; /* JS가 값에 따라 linear-gradient로 덮어씀 */
+		}
+		.trm-progress-wrap input[type="range"]::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			width: 16px;
+			height: 16px;
+			border-radius: 50%;
+			background: #6D5EF7;
+			cursor: pointer;
+			border: 2px solid #fff;
+			box-shadow: 0 0 0 1px #6D5EF7;
+		}
+		.trm-progress-wrap input[type="range"]::-moz-range-thumb {
+			width: 16px;
+			height: 16px;
+			border-radius: 50%;
+			background: #6D5EF7;
+			cursor: pointer;
+			border: 2px solid #fff;
+			box-shadow: 0 0 0 1px #6D5EF7;
+		}
+		.trm-progress-wrap input[type="range"]::-moz-range-track {
+			height: 6px;
+			border-radius: 3px;
+			background: transparent;
 		}
 		.trm-progress-text {
 			width: 38px;
@@ -684,7 +755,20 @@
 		.trm-progress-wrap input[type="range"].trm-progress-locked {
 			opacity: .5;
 			cursor: not-allowed;
-			accent-color: #94a3b8;
+		}
+		.trm-progress-wrap input[type="range"].trm-progress-locked::-webkit-slider-thumb {
+			background: #94a3b8;
+			box-shadow: 0 0 0 1px #94a3b8;
+		}
+		.trm-progress-wrap input[type="range"].trm-progress-locked::-moz-range-thumb {
+			background: #94a3b8;
+			box-shadow: 0 0 0 1px #94a3b8;
+		}
+		.trm-progress-hint {
+			margin: -4px 24px 0;
+			padding-left: 102px;
+			font-size: 12px;
+			color: #94a3b8;
 		}
 		.trm-field-textarea {
 			align-items: flex-start;

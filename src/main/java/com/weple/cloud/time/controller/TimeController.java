@@ -165,12 +165,38 @@ public class TimeController {
 	    return taskService.findAll(projectId);
 	}
 
-	// 하위 일감 존재 여부 확인 (소요시간 등록 모달에서 진척도 수정 가능 여부 판단용)
+	// 진척도 수정 가능 여부 판단용
+	// 규칙: ① 하위일감이 없으면 잠금 아님(false)
+	//      ② 하위/하위의 하위일감(전체 계층) 중 진행률 100%가 아닌 것이 하나라도 있으면 잠금(true)
+	//      ③ 하위 계층이 있어도 전부 100%(완료)면 잠금 아님(false)
 	@GetMapping("/hasChildTask")
 	@ResponseBody
 	public boolean hasChildTask(@RequestParam("taskId") String taskId) {
+	    List<TaskVO> descendants = new java.util.ArrayList<>();
+	    collectDescendants(taskId, descendants, new java.util.HashSet<>());
+
+	    if (descendants.isEmpty()) {
+	        return false;
+	    }
+	    boolean allCompleted = descendants.stream()
+	            .allMatch(c -> c.getTaskProgress() != null && c.getTaskProgress() == 100L);
+	    return !allCompleted;
+	}
+
+	// taskId 하위의 모든 일감(자식, 손자, ...)을 재귀적으로 수집
+	// visited: 데이터가 잘못 얽혀 순환 참조가 생기는 경우를 대비한 방어 로직
+	private void collectDescendants(String taskId, List<TaskVO> acc, java.util.Set<String> visited) {
+	    if (!visited.add(taskId)) {
+	        return;
+	    }
 	    List<TaskVO> children = taskService.findChildTask(taskId);
-	    return children != null && !children.isEmpty();
+	    if (children == null || children.isEmpty()) {
+	        return;
+	    }
+	    for (TaskVO child : children) {
+	        acc.add(child);
+	        collectDescendants(child.getTaskId(), acc, visited);
+	    }
 	}
 	
 	// 수정 폼

@@ -9,7 +9,7 @@ import com.weple.cloud.task.service.TaskVO;
 public interface MilestoneService {
 
 	// 전체 조회
-	public List<MilestoneInfoVO> selectMilestoneAll(Long projectId);
+	List<MilestoneInfoVO> getRoadmapList(Long projectId);
 	
 	// 상세 조회
 	MilestoneDetailVO getMilestoneDetailInfo(Long projectId, Long milestoneId);
@@ -64,6 +64,8 @@ public interface MilestoneService {
 	
 	// 삭제
 	public int deleteMilestone(Long milestoneId);
+
+	
 
 	
 

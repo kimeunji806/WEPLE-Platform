@@ -28,6 +28,11 @@
                         <input type="text" name="loginId" placeholder="영문 및 숫자 조합으로 입력하세요. (예: weple01)" th:value="${userForm?.loginId}">
                     </label>
 
+                    <label class="user-form-field user-form-field-short">
+                        <span>이름 (성명) <em>*</em></span>
+                        <input type="text" name="userName" placeholder="실명을 입력하세요." th:value="${userForm?.userName}">
+                    </label>
+
                     <label class="user-form-field">
                         <span>비밀번호 <em>*</em></span>
                         <input type="password" name="password" placeholder="최소 8글자 이상이어야 합니다.">
@@ -36,11 +41,6 @@
                     <label class="user-form-field">
                         <span>비밀번호 확인 <em>*</em></span>
                         <input type="password" name="passwordConfirm" placeholder="비밀번호를 확인하세요.">
-                    </label>
-
-                    <label class="user-form-field user-form-field-short">
-                        <span>이름 (성명) <em>*</em></span>
-                        <input type="text" name="userName" placeholder="실명을 입력하세요." th:value="${userForm?.userName}">
                     </label>
 
                     <label class="user-form-field user-form-field-short">
@@ -59,54 +59,6 @@
                     <span>관리자</span>
                 </label>
 
-                <div class="user-notice-box">
-                    <div class="user-notice-row">
-                        <div>
-                            <strong>실시간 웹 알림 수신</strong>
-                            <p>신규 알림을 실시간 팝업 및 배지로 수신합니다.</p>
-                        </div>
-                        <label class="user-status-switch">
-                            <input type="hidden" name="webNotificationYn" value="N">
-                            <input type="checkbox" name="webNotificationYn" value="Y" th:checked="${userForm == null or userForm.webNotificationYn != 'N'}">
-                            <span></span>
-                        </label>
-                    </div>
-
-                    <div class="user-notice-row">
-                        <div>
-                            <strong>이메일 알림 수신 여부</strong>
-                            <p>등록된 이메일 계정으로 알림을 수신합니다.</p>
-                        </div>
-                        <label class="user-status-switch">
-                            <input type="hidden" name="emailNotificationYn" value="N">
-                            <input type="checkbox" name="emailNotificationYn" value="Y" th:checked="${userForm?.emailNotificationYn == 'Y'}">
-                            <span></span>
-                        </label>
-                    </div>
-
-                    <div class="user-notice-options user-notice-options-disabled" aria-disabled="true">
-                        <strong>알림 수신 범위 설정</strong>
-                        <p>알림 범위 설정은 추후 알림 기능과 함께 적용됩니다.</p>
-
-                        <label>
-                            <input type="radio" name="alarmScopePreview" value="all" checked disabled>
-                            <span>전체 알림 수신</span>
-                            <small>(배정 알림, 참여 알림, 프로젝트 초대 전체)</small>
-                        </label>
-
-                        <label>
-                            <input type="radio" name="alarmScopePreview" value="mine" disabled>
-                            <span>나에게 배정된 일감만 수신</span>
-                            <small>(본인이 담당자로 지정된 일감 변경 건만)</small>
-                        </label>
-
-                        <label>
-                            <input type="radio" name="alarmScopePreview" value="mention" disabled>
-                            <span>멘션 및 초대만 수신</span>
-                            <small>(댓글 내 직접 언급 또는 프로젝트 참여 초대만)</small>
-                        </label>
-                    </div>
-                </div>
 
                 <div class="user-form-actions">
                     <a class="user-cancel-button" th:href="@{/userList}">취소</a>

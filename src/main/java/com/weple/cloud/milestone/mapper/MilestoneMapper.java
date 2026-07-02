@@ -8,6 +8,7 @@ import com.weple.cloud.milestone.service.MilestoneDetailVO;
 import com.weple.cloud.milestone.service.MilestoneInfoVO;
 import com.weple.cloud.milestone.service.MilestoneVO;
 import com.weple.cloud.milestone.service.TaskGroupStatVO;
+import com.weple.cloud.milestone.service.TaskStatDTO;
 import com.weple.cloud.project.service.ProjectVO;
 import com.weple.cloud.system.service.TaskTypeVO;
 import com.weple.cloud.task.service.TaskVO;
@@ -16,6 +17,9 @@ public interface MilestoneMapper {
 	
 	// 전체 조회
 	public List<MilestoneInfoVO> selectMilestoneAll(@Param("projectId")Long projectId);
+	
+	List<MilestoneVO> selectFlatMilestones(@Param("projectId") Long projectId);
+    List<TaskStatDTO> selectTaskStatsFlat(@Param("projectId") Long projectId);
 	
 	// 상세 조회
 	// 기본 정보 및 총 추정/소요시간 조회

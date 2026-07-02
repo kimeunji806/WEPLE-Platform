@@ -14,6 +14,7 @@ import lombok.ToString;
 public class ProjectProgressDTO {
 	
 	private int progressPercentage; // 평균 진척도 (%)
+	private int totalTaskCount;     // 총 일감 개수
 	
 	// 시간 추적 통계 데이터
     private double totalEstimatedHours; // 연결된 모든 일감의 추정시간 총합

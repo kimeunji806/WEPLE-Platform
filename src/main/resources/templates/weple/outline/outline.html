@@ -102,10 +102,12 @@
 
     <div class="outline-progress-container">
         <div class="outline-progress-info">
-            <span class="outline-progress-label" 
-                  th:text="${project != null && project.projectDescribe != null ? project.projectDescribe : '🚀 프로젝트 종합 진척도'}">
-                  프로젝트 설명 문구
-            </span>
+            <span class="outline-progress-label">
+	            <th:block th:text="${project != null && project.projectDescribe != null ? project.projectDescribe : '🚀 프로젝트 종합 진척도'}">프로젝트 설명 문구</th:block>
+	            
+	            <small style="font-size: 13px; color: #777; margin-left: 8px; font-weight: normal;" 
+	                   th:text="'(총 ' + ${progressData.totalTaskCount} + '개 일감)'">(총 0개 일감)</small>
+	        </span>
             <span class="outline-progress-percent" th:text="${progressData.progressPercentage} + '%'">0%</span>
         </div>
                 <div class="outline-progress-bar-wrap">

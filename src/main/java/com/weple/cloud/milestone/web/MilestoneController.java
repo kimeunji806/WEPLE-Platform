@@ -37,7 +37,7 @@ public class MilestoneController {
 	// 마일스톤 전체 조회
 	@GetMapping
 	public String milestoneList(@RequestParam Long projectId, Model model) {
-		List<MilestoneInfoVO> list = milestoneService.selectMilestoneAll(projectId); 
+		List<MilestoneInfoVO> list = milestoneService.getRoadmapList(projectId); 
 		
 		model.addAttribute("currentMenu", "milestone");
 		model.addAttribute("sidebarMenu", "project");

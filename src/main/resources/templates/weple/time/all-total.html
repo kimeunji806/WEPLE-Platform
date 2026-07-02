@@ -60,7 +60,6 @@
 				<table class="data-table">
 					<thead>
 						<tr>
-							<th width="50"><input type="checkbox"></th>
 							<th width="120">프로젝트</th>
 							<th width="120">작업일자</th>
 							<th width="150">사용자</th>
@@ -73,12 +72,11 @@
 					</thead>
 					<tbody>
 						<tr th:if="${#lists.isEmpty(totalTimeList)}">
-               				<td colspan="9">조회된 데이터가 없습니다.</td>
+               				<td colspan="8">조회된 데이터가 없습니다.</td>
             			</tr>
             			
             			<th:block th:each="time : ${totalTimeList}">
 						<tr>
-							<td><input type="checkbox"></td>
 			                <td th:text="${time.projectTitle}">프로젝트</td>
 			                <td th:text="${time.workDate != null} ? ${#dates.format(time.workDate, 'yyyy/MM/dd')} : '-'">작업일자</td>
 			                <td th:text="${time.userName}">사용자</td>
@@ -86,7 +84,7 @@
 			                <td th:text="${time.taskTitle}">일감</td>
 			                <td th:text="${time.spentContent}">내용</td>
 			                <td class="time" th:text="${time.spentHour} + ':00'">시간</td>
-			                <td style="position: relative; text-align: center;" onclick="event.stopPropagation();">
+			                <td style="position: relative; text-align: left;" onclick="event.stopPropagation();">
 								<div class="dropdown-wrapper">
 									<span class="more-options-btn" onclick="toggleDropdown(this)">•••</span>
 									<div class="dropdown-menu-box">
@@ -186,13 +184,13 @@
 	    filteredRows = Array.from(allRows).filter(row => {
 	        let isMatch = true;
 	        
-	        const timeCell = row.cells[7].innerText; 
+	        const timeCell = row.cells[6].innerText; 
 	        const hour = parseInt(timeCell.split(':')[0]);
 	        if (hour < minHour || hour > maxHour) isMatch = false;
 
 	        inputs.forEach(input => {
 	            if (input.name === 'startTime' || input.name === 'endTime' || !input.value) return;
-	            const colIndex = parseInt(input.getAttribute('data-col')) + 1; 
+	            const colIndex = parseInt(input.getAttribute('data-col')); 
 	            let cellValue = row.cells[colIndex]?.innerText.toLowerCase() || "";
 	            if (input.type === 'date') cellValue = cellValue.replace(/\//g, '-');
 	            if (!cellValue.includes(input.value.toLowerCase())) isMatch = false;
@@ -217,9 +215,8 @@
 	        const a = document.createElement("a");
 	        a.href = "#";
 	        a.innerText = i;
-	        a.style.display = "flex";
-	        a.style.alignItems = "center";
-	        a.style.justifyContent = "center";
+	        const textColor = (i === currentPage) ? "#ffffff" : "#666";
+	        a.style.cssText = `display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:4px; text-decoration:none; color:${textColor};`;
 	        if (i === currentPage) a.className = "active";
 	        a.onclick = (e) => { e.preventDefault(); showPage(i); };
 	        numberSpan.appendChild(a);
@@ -290,7 +287,6 @@
 		    downloadLink.click();
 	    }
 	</script>
-		</script>
 		<style>
 /* =========================공통========================= */
 /* * {} body {} 전역 셀렉터 제거 - 사이드바/navbar 레이아웃 영향 방지 */
@@ -313,7 +309,7 @@
 }
 
 .search-box {
-    border: 1px solid #dcdfe6; /* 선을 다시 넣되 색상을 통일 */
+    border: 1px solid #dcdfe6;
     border-radius: 6px;
     background: #fff;
     padding: 20px 25px;
@@ -322,7 +318,7 @@
 
 .search-grid {
 	display: grid;
-	grid-template-columns: repeat(3, 1fr); /* 3열 정렬 */
+	grid-template-columns: repeat(3, 1fr);
 	gap: 15px;
 	margin-bottom: 15px;
 }
@@ -342,54 +338,51 @@
 
 #search-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 기본 3열 */
+    grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     width: 100%;
 }
 
-/* 화면 크기가 줄어들 때 반응형 처리 */
 @media (max-width: 1200px) {
     #search-container {
-        grid-template-columns: repeat(2, 1fr); /* 2열로 변경 */
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 768px) {
     #search-container {
-        grid-template-columns: 1fr; /* 1열로 변경 (세로로 쌓임) */
+        grid-template-columns: 1fr;
     }
 }
 
-/* '작업시간' 항목이 그리드 깨뜨리지 않게 조정 */
 #workTime-filter {
-    grid-column: span 1; /* 필요시 span 2로 조정 가능 */
+    grid-column: span 1;
 }
 
 .search-item {
     display: flex;
-    align-items: center; /* 세로 중앙 정렬 */
+    align-items: center;
     gap: 10px;
 }
 
 .search-item label {
     width: 70px; 
     font-weight: 600;
-    flex-shrink: 0; /* 라벨이 찌그러지지 않게 함 */
+    flex-shrink: 0;
 }
 
 .search-item input[type="text"], 
 .search-item input[type="number"], 
 .search-item input[type="date"] {
-    border: 1px solid #dcdfe6; /* 모든 입력창 테두리 색상 통일 */
+    border: 1px solid #dcdfe6;
     border-radius: 4px;
     height: 36px;
     padding: 0 10px;
-    flex-grow: 1; /* 입력창이 남은 공간을 채우게 함 */
+    flex-grow: 1;
 }
 
-/* 범위 검색(최소~최대) 구간이 있다면 */
 .search-item span {
-    margin: 0 5px; /* 물결표(~) 양옆 간격 */
+    margin: 0 5px;
 }
 
 .search-item select {
@@ -409,7 +402,7 @@
 
 .search-left {
 	display: flex;
-	flex-wrap: wrap; /* 여러 개 추가 시 아래로 줄바꿈 */
+	flex-wrap: wrap;
 	gap: 15px;
 	align-items: center;
 }
@@ -458,46 +451,34 @@
 }
 
 .data-table thead {
-	background: #f7f8fa;
+	background: #F1EDFF;
 }
+
+/* 컬럼 순서: 1 프로젝트  2 작업일자  3 사용자  4 작업분류  5 일감  6 내용  7 시간  8 관리 */
 
 .data-table th, .data-table td {
 	padding: 12px 8px;
 	border-bottom: 1px solid #e2e8f0;
-	text-align: center;
+	text-align: left;
 	vertical-align: middle;
 }
 
-.data-table th:nth-child(1), .data-table td:nth-child(1), /* 프로젝트 */
-	.data-table th:nth-child(4), .data-table td:nth-child(4), /* 작업분류 */
-	.data-table th:nth-child(5), .data-table td:nth-child(5), /* 일감 */
-	.data-table th:nth-child(6), .data-table td:nth-child(6) /* 내용 */ {
+.data-table th:nth-child(1), .data-table td:nth-child(1) /* 프로젝트 */ {
 	text-align: left;
-	padding-left: 15px; /* 이 열들은 그대로 15px 유지 */
+	padding-left: 25px;
 }
 
-.data-table th:nth-child(7), .data-table td:nth-child(7), .data-table th:nth-child(8),
-	.data-table td:nth-child(8) {
-	text-align: center;
-}
-
-.data-table th:nth-child(1), .data-table td:nth-child(1) {
-	text-align: left;
-	padding-left: 25px; /* 여백을 키워서 테두리와의 간격을 넓힘 */
-}
-
-.data-table td:nth-child(1), .data-table td:nth-child(4), .data-table td:nth-child(5),
-	.data-table td:nth-child(6) {
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-/* 텍스트 줄임 처리 (관리 셀 제외) */
 .data-table td:not(:last-child) {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+/* 내용 열(6번째) 줄바꿈 허용 */
+.data-table td:nth-child(6) {
+	white-space: normal;
+	text-align: left;
+	padding-left: 15px;
 }
 
 /* 관리 버튼(마지막 셀) 및 드롭다운 */
@@ -535,7 +516,7 @@
 	box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.12);
 	border: 1px solid #e2e8f0;
 	border-radius: 6px;
-	z-index: 999; /* z-index 높여서 가려짐 방지 */
+	z-index: 999;
 	padding: 4px 0;
 }
 
@@ -573,46 +554,18 @@
 
 .summary-area strong {
 	color: #6D5EF7;
-	margin-left: 5px; /* 텍스트와 숫자 간 간격 추가 */
+	margin-left: 5px;
 }
 
-/* 열별 정렬 및 너비 설정 (체크박스 열 삭제 반영) */
-.data-table th:nth-child(1) {
-	width: 10%;
-} /* 프로젝트 */
-.data-table th:nth-child(2) {
-	width: 10%;
-} /* 작업일자 */
-.data-table th:nth-child(3) {
-	width: 12%;
-} /* 사용자 */
-.data-table th:nth-child(4) {
-	width: 10%;
-} /* 작업분류 */
-.data-table th:nth-child(5) {
-	width: 22%;
-	text-align: left;
-	padding-left: 15px;
-} /* 일감 */
-.data-table th:nth-child(6) {
-	width: auto;
-	text-align: left;
-	padding-left: 15px;
-} /* 내용 */
-.data-table th:nth-child(7) {
-	width: 8%;
-	font-weight: bold;
-} /* 시간 */
-.data-table th:nth-child(8) {
-	width: 7%;
-} /* 관리 */
-
-/* 내용 열(6번째) 줄바꿈 허용 */
-.data-table td:nth-child(6) {
-	white-space: normal;
-	text-align: left;
-	padding-left: 15px;
-}
+/* 열별 너비 설정 (체크박스 열 없음) */
+.data-table th:nth-child(1) { width: 10%; }  /* 프로젝트 */
+.data-table th:nth-child(2) { width: 10%; }  /* 작업일자 */
+.data-table th:nth-child(3) { width: 12%; }  /* 사용자 */
+.data-table th:nth-child(4) { width: 10%; }  /* 작업분류 */
+.data-table th:nth-child(5) { width: 22%; text-align: left; padding-left: 15px; }  /* 일감 */
+.data-table th:nth-child(6) { width: auto; text-align: left; padding-left: 15px; }  /* 내용 */
+.data-table th:nth-child(7) { width: 8%; font-weight: bold; }  /* 시간 */
+.data-table th:nth-child(8) { width: 7%; }  /* 관리 */
 
 .data-table tbody tr:hover {
 	background: #F1EDFF;
@@ -673,17 +626,6 @@
 	cursor: pointer;
 	font-weight: 600;
 }
-
-/* 열별 정렬 및 너비 설정 수정 */
-.data-table th:nth-child(1) { width: 5%; }   /* 체크박스 */
-.data-table th:nth-child(2) { width: 8%; }  /* 프로젝트 */
-.data-table th:nth-child(3) { width: 10%; }  /* 작업일자 */
-.data-table th:nth-child(4) { width: 10%; }  /* 사용자 */
-.data-table th:nth-child(5) { width: 10%; }  /* 작업분류 (일감과 붙이기 위해 설정) */
-.data-table th:nth-child(6) { width: auto; }   /* 일감 (남은 공간 모두 차지) */
-.data-table th:nth-child(7) { width: auto; }   /* 내용 */
-.data-table th:nth-child(8) { width: 10%; }   /* 시간 */
-.data-table th:nth-child(9) { width: 10%; }   /* 관리 */
 
 /* =========================반응형 ========================= */
 @media ( max-width : 900px) {

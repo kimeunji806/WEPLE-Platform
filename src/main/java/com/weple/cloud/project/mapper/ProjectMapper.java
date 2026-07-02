@@ -54,4 +54,22 @@ public interface ProjectMapper {
 	// URL 접근 제어 - 모듈 활성화 여부
 	public int isModuleActive(@Param("projectId") Long projectId,
 							  @Param("moduleName") String moduleName);
+	
+	public List<String> selectProjectPermissionCodes(
+		    @Param("userCode") String userCode,
+		    @Param("projectId") Long projectId);
+
+	public boolean isMember(
+		    @Param("userCode") String userCode,
+		    @Param("projectId") Long projectId);
+
+	public List<ProjectVO> selectAllByMember(
+		    @Param("userCode") String userCode,
+		    @Param("keyword") String keyword,
+		    @Param("offset") int offset,
+		    @Param("pageSize") int pageSize);
+
+	public int countAllByMember(
+		    @Param("userCode") String userCode,
+		    @Param("keyword") String keyword);
 }

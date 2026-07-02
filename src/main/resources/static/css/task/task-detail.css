@@ -624,3 +624,229 @@
     background: #dc2626 !important;
     border-color: #dc2626 !important;
 }
+
+.trm-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, .45);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 9999;
+}
+.trm-box {
+	background: #fff;
+	border-radius: 10px;
+	width: 480px;
+	max-width: 95vw;
+	max-height: 90vh;
+	overflow-y: auto;
+	box-shadow: 0 12px 40px rgba(0, 0, 0, .18);
+}
+.trm-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 18px 24px;
+	border-bottom: 1px solid #e2e8f0;
+	background: #f8fafc;
+	position: sticky;
+	top: 0;
+}
+.trm-title {
+	font-size: 16px;
+	font-weight: 700;
+	color: #1a1a2e;
+}
+.trm-close {
+	background: none;
+	border: none;
+	font-size: 18px;
+	color: #94a3b8;
+	cursor: pointer;
+}
+.trm-close:hover {
+	color: #475569;
+}
+.trm-summary {
+	background: #F1EDFF;
+	border-left: 3px solid #6D5EF7;
+	margin: 20px 24px 8px;
+	padding: 12px 14px;
+	border-radius: 0 6px 6px 0;
+}
+.trm-summary-row {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 4px;
+	font-size: 13px;
+}
+.trm-summary-row:last-child {
+	margin-bottom: 0;
+}
+.trm-s-label {
+	color: #94a3b8;
+	font-weight: 600;
+	min-width: 36px;
+}
+.trm-s-value {
+	color: #1e293b;
+}
+.trm-field {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 10px 24px;
+	border-bottom: 1px solid #f1f5f9;
+}
+.trm-field label {
+	width: 90px;
+	font-weight: 600;
+	color: #475569;
+	font-size: 13px;
+	flex-shrink: 0;
+}
+.trm-field input[type="date"], .trm-field input[type="number"], .trm-field select {
+	flex: 1;
+	height: 36px;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	padding: 0 10px;
+	font-size: 14px;
+	outline: none;
+}
+.trm-field input:focus, .trm-field select:focus {
+	border-color: #6D5EF7;
+}
+.trm-req {
+	color: #ef4444;
+}
+.trm-field-user {
+	position: relative;
+}
+.trm-user-search-wrap {
+	flex: 1;
+	position: relative;
+}
+.trm-user-search-wrap input[type="text"] {
+	width: 100%;
+	height: 36px;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	padding: 0 10px;
+	font-size: 14px;
+	outline: none;
+}
+.trm-user-search-wrap input[type="text"]:focus {
+	border-color: #6D5EF7;
+}
+.trm-user-dropdown {
+	display: none;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	background: #fff;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+	max-height: 180px;
+	overflow-y: auto;
+	z-index: 10000;
+	list-style: none;
+	margin: 4px 0 0;
+	padding: 4px 0;
+}
+.trm-user-dropdown li {
+	padding: 9px 12px;
+	cursor: pointer;
+	font-size: 14px;
+	color: #333;
+}
+.trm-user-dropdown li:hover {
+	background: #F1EDFF;
+	color: #6D5EF7;
+}
+.trm-progress-wrap {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.trm-progress-wrap input[type="range"] {
+	flex: 1;
+	accent-color: #6D5EF7;
+}
+.trm-progress-text {
+	width: 38px;
+	font-weight: 700;
+	color: #6D5EF7;
+	text-align: right;
+}
+.trm-field-textarea {
+	align-items: flex-start;
+	padding-top: 12px;
+}
+.trm-field-textarea label {
+	padding-top: 6px;
+}
+.trm-field textarea {
+	flex: 1;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	padding: 8px 10px;
+	font-size: 14px;
+	font-family: inherit;
+	outline: none;
+	resize: vertical;
+	min-height: 72px;
+	line-height: 1.5;
+}
+.trm-field textarea:focus {
+	border-color: #6D5EF7;
+}
+.trm-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	padding: 16px 24px;
+	background: #f8fafc;
+	border-top: 1px solid #e2e8f0;
+}
+.trm-btn-cancel {
+	height: 38px;
+	padding: 0 22px;
+	background: #fff;
+	border: 1px solid #d1d5db;
+	border-radius: 6px;
+	font-size: 14px;
+	cursor: pointer;
+}
+.trm-btn-cancel:hover {
+	background: #f1f5f9;
+}
+.trm-btn-submit {
+	height: 38px;
+	padding: 0 28px;
+	background: #6D5EF7;
+	color: #fff;
+	border: none;
+	border-radius: 6px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+}
+.trm-btn-submit:hover {
+	background: #5B4FEA;
+}
+.trm-static-user {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+}
+.trm-progress-wrap input[type="range"].trm-progress-locked {
+    opacity: .5;
+    cursor: not-allowed;
+    accent-color: #94a3b8;
+}

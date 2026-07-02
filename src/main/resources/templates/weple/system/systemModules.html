@@ -18,8 +18,14 @@
             <form id="moduleSettingForm" method="post" th:action="@{/system/systemModules}">
 
                 <div class="form-group-row">
-                    <label class="form-label">새 프로젝트에 항상 포함할 모듈</label>
-                    <div class="module-box-container">
+                    <div class="module-label-row">
+                        <label class="form-label">새 프로젝트에 항상 포함할 모듈</label>
+                        <div class="module-select-controls">
+                            <button type="button" class="module-ctrl-btn" onclick="toggleAllChecks('moduleBoxContainer', true)">전체선택</button>
+                            <button type="button" class="module-ctrl-btn" onclick="toggleAllChecks('moduleBoxContainer', false)">전체해제</button>
+                        </div>
+                    </div>
+                    <div class="module-box-container" id="moduleBoxContainer">
                         <div class="module-flex-layout">
                             <div class="module-item-wrapper"
                                  th:each="module : ${moduleList}">
@@ -36,8 +42,14 @@
                 </div>
 
                 <div class="form-group-row">
-                    <label class="form-label">새 프로젝트에 추가할 일감 유형</label>
-                    <div class="module-box-container">
+                    <div class="module-label-row">
+                        <label class="form-label">새 프로젝트에 추가할 일감 유형</label>
+                        <div class="module-select-controls">
+                            <button type="button" class="module-ctrl-btn" onclick="toggleAllChecks('taskTypeBoxContainer', true)">전체선택</button>
+                            <button type="button" class="module-ctrl-btn" onclick="toggleAllChecks('taskTypeBoxContainer', false)">전체해제</button>
+                        </div>
+                    </div>
+                    <div class="module-box-container" id="taskTypeBoxContainer">
                         <div class="module-flex-layout">
                             <div class="module-item-wrapper"
                                  th:each="type : ${taskTypeList}">
@@ -69,6 +81,15 @@ document.getElementById('moduleSettingForm').addEventListener('submit', function
     isSubmitting = true;
     document.querySelector('.btn-submit').disabled = true;
 });
+
+// 전체선택 / 전체해제
+function toggleAllChecks(containerId, checked) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.querySelectorAll('input[type="checkbox"]').forEach(function (chk) {
+        chk.checked = checked;
+    });
+}
 
 // 취소 버튼: 토스트 띄우고 약간의 딜레이 후 이동
 document.getElementById('cancelBtn').addEventListener('click', function () {

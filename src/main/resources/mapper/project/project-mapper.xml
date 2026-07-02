@@ -186,4 +186,54 @@
 		  AND module_name = #{moduleName}
 		  AND is_active   = 'Y'
 	</select>
+	
+	<!-- 프로젝트별 권한 코드 조회 -->
+	<select id="selectProjectPermissionCodes" resultType="string">
+	    SELECT DISTINCT rp.permission_code
+	    FROM members m
+	    JOIN member_roles mr ON m.member_id = mr.member_id
+	    JOIN role_permissions rp ON mr.role_id = rp.role_id
+	    WHERE m.user_code = #{userCode}
+	      AND m.project_id = #{projectId}
+	</select>
+	
+	<!-- 멤버십 여부 확인 -->
+	<select id="isMember" resultType="boolean">
+	    SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+	    FROM members
+	    WHERE user_code = #{userCode}
+	      AND project_id = #{projectId}
+	</select>
+	
+	<!-- 참여 중인 프로젝트 목록 (일반 사용자용) -->
+	<select id="selectAllByMember" resultType="com.weple.cloud.project.service.ProjectVO">
+	    SELECT *
+	    FROM (
+	        SELECT p.project_id    AS projectId,
+	               p.project_title AS projectTitle,
+	               p.status,
+	               p.created_at    AS createdAt,
+	               ROWNUM AS rn
+	        FROM project p
+	        JOIN members m ON p.project_id = m.project_id
+	        WHERE m.user_code = #{userCode}
+	        <if test="keyword != null and keyword != ''">
+	            AND p.project_title LIKE '%' || #{keyword} || '%'
+	        </if>
+	        ORDER BY p.project_id DESC
+	    )
+	    WHERE rn &gt; #{offset}
+	      AND rn &lt;= #{offset} + #{pageSize}
+	</select>
+	
+	<!-- 참여 중인 프로젝트 수 (일반 사용자용) -->
+	<select id="countAllByMember" resultType="int">
+	    SELECT COUNT(*)
+	    FROM project p
+	    JOIN members m ON p.project_id = m.project_id
+	    WHERE m.user_code = #{userCode}
+	    <if test="keyword != null and keyword != ''">
+	        AND p.project_title LIKE '%' || #{keyword} || '%'
+	    </if>
+	</select>
 </mapper>

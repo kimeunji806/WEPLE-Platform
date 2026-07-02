@@ -106,7 +106,7 @@
 			</div>
 			
 			<div style="display: flex; justify-content: flex-end; gap: 10px;">
-				<button type="button" th:onclick="|location.href='@{/project/milestone(projectId=${projectId})}'|" class="btn-insert-cancel">취소</button>
+				<button type="button" th:onclick="|location.href='@{/project/milestone/detail(projectId=${projectId}, milestoneId=${milestone.milestoneId})}'|" class="btn-insert-cancel">취소</button>
 				<button type="submit" class="btn-insert-submit">수정 완료</button>
 			</div>
 		</form>

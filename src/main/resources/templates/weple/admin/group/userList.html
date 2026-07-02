@@ -5,8 +5,6 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="stylesheet"
-	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 <link rel="stylesheet" th:href="@{/css/groupList.css}" />
 <title>그룹 사용자 관리</title>
 </head>
@@ -60,7 +58,13 @@
 					</tbody>
 				</table>
 
-				<div class="pagination-wrap" id="paginationWrap"></div>
+				<div class="bottom-area">
+					<div class="pagination-wrap" id="paginationWrap"></div>
+					<button type="button" class="back-to-group-btn"
+						th:onclick="|location.href='@{/groupList}'|">
+						<i class="fa-solid fa-arrow-left"></i> 그룹 목록으로
+					</button>
+				</div>
 			</div>
 		</div>
 
@@ -285,12 +289,21 @@
 }
 
 /* [4번] 이미지 매칭 페이지네이션 CSS */
+.bottom-area {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-top: 50px;
+	width: 100%;
+	min-height: 32px;
+}
+
 .pagination-wrap {
 	display: flex !important;
 	justify-content: center;
 	align-items: center;
 	gap: 16px;
-	margin-top: 50px;
 	width: 100%;
 }
 
@@ -332,6 +345,36 @@
 	color: #5747E6;
 }
 
+/* 그룹 목록으로 돌아가는 버튼 */
+.back-to-group-btn {
+	position: absolute;
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	height: 32px;
+	padding: 0 14px;
+	border: none;
+	border-radius: 5px;
+	background: #6D5EF7;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: .2s;
+}
+
+.back-to-group-btn:hover {
+	background: #5747E6;
+}
+
+.back-to-group-btn:active {
+	background: #5747E6;
+}
+
 /* 반응형 */
 @media ( max-width : 768px) {
 	.content {
@@ -350,6 +393,16 @@
 	}
 	.delete-btn {
 		padding: 6px 15px !important;
+	}
+	.bottom-area {
+		flex-direction: column;
+		gap: 16px;
+	}
+	.back-to-group-btn {
+		position: static;
+		transform: none;
+		width: 100%;
+		justify-content: center;
 	}
 }
 </style>

@@ -25,10 +25,6 @@
                th:class="${menu == 'taskType'} ? 'active' : ''">일감 유형</a>
         </li>
         <li>
-            <a th:href="@{/issueStatusList}" 
-               th:class="${menu == 'issueStatus'} ? 'active' : ''">일감 상태</a>
-        </li>
-        <li>
             <a th:href="@{/codeValueList}" 
                th:class="${menu == 'codeValue'} ? 'active' : ''">코드값</a>
         </li>
@@ -36,9 +32,9 @@
             <a th:href="@{/approvalList}" 
                th:class="${menu == 'approval'} ? 'active' : ''">가입승인</a>
         </li>
-        <li>
+        <li th:if="${isCompanyOwner}">
 		    <a th:href="@{/system/systemModules}" 
-			   th:class="${menu == 'setting'} ? 'active' : ''">설정</a>
+		       th:class="${menu == 'setting'} ? 'active' : ''">설정</a>
 		</li>
         
 

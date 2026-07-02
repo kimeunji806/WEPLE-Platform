@@ -92,9 +92,17 @@ public class ProjectFileController {
 	// 삭제
 	@GetMapping("/deleteProjectFile")
 	public String deleteProjectFile(@PathVariable String projectId, String fileId) {
-		projectFileService.removeProjectFileVersionByFileId(fileId);
-		projectFileService.removeProjectFile(fileId);
-		return "redirect:/project/" + projectId + "/file";
+		try {
+			// file_download_history가 file_versions를 참조하고 있어서, 버전을 지우기 전에
+			// 그 버전들에 걸린 다운로드 이력부터 먼저 지워야 FK 제약에 안 걸림
+			projectFileService.removeDownloadHistoryByFileId(fileId);
+			projectFileService.removeProjectFileVersionByFileId(fileId);
+			projectFileService.removeProjectFile(fileId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "redirect:/project/" + projectId + "/file?error=delete_failed";
+		}
+		return "redirect:/project/" + projectId + "/file?deleted=1";
 	}
 	
 	// -------------------------------파일 버전------------------------------
@@ -137,7 +145,6 @@ public class ProjectFileController {
     public String projectFileUpload(@PathVariable String projectId,
                                      @RequestParam("file") MultipartFile file,
                                      @RequestParam(value = "taskId", required = false) String taskId,
-                                     @RequestParam(value = "tag", required = false) String tag,
                                      @AuthenticationPrincipal LoginUserDetails loginUser) {
 
         String originalName = file.getOriginalFilename();
@@ -153,27 +160,40 @@ public class ProjectFileController {
         LoginUserVO user = loginUser.getLoginUser();
         String uploaderCode = user.getUserCode();
 
-        ProjectFileVO fileVO = new ProjectFileVO();
-        fileVO.setTaskId(taskId);
-        fileVO.setLogicalName(originalName);
-        fileVO.setIsDeleted("N");
-        fileVO.setProjectId(Long.valueOf(projectId));
-        // createdAt은 매퍼에서 SYSDATE로 채우니 안 넣어도 됨
+        Long pId = Long.valueOf(projectId);
 
-        String fileId = projectFileService.addProjectFile(fileVO);
+        // 같은 프로젝트 + 같은 일감(또는 둘 다 일감 미연결) 안에 동일한 파일명이 이미 있으면
+        // 새 파일을 만들지 않고 기존 파일에 새 버전만 추가한다.
+        // 일감이 다르면(혹은 한쪽만 일감에 연결돼 있으면) 파일명이 같아도 별도 파일로 취급한다.
+        String fileId = projectFileService.findProjectFileIdByName(pId, taskId, originalName);
+        long nextVersionNumber;
 
-        if ("-1".equals(fileId)) {
-            return "redirect:/project/" + projectId + "/file?error=insert_failed";
+        if (fileId == null) {
+            ProjectFileVO fileVO = new ProjectFileVO();
+            fileVO.setTaskId(taskId);
+            fileVO.setLogicalName(originalName);
+            fileVO.setIsDeleted("N");
+            fileVO.setProjectId(pId);
+            // createdAt은 매퍼에서 SYSDATE로 채우니 안 넣어도 됨
+
+            fileId = projectFileService.addProjectFile(fileVO);
+
+            if ("-1".equals(fileId)) {
+                return "redirect:/project/" + projectId + "/file?error=insert_failed";
+            }
+            nextVersionNumber = 1;
+        } else {
+            Long maxVersion = projectFileService.findMaxVersionNumber(fileId);
+            nextVersionNumber = (maxVersion == null ? 0 : maxVersion) + 1;
         }
 
         ProjectFileVersionsVO versionVO = new ProjectFileVersionsVO();
         versionVO.setFileId(fileId);
-        versionVO.setVersionNumber(1);
+        versionVO.setVersionNumber(nextVersionNumber);
         versionVO.setSavedName(savedName);       // S3 키 그대로 저장 (로컬 경로 X)
         versionVO.setFilePath(null);             // 더 이상 로컬 경로 안 씀, null로 두거나 컬럼 자체를 비워도 됨
         versionVO.setFileSize(file.getSize());
         versionVO.setUploader(uploaderCode);
-        versionVO.setHashtag(tag);
         // uploadedAt도 매퍼에서 SYSDATE로 채움
 
         projectFileService.addProjectFileVersion(versionVO);

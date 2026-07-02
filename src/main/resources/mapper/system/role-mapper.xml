@@ -77,4 +77,15 @@
 		FROM roles
 		WHERE role_id = #{roleId}
 	</delete>
+	
+	<select id="selectRoleIdByName" resultType="long">
+	    SELECT role_id FROM (
+	        SELECT role_id
+	        FROM roles
+	        WHERE company_id = #{companyId}
+	          AND role_name = #{roleName}
+	        ORDER BY role_id
+	    )
+	    WHERE ROWNUM = 1
+	</select>
 </mapper>

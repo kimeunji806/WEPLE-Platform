@@ -72,4 +72,9 @@ public class RoleServiceImpl implements RoleService {
 		roleMapper.deleteRolePermissions(roleId); // 매핑 먼저 삭제
 		return roleMapper.deleteRole(roleId);
 	}
+
+	@Override
+	public Long selectRoleIdByName(Long companyId, String roleName) {
+		return roleMapper.selectRoleIdByName(companyId, roleName);
+	}
 }

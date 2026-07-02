@@ -18,11 +18,6 @@ public class NotificationPreferenceVO {
 
     private String userCode;
 
-    // 이메일 알림 발송 대상 주소
-    private String email;
-
     // "all"/"mine"/"mention" (마이페이지 알림 수신 범위 설정)
     private String notificationArea;
-
-    private String emailNotificationYn;
 }

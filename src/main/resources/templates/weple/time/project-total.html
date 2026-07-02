@@ -101,7 +101,7 @@
 								<td th:text="${time.taskTitle}">일감</td>
 								<td th:text="${time.spentContent}">내용</td>
 								<td class="time" th:text="${time.spentHour} + ':00'">시간</td>
-								<td style="position: relative; text-align: center;"
+								<td style="position: relative; text-align: left;"
 									onclick="event.stopPropagation();">
 									<div class="dropdown-wrapper">
 										<span class="more-options-btn" onclick="toggleDropdown(this)">•••</span>
@@ -163,7 +163,8 @@
 	        const a = document.createElement("a");
 	        a.href = "#";
 	        a.innerText = i;
-	        a.style.cssText = "display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:4px; text-decoration:none; color:#666;";
+	        const textColor = (i === currentPage) ? "#ffffff" : "#666";
+	        a.style.cssText = `display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:4px; text-decoration:none; color:${textColor};`;
 	        if (i === currentPage) a.className = "active";
 	        a.onclick = (e) => { e.preventDefault(); showPage(i); };
 	        numberSpan.appendChild(a);
@@ -424,13 +425,13 @@
 }
 
 .data-table thead {
-	background: #f7f8fa;
+	background: #F1EDFF;
 }
 
 .data-table th, .data-table td {
 	padding: 12px 8px;
 	border-bottom: 1px solid #e2e8f0;
-	text-align: center;
+	text-align: left;
 	vertical-align: middle;
 }
 
@@ -443,7 +444,8 @@
 
 .data-table th:nth-child(7), .data-table td:nth-child(7), .data-table th:nth-child(8),
 	.data-table td:nth-child(8) {
-	text-align: center;
+	text-align: left;
+	padding-left: 15px;
 }
 
 .data-table th:nth-child(1), .data-table td:nth-child(1) {
@@ -609,7 +611,7 @@
 	justify-content: center;
 	align-items: center;
 	text-decoration: none;
-	color: #666;
+	color: #fff;
 	border-radius: 4px;
 }
 

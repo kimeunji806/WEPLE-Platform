@@ -1,16 +1,25 @@
 package com.weple.cloud.wiki.web;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.weple.cloud.auth.service.LoginUserDetails;
 import com.weple.cloud.project.service.ProjectService;
-import com.weple.cloud.wiki.service.*;
+import com.weple.cloud.wiki.service.WikiHistoryVO;
+import com.weple.cloud.wiki.service.WikiPageVO;
+import com.weple.cloud.wiki.service.WikiRelationVO;
+import com.weple.cloud.wiki.service.WikiService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,10 +29,12 @@ public class WikiController {
 
     private final WikiService    wikiService;
     private final ProjectService projectService;
+    private static final String PERM_WIKI_VIEW   = "k6_view";
+    private static final String PERM_WIKI_LOG    = "k6_log";
+    private static final String PERM_WIKI_EDIT   = "k6_edit";
+    private static final String PERM_WIKI_DELETE = "k6_delete";
 
-    // ════════════════════════════════════════════════════════
     //  공통 model 세팅
-    // ════════════════════════════════════════════════════════
     private void setCommonModel(Model model, Long projectId) {
         model.addAttribute("project",     projectService.findById(String.valueOf(projectId)));
         model.addAttribute("moduleNames", projectService.findActiveModuleNames(projectId));
@@ -31,16 +42,40 @@ public class WikiController {
         model.addAttribute("currentMenu", "wiki");
         model.addAttribute("projectId",   projectId);
     }
+    
+    private Set<String> findWikiPermissions(LoginUserDetails loginUser, Long projectId) {
+        com.weple.cloud.auth.service.LoginUserVO user = loginUser.getLoginUser();
+        if (isCompanyManager(user)) {
+            return Set.of(PERM_WIKI_VIEW, PERM_WIKI_LOG, PERM_WIKI_EDIT, PERM_WIKI_DELETE);
+        }
+        return wikiService.findProjectPermissionCodes(user.getUserCode(), projectId);
+    }
 
-    // ════════════════════════════════════════════════════════
+    private boolean hasWikiPerm(Set<String> perms, String code) {
+        return perms != null && perms.contains(code);
+    }
+
+    private boolean isCompanyManager(com.weple.cloud.auth.service.LoginUserVO user) {
+        return Integer.valueOf(1).equals(user.getOwnerYn())
+            || Integer.valueOf(1).equals(user.getAdminYn());
+    }
+
     //  위키 조회 페이지  GET /project/wiki
-    // ════════════════════════════════════════════════════════
     @GetMapping("/project/wiki")
     public String wikiPage(
+    		@AuthenticationPrincipal LoginUserDetails loginUser,
             @RequestParam Long projectId,
             @RequestParam(required = false) String  wikiPageId,
             @RequestParam(required = false) String  keyword,
             Model model) {
+    	
+    	Set<String> perms;
+        try {
+            perms = findWikiPermissions(loginUser, projectId);
+            if (!hasWikiPerm(perms, PERM_WIKI_VIEW)) return "weple/access-denide";
+        } catch (Exception e) {
+            return "weple/access-denide";
+        }
 
         List<WikiPageVO> wikiTree = wikiService.findWikiTree(projectId);
 
@@ -75,13 +110,14 @@ public class WikiController {
         model.addAttribute("searchResult", searchResult);
         model.addAttribute("keyword",      keyword);
         model.addAttribute("isVersionView", false);
+        model.addAttribute("canEdit",    hasWikiPerm(perms, PERM_WIKI_EDIT));
+        model.addAttribute("canDelete",  hasWikiPerm(perms, PERM_WIKI_DELETE));
+        model.addAttribute("canViewLog", hasWikiPerm(perms, PERM_WIKI_LOG));
 
         return "weple/wiki/detail";
     }
 
-    // ════════════════════════════════════════════════════════
     //  특정 버전 조회  GET /project/wiki/version
-    // ════════════════════════════════════════════════════════
     @GetMapping("/project/wiki/version")
     public String wikiVersionPage(
             @RequestParam Long    projectId,
@@ -122,14 +158,20 @@ public class WikiController {
         return "weple/wiki/detail";
     }
 
-    // ════════════════════════════════════════════════════════
-    //  위키 등록 페이지  GET /project/wiki/register
-    // ════════════════════════════════════════════════════════
+    //  위키 등록 페이지
     @GetMapping("/project/wiki/register")
     public String wikiRegisterForm(
+    		@AuthenticationPrincipal LoginUserDetails loginUser,
             @RequestParam Long   projectId,
             @RequestParam(required = false) String parentPageId,
             Model model) {
+    	
+    	try {
+            Set<String> perms = findWikiPermissions(loginUser, projectId);
+            if (!hasWikiPerm(perms, PERM_WIKI_EDIT)) return "weple/access-denide";
+        } catch (Exception e) {
+            return "weple/access-denide";
+        }
 
         setCommonModel(model, projectId);
         model.addAttribute("wikiTree",     wikiService.findWikiTree(projectId));
@@ -138,10 +180,7 @@ public class WikiController {
         return "weple/wiki/register";
     }
 
-    // ════════════════════════════════════════════════════════
-    //  위키 등록 처리  POST /project/wiki/register
-    //  ★ relations JSON 파싱 후 wiki_relations 저장
-    // ════════════════════════════════════════════════════════
+    //  위키 등록 처리
     @PostMapping("/project/wiki/register")
     public String wikiRegisterProcess(
             @RequestParam Long   projectId,
@@ -162,17 +201,21 @@ public class WikiController {
         return "redirect:/project/wiki?projectId=" + projectId;
     }
 
-    // ════════════════════════════════════════════════════════
-    //  위키 수정 페이지  GET /project/wiki/modify/{wikiPageId}
-    //  ★ 편집 잠금 획득
-    // ════════════════════════════════════════════════════════
+    //  위키 수정 페이지
     @GetMapping("/project/wiki/modify/{wikiPageId}")
     public String wikiModifyForm(
             @PathVariable String wikiPageId,
             @RequestParam Long   projectId,
             Model model,
             @AuthenticationPrincipal LoginUserDetails loginUser) {
-
+    	
+    	try {
+            Set<String> perms = findWikiPermissions(loginUser, projectId);
+            if (!hasWikiPerm(perms, PERM_WIKI_EDIT)) return "weple/access-denide";
+        } catch (Exception e) {
+            return "weple/access-denide";
+        }
+    	
         WikiPageVO wiki = wikiService.findWikiById(wikiPageId);
 
         // 편집 잠금 시도
@@ -207,10 +250,7 @@ public class WikiController {
         return "weple/wiki/modify";
     }
 
-    // ════════════════════════════════════════════════════════
-    //  위키 수정 처리  POST /project/wiki/modify
-    //  ★ 저장 완료 시 잠금 해제 (서비스에서 처리)
-    // ════════════════════════════════════════════════════════
+    //  위키 수정 처리
     @PostMapping("/project/wiki/modify")
     public String wikiModifyProcess(
             @RequestParam Long projectId,
@@ -224,10 +264,7 @@ public class WikiController {
         return "redirect:/project/wiki?projectId=" + projectId + "&wikiPageId=" + vo.getWikiPageId();
     }
 
-    // ════════════════════════════════════════════════════════
-    //  유저 프로필 이미지 조회  GET /project/wiki/user/profile
-    //  빌드 없이 프로필 이미지를 JS로 가져오기 위한 API
-    // ════════════════════════════════════════════════════════
+    //  유저 프로필 이미지 조회
     @GetMapping("/project/wiki/user/profile")
     @ResponseBody
     public ResponseEntity<java.util.Map<String, String>> getUserProfile(
@@ -243,9 +280,7 @@ public class WikiController {
         }
     }
 
-    // ════════════════════════════════════════════════════════
-    //  취소 시 잠금 해제  POST /project/wiki/unlock
-    // ════════════════════════════════════════════════════════
+    //  취소 시 잠금 해제
     @PostMapping("/project/wiki/unlock")
     @ResponseBody
     public ResponseEntity<Void> unlockWiki(
@@ -256,15 +291,20 @@ public class WikiController {
         return ResponseEntity.ok().build();
     }
 
-    // ════════════════════════════════════════════════════════
-    //  위키 삭제  POST /project/wiki/delete/{wikiPageId}
+    //  위키 삭제
     //  삭제 후 상위 페이지 있으면 상위로, 없으면 목록으로 이동
-    // ════════════════════════════════════════════════════════
     @PostMapping("/project/wiki/delete/{wikiPageId}")
     public String wikiDelete(
             @PathVariable String wikiPageId,
             @RequestParam Long   projectId,
             @AuthenticationPrincipal LoginUserDetails loginUser) {
+    	
+    	try {
+            Set<String> perms = findWikiPermissions(loginUser, projectId);
+            if (!hasWikiPerm(perms, PERM_WIKI_DELETE)) return "weple/access-denide";
+        } catch (Exception e) {
+            return "weple/access-denide";
+        }
 
         // 삭제 전 상위 페이지 ID 저장
         WikiPageVO wiki = wikiService.findWikiById(wikiPageId);
@@ -282,9 +322,7 @@ public class WikiController {
         return "redirect:/project/wiki?projectId=" + projectId;
     }
 
-    // ════════════════════════════════════════════════════════
-    //  특정 버전 조회 (AJAX)  GET /project/wiki/history
-    // ════════════════════════════════════════════════════════
+    //  특정 버전 조회 (AJAX)
     @GetMapping("/project/wiki/history")
     @ResponseBody
     public ResponseEntity<WikiHistoryVO> getHistoryVersion(
@@ -295,9 +333,7 @@ public class WikiController {
         return history == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(history);
     }
 
-    // ════════════════════════════════════════════════════════
-    //  해시태그 자동완성  GET /project/wiki/hashtag/search
-    // ════════════════════════════════════════════════════════
+    //  해시태그 자동완성
     @GetMapping("/project/wiki/hashtag/search")
     @ResponseBody
     public ResponseEntity<List<WikiRelationVO>> hashtagSearch(
@@ -309,10 +345,7 @@ public class WikiController {
         return ResponseEntity.ok(result);
     }
 
-    // ════════════════════════════════════════════════════════
-    //  연관문서 추가  POST /project/wiki/relation/add
-    //  @RequestBody + CSRF 이슈 방지: 파라미터 방식으로 수신
-    // ════════════════════════════════════════════════════════
+    //  연관문서 추가  POST
     @PostMapping("/project/wiki/relation/add")
     @ResponseBody
     public ResponseEntity<String> addRelation(
@@ -344,9 +377,7 @@ public class WikiController {
         }
     }
 
-    // ════════════════════════════════════════════════════════
-    //  연관문서 삭제  DELETE /project/wiki/relation/{id}
-    // ════════════════════════════════════════════════════════
+    //  연관문서 삭제
     @DeleteMapping("/project/wiki/relation/{wikiRelationId}")
     @ResponseBody
     public ResponseEntity<Void> removeRelation(@PathVariable Long wikiRelationId) {

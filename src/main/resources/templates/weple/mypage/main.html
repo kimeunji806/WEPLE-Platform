@@ -62,52 +62,40 @@
                 </label>
             </div>
 
-            <div class="mypage-notice-row">
-                <div>
-                    <strong>이메일 알림 수신 연동</strong>
-                    <p th:text="'등록된 이메일 계정(' + ${myPage.email} + ')으로 알림을 수신합니다.'">
-                        등록된 이메일 계정으로 알림을 수신합니다.
-                    </p>
-                </div>
-                <label class="mypage-status-switch">
-                    <input type="hidden" name="emailNotificationYn" value="N">
-                    <input type="checkbox" name="emailNotificationYn" value="Y"
-                           th:checked="${myPage.emailNotificationYn == 'Y'}">
-                    <span></span>
-                </label>
-            </div>
-
             <div class="mypage-scope-block">
                 <strong>알림 수신 범위 설정</strong>
                 <p>어떤 조건의 업무 알림을 받을지 범위를 선택합니다.</p>
 
-                <div class="mypage-notice-options">
-                    <label>
-                        <input type="radio" name="notificationArea" value="all"
-                               th:checked="${myPage.notificationArea == 'all'}">
-                        <span>전체 알림 수신</span>
-                        <small>(배정 일감, 참여 일감 댓글/파일, 프로젝트 초대 전체)</small>
-                    </label>
-
-                    <label>
-                        <input type="radio" name="notificationArea" value="mine"
-                               th:checked="${myPage.notificationArea == 'mine'}">
-                        <span>나에게 배정된 일감만 수신</span>
-                        <small>(본인이 담당자 혹은 지정된 일감 변경 건)</small>
-                    </label>
-
-                    <label>
-                        <input type="radio" name="notificationArea" value="mention"
-                               th:checked="${myPage.notificationArea == 'mention'}">
-                        <span>초대만 수신</span>
-                        <small>(프로젝트 참여 초대만)</small>
-                    </label>
-                </div>
+                <!-- 수정: 저장된 값이 셋 중 어디에도 안 맞으면(널/이상값 포함) 무조건 'all'을 기본값으로 취급 -->
+				<div class="mypage-notice-options"
+				     th:with="notifArea=${(myPage.notificationArea == 'all' or myPage.notificationArea == 'mine' or myPage.notificationArea == 'mention') ? myPage.notificationArea : 'all'}">
+				    <label>
+				        <input type="radio" name="notificationArea" value="all"
+				               th:checked="${notifArea == 'all'}">
+				        <span>전체 알림 수신</span>
+				        <small>(배정 일감, 참여 일감 댓글/파일, 프로젝트 초대 전체)</small>
+				    </label>
+				
+				    <label>
+				        <input type="radio" name="notificationArea" value="mine"
+				               th:checked="${notifArea == 'mine'}">
+				        <span>나에게 배정된 일감만 수신</span>
+				        <small>(본인이 담당자 혹은 지정된 일감 변경 건)</small>
+				    </label>
+				
+				    <label>
+				        <input type="radio" name="notificationArea" value="mention"
+				               th:checked="${notifArea == 'mention'}">
+				        <span>초대만 수신</span>
+				        <small>(프로젝트 참여 초대만)</small>
+				    </label>
+				</div>
             </div>
 
             <div class="mypage-form-actions">
-                <button class="mypage-submit-button" type="submit">등록</button>
-            </div>
+			    <a class="mypage-cancel-button" th:href="@{/mypage}">취소</a>
+			    <button class="mypage-submit-button" type="submit">저장</button>
+			</div>
         </form>
     </div>
 </section>

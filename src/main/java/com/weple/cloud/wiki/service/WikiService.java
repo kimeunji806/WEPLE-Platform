@@ -1,6 +1,7 @@
 package com.weple.cloud.wiki.service;
 
 import java.util.List;
+import java.util.Set;
 
 public interface WikiService {
 
@@ -33,4 +34,7 @@ public interface WikiService {
 
     // 해시태그 자동완성 검색
     List<WikiRelationVO> searchByHashtag(Long projectId, String keyword, String type);
+    
+    // 프로젝트별 권한 코드 조회 (위키 권한 체크용)
+    Set<String> findProjectPermissionCodes(String userCode, Long projectId);
 }

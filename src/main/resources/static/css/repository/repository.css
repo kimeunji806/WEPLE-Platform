@@ -48,7 +48,7 @@
 .repository-empty { height: 100px !important; color: #8493a8 !important; text-align: center !important; }.repository-empty-detail { padding: 54px 0; text-align: center; }.repository-empty-detail p { color: #8493a8; font-size: 14px; }.repository-empty-detail a { color: #6D5EF7; font-size: 13px; font-weight: 600; text-decoration: none; }
 .repository-table th { height: 42px; background: #FAFAFC; color: #596b86; font-size: 12px; font-weight: 700; }.repository-table tbody tr:last-child td { border-bottom: 0; }
 .repository-name { display: inline-flex; align-items: center; gap: 9px; color: #334155; font-weight: 700; text-decoration: none; }.repository-name i { color: #1f2937; font-size: 15px; }.repository-url { color: #6D5EF7; font-size: 12px; text-decoration: none; }.repository-url span { color: #64748b; }.repository-badge { padding: 3px 7px; border-radius: 4px; background: #F1EDFF; color: #6D5EF7; font-size: 11px; font-weight: 700; }
-.repository-commit-link { color: #4a5568; text-decoration: none; }.repository-commit-link:hover { color: #6D5EF7; text-decoration: underline; }.repository-commit-message { font-weight: 600; }.repository-commit-table tr.is-github-viewed td { color: #8793a5; background: #FAFAFC; }.repository-commit-table tr.is-github-viewed .repository-commit-message::after { content: "상세 열람"; margin-left: 8px; color: #6D5EF7; font-size: 10px; font-weight: 700; text-decoration: none; }
+.repository-commit-link { color: #4a5568; text-decoration: none; }.repository-commit-link:hover { color: #6D5EF7; text-decoration: underline; }.repository-commit-message { display: inline-block; max-width: 360px; overflow: hidden; font-weight: 600; text-overflow: ellipsis; vertical-align: middle; white-space: nowrap; }.repository-commit-table tr.is-github-viewed td { color: #8793a5; background: #FAFAFC; }.repository-commit-table tr.is-github-viewed .repository-commit-message::after { content: "상세 열람"; margin-left: 8px; color: #6D5EF7; font-size: 10px; font-weight: 700; text-decoration: none; }
 .repository-task-link,
 .repository-task-missing,
 .repository-task-empty { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border-radius: 4px; font-size: 11px; font-weight: 800; white-space: nowrap; }
@@ -209,4 +209,116 @@
     .repository-diff-summary .repository-commit-meta { grid-template-columns: 1fr; }
     .repository-commit-filter-form { grid-template-columns: 1fr; }
     .repository-commit-filter-presets { width: 100%; }
+}
+
+/* 화면 주요 박스 radius 통일용 */
+.repository-form,
+.repository-delete-dialog {
+    border-radius: 20px;
+}
+
+.repository-table-wrap,
+.repository-browser,
+.repository-commit-main,
+.repository-commit-message-block,
+.repository-commit-meta,
+.repository-commit-placeholder,
+.repository-commit-empty-state,
+.repository-commit-statbar,
+.repository-commit-diff-file,
+.repository-diff-grid section,
+.repository-diff-meta,
+.repository-commit-filter-form,
+.repository-detail-preview .repository-code {
+    border-radius: 14px;
+}
+
+.repository-message,
+.repository-form input,
+.repository-button,
+.repository-delete-dialog input,
+.repository-search,
+.repository-toolbar select,
+.repository-toolbar input,
+.repository-detail-select,
+.repository-detail-tree a,
+.repository-detail-tree .repository-tree-folder,
+.repository-commit-search,
+.repository-commit-filters button,
+.repository-commit-filter-form input,
+.repository-commit-filter-presets button,
+.repository-commit-file-link,
+.repository-commit-tree-file,
+.repository-task-link,
+.repository-task-missing,
+.repository-task-empty {
+    border-radius: 8px;
+}
+
+/* 저장소 화면 타이포 기준 통일용 */
+.repository-page {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.repository-title {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.repository-form-title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.repository-form label,
+.repository-form input,
+.repository-button,
+.repository-message,
+.repository-delete-dialog > p,
+.repository-delete-dialog input,
+.repository-list-heading p,
+.repository-diff-heading p,
+.repository-empty-detail a,
+.repository-github,
+.repository-table th,
+.repository-table td,
+.repository-commit-placeholder p,
+.repository-commit-placeholder a,
+.repository-commit-meta dd,
+.repository-diff-meta strong {
+    font-size: 13px;
+}
+
+.repository-setting-tabs a,
+.repository-search input,
+.repository-url,
+.repository-toolbar label,
+.repository-toolbar select,
+.repository-toolbar input,
+.repository-tree a,
+.repository-tree-folder,
+.repository-code-title,
+.repository-file-diff-link,
+.repository-commits-heading a,
+.repository-diff-heading > a,
+.repository-commit-path,
+.repository-commit-message-block span,
+.repository-commit-meta dt,
+.repository-commit-file-link strong,
+.repository-commit-tree-folder,
+.repository-commit-tree-file strong,
+.repository-commit-filter-form label,
+.repository-commit-filter-form input,
+.repository-detail-select,
+.repository-detail-select select {
+    font-size: 12px;
+}
+
+.repository-commits-heading h2,
+.repository-section-title h2,
+.repository-commit-placeholder h2 {
+    font-size: 16px;
+    font-weight: 700;
 }

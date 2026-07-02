@@ -131,81 +131,85 @@
 
     var MAX_VISIBLE_TOASTS = 4;
 
-    function showToast(alarm) {
-        // 토스트가 너무 많이 쌓이지 않도록 오래된 것부터 정리
-        while (toastContainer.children.length >= MAX_VISIBLE_TOASTS) {
-            toastContainer.removeChild(toastContainer.firstElementChild);
-        }
+	function showToast(alarm) {
+	    // 토스트가 너무 많이 쌓이지 않도록 오래된 것부터 정리 (맨 아래 = 가장 오래된 것)
+	    while (toastContainer.children.length >= MAX_VISIBLE_TOASTS) {
+	        toastContainer.removeChild(toastContainer.lastElementChild);
+	    }
 
-        var tag = alarm.alarmTag || '알림';
-        var tagStyle = TOAST_TAG_COLORS[tag] || { border: '#6D5EF7', color: '#6D5EF7' };
+	    var tag = alarm.alarmTag || '알림';
+	    var tagStyle = TOAST_TAG_COLORS[tag] || { border: '#6D5EF7', color: '#6D5EF7' };
 
-        var toast = document.createElement('div');
-        toast.className = 'notif-toast';
-        toast.style.borderLeftColor = tagStyle.border;
-        toast.innerHTML =
-            '<div class="notif-toast-header">' +
-                '<span class="notif-toast-tag" style="color:' + tagStyle.color + '">' + tag + '</span>' +
-                '<button type="button" class="notif-toast-close" aria-label="닫기">&times;</button>' +
-            '</div>' +
-            '<div class="notif-toast-content"></div>' +
-            '<div class="notif-toast-time"></div>';
+	    var toast = document.createElement('div');
+	    toast.className = 'notif-toast';
+	    toast.style.borderLeftColor = tagStyle.border;
+	    toast.innerHTML =
+	        '<div class="notif-toast-header">' +
+	            '<span class="notif-toast-tag" style="color:' + tagStyle.color + '">' + tag + '</span>' +
+	            '<button type="button" class="notif-toast-close" aria-label="닫기">&times;</button>' +
+	        '</div>' +
+	        '<div class="notif-toast-content"></div>' +
+	        '<div class="notif-toast-time"></div>';
 
-        // alarmContent는 서버(AlarmTextUtil)에서 <strong> 강조 태그만 포함하도록
-        // 생성되며, 사용자 입력값(일감명 등)은 서버단에서 이미 HTML 이스케이프 처리되어 있음
-        toast.querySelector('.notif-toast-content').innerHTML = alarm.alarmContent || '';
-        toast.querySelector('.notif-toast-time').textContent = alarm.relativeTime || '방금 전';
+	    toast.querySelector('.notif-toast-content').innerHTML = alarm.alarmContent || '';
+	    toast.querySelector('.notif-toast-time').textContent = alarm.relativeTime || '방금 전';
 
-        toast.addEventListener('click', function (e) {
-            if (e.target.classList.contains('notif-toast-close')) {
-                e.stopPropagation();
-                toast.remove();
-                return;
-            }
-            window.location.href = '/notification/' + alarm.alarmId + '/go';
-        });
+	    toast.addEventListener('click', function (e) {
+	        if (e.target.classList.contains('notif-toast-close')) {
+	            e.stopPropagation();
+	            toast.remove();
+	            return;
+	        }
+	        window.location.href = '/notification/' + alarm.alarmId + '/go';
+	    });
 
-        toastContainer.appendChild(toast);
+	    // 최신 알림이 맨 위로 쌓이도록 컨테이너 맨 앞에 삽입 (컨테이너는 화면 하단 고정 + column 방향이라
+	    // 맨 앞(첫 자식)이 시각적으로 가장 위에 위치함)
+	    toastContainer.insertBefore(toast, toastContainer.firstChild);
 
-        setTimeout(function () {
-            if (toast.parentNode) toast.remove();
-        }, TOAST_AUTO_CLOSE_MS);
-    }
+	    setTimeout(function () {
+	        if (toast.parentNode) toast.remove();
+	    }, TOAST_AUTO_CLOSE_MS);
+	}
 
-    function poll() {
-        fetch('/notification/latest')
-            .then(function (res) {
-                if (!res.ok) throw new Error('poll failed');
-                return res.json();
-            })
-            .then(function (data) {
-                updateBadge(data.unreadCount);
+	function poll() {
+	    fetch('/notification/latest')
+	        .then(function (res) {
+	            if (!res.ok) throw new Error('poll failed');
+	            return res.json();
+	        })
+	        .then(function (data) {
+	            updateBadge(data.unreadCount);
 
-                if (!data.latest) {
-                    return;
-                }
+	            var list = data.latestList || [];
+	            if (!list.length) return;
 
-                var alarmId = data.latest.alarmId;
+	            var lastSeen = getLastSeenAlarmId();
+	            var newestId = list[0].alarmId;
 
-                // 이미 토스트로 보여줬거나 확인한 알림이면 다시 띄우지 않음 (다른 페이지로 이동해도 유지됨)
-                if (alarmId === getLastSeenAlarmId()) {
-                    return;
-                }
-                setLastSeenAlarmId(alarmId);
+	            // list는 최신순(0=가장 최근)으로 오므로, 아직 안 본 것만 골라서
+	            // 오래된 것부터 순서대로 토스트를 띄워야 최종적으로 가장 최근 알림이 맨 위에 남는다.
+	            var unseen = list.filter(function (a) {
+	                return lastSeen === null || a.alarmId > lastSeen;
+	            });
 
-                // 새 알림 감지 시 popover 캐시 무효화 (다음에 종 클릭하면 최신 목록으로 갱신됨)
-                try { sessionStorage.removeItem(POPOVER_CACHE_KEY); } catch (e) {}
+	            if (unseen.length) {
+	                // 팝오버 캐시 무효화 (다음에 종 클릭하면 최신 목록으로 갱신됨)
+	                try { sessionStorage.removeItem(POPOVER_CACHE_KEY); } catch (e) {}
 
-                // 페이지 진입/리다이렉트 시점과 무관하게, 발생한 지 얼마 안 된(신선한) 알림이면 토스트 표시.
-                // 오래된 알림(예: 페이지를 새로 열었는데 한참 전 알림이 최신인 경우)은 토스트를 띄우지 않음
-                if (isFresh(data.latest.alarmDate)) {
-                    showToast(data.latest);
-                }
-            })
-            .catch(function () {
-                // 폴링 실패는 조용히 무시 (다음 주기에 재시도)
-            });
-    }
+	                unseen.slice().reverse().forEach(function (alarm) {
+	                    if (isFresh(alarm.alarmDate)) {
+	                        showToast(alarm);
+	                    }
+	                });
+	            }
+
+	            setLastSeenAlarmId(newestId);
+	        })
+	        .catch(function () {
+	            // 폴링 실패는 조용히 무시 (다음 주기에 재시도)
+	        });
+	}
 
     function isFresh(alarmDateStr) {
         if (!alarmDateStr) return false;

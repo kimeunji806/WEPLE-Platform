@@ -31,6 +31,11 @@
     min-height: calc(100vh - 160px);
 }
 
+/* 선택된 위키가 없을 때: 우측 카드가 없으므로 2열로 전환 */
+.wiki-layout.wiki-layout-empty {
+    grid-template-columns: 260px minmax(0, 1fr);
+}
+
 /* ── 공통 카드 박스 ── */
 .wiki-sidebar,
 .wiki-content-wrap,
@@ -90,40 +95,60 @@
 .wiki-tree-wrap { flex: 1; overflow-y: auto; padding: 4px 0; }
 .wiki-tree      { list-style: none; padding: 0; margin: 0; }
 .wiki-tree li   { position: relative; }
+.wiki-tree-children { list-style: none; padding: 0; margin: 0; }
+.wiki-tree-children.collapsed { display: none; }
 
-/* 루트 노드 */
-.wiki-tree > li > a {
-    display: flex; align-items: center;
-    padding: 7px 14px;
+/* 행(토글 버튼 + 링크)을 감싸는 컨테이너. depth별 padding-left는 th:style 인라인으로 들어옴 */
+.wiki-tree-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding-right: 14px;
+}
+
+/* 펼치기/접기 버튼 */
+.wiki-tree-toggle {
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    flex-shrink: 0;
+    width: 16px; height: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: none; background: transparent; cursor: pointer;
+    font-size: 9px; line-height: 1; color: #9ca3af;
+    padding: 0; margin: 0;
+    font-family: inherit;
+    vertical-align: top;
+    transition: transform .15s, color .15s;
+}
+.wiki-tree-toggle:hover { color: #6D5EF7; }
+.wiki-tree-toggle.collapsed { transform: rotate(-90deg); }
+/* 자식 없는 노드용 자리맞춤 스페이서 (화살표와 같은 너비) */
+.wiki-tree-toggle-spacer {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    width: 16px; height: 16px;
+    display: inline-flex;
+    margin: 0;
+    vertical-align: top;
+}
+
+/* 루트(depth 0) 노드 링크 */
+.wiki-tree-row a {
+    display: flex; align-items: center; flex: 1; min-width: 0;
+    padding: 7px 0;
     font-size: 13px; font-weight: 600; color: #1e293b;
     text-decoration: none; transition: background .12s;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.wiki-tree > li > a::before {
-    content: '■';
-    font-size: 8px;
-    margin-right: 7px;
-    flex-shrink: 0;
-    color: #6D5EF7;
-    opacity: .7;
-    line-height: 1;
-}
-.wiki-tree > li > a:hover { background: #EFEAFF; color: #5B4FEA; }
-.wiki-tree > li > a.active {
-    background: #F1EDFF; color: #6D5EF7; font-weight: 700;
-    border-left: 3px solid #6D5EF7; padding-left: 11px;
-}
 
-/* 1단계 하위 */
-.wiki-tree ul { list-style: none; padding: 0; margin: 0; }
-.wiki-tree ul a {
-    display: flex; align-items: center;
-    padding: 5px 14px 5px 22px;
+/* 1단계 이상 하위 노드 링크 (└ 마커) */
+.wiki-tree-children .wiki-tree-row a {
     font-size: 12.5px; font-weight: 400; color: #475569;
-    text-decoration: none; transition: background .12s;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    padding: 5px 0;
 }
-.wiki-tree ul a::before {
+.wiki-tree-children .wiki-tree-row a::before {
     content: '└';
     font-size: 11px;
     color: #CBD5E1;
@@ -131,16 +156,30 @@
     flex-shrink: 0;
     font-family: monospace;
 }
-.wiki-tree ul a:hover { background: #EFEAFF; color: #5B4FEA; }
-.wiki-tree ul a.active {
-    background: #F1EDFF; color: #6D5EF7; font-weight: 600;
-    border-left: 3px solid #6D5EF7; padding-left: 19px;
+
+.wiki-tree-row a:hover { background: #EFEAFF; color: #5B4FEA; }
+.wiki-tree-row a.active {
+    background: #F1EDFF; color: #6D5EF7; font-weight: 700;
+    border-left: 3px solid #6D5EF7;
+    padding-left: 6px;
 }
-.wiki-tree ul ul a { padding-left: 32px; }
-.wiki-tree ul ul a::before { content: '  └'; color: #E2E8F0; }
-.wiki-tree ul ul ul a { padding-left: 44px; }
+.wiki-tree-children .wiki-tree-row a.active { font-weight: 600; }
 
 .wiki-empty { padding: 12px 14px; font-size: 13px; color: #adb5bd; }
+
+/* 검색 결과 목록 (트리 아닌 flat 리스트) */
+.wiki-tree > li > a {
+    display: flex; align-items: center;
+    padding: 8px 14px;
+    font-size: 13px; font-weight: 500; color: #1e293b;
+    text-decoration: none; transition: background .12s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wiki-tree > li > a:hover  { background: #EFEAFF; color: #5B4FEA; }
+.wiki-tree > li > a.active {
+    background: #F1EDFF; color: #6D5EF7; font-weight: 700;
+    border-left: 3px solid #6D5EF7; padding-left: 11px;
+}
 
 /* ══════════════════════════════════════
    중앙: 본문 (조회)
@@ -291,33 +330,41 @@
 .history-view-btn:hover { background: #6D5EF7; color: #fff; }
 
 /* ══════════════════════════════════════
-   커스텀 토스트
+   알림 - 화면 중앙 모달 스타일 (삭제 확인창과 동일한 톤)
 ══════════════════════════════════════ */
-.wiki-toast-container {
-    position: fixed; top: 20px; right: 24px; z-index: 99999;
-    display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+.wiki-toast-overlay {
+    position: fixed; inset: 0; z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; pointer-events: none;
 }
 .wiki-toast {
-    display: flex; align-items: flex-start; gap: 10px;
-    min-width: 260px; max-width: 360px; padding: 14px 16px;
-    background: #fff; border-radius: 14px;
-    box-shadow: 0 6px 28px rgba(109,94,247,.15);
-    border-left: 4px solid #6D5EF7; pointer-events: all;
-    animation: wikiToastIn .25s ease;
+    position: relative;
+    background: #fff; border-radius: 18px;
+    padding: 24px 30px; min-width: 280px; max-width: 380px;
+    box-shadow: 0 12px 40px rgba(109,94,247,.18);
+    text-align: center; pointer-events: all;
+    border-top: 4px solid #6D5EF7;
+    animation: wikiToastIn .2s ease;
 }
-.wiki-toast.toast-success { border-left-color: #22C55E; }
-.wiki-toast.toast-error   { border-left-color: #EF4444; }
-.wiki-toast.toast-warning { border-left-color: #F59E0B; }
-.wiki-toast.toast-info    { border-left-color: #3B82F6; }
-.wiki-toast-icon  { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-.wiki-toast-body  { flex: 1; min-width: 0; }
-.wiki-toast-title { font-size: 13px; font-weight: 700; color: #374151; display: block; }
-.wiki-toast-msg   { font-size: 12px; color: #726F8F; margin-top: 2px; display: block; line-height: 1.5; }
-.wiki-toast-close { background: none; border: none; cursor: pointer; font-size: 15px; color: #adb5bd; padding: 0; flex-shrink: 0; line-height: 1; }
+.wiki-toast.toast-success { border-top-color: #22C55E; }
+.wiki-toast.toast-error   { border-top-color: #EF4444; }
+.wiki-toast.toast-warning { border-top-color: #F59E0B; }
+.wiki-toast.toast-info    { border-top-color: #3B82F6; }
+
+.wiki-toast-icon  { font-size: 26px; display: block; margin-bottom: 8px; }
+.wiki-toast-body  { display: block; }
+.wiki-toast-title { font-size: 14px; font-weight: 700; color: #374151; display: block; }
+.wiki-toast-msg   { font-size: 12.5px; color: #726F8F; margin-top: 6px; display: block; line-height: 1.6; }
+.wiki-toast-close {
+    position: absolute; top: 10px; right: 12px;
+    background: none; border: none; cursor: pointer;
+    font-size: 14px; color: #adb5bd; padding: 4px; line-height: 1;
+}
 .wiki-toast-close:hover { color: #6b7280; }
-@keyframes wikiToastIn  { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:translateX(0); } }
-@keyframes wikiToastOut { from { opacity:1; transform:translateX(0); }    to { opacity:0; transform:translateX(24px); } }
-.wiki-toast.removing { animation: wikiToastOut .2s ease forwards; }
+
+@keyframes wikiToastIn  { from { opacity:0; transform:translateY(12px) scale(.96); } to { opacity:1; transform:translateY(0) scale(1); } }
+@keyframes wikiToastOut { from { opacity:1; transform:translateY(0) scale(1); }    to { opacity:0; transform:translateY(-8px) scale(.96); } }
+.wiki-toast.removing { animation: wikiToastOut .18s ease forwards; }
 
 /* ══════════════════════════════════════
    커스텀 Confirm
@@ -427,10 +474,13 @@
     background: #fff; border-radius: 20px;
     border: 1px solid #DDD6FE;
     box-shadow: 0 2px 8px rgba(109,94,247,.06);
-    display: flex; flex-direction: column; overflow: visible;
+    display: flex; flex-direction: column;
+    overflow: hidden;
 }
 .wiki-modify-editor-card .toastui-editor-defaultUI {
-    border: none !important; border-top: 1px solid #DDD6FE !important; border-radius: 0 !important; flex: 1;
+    border: none !important; border-top: 1px solid #DDD6FE !important; border-radius: 0 !important;
+    flex: 1;
+    height: 100% !important;
 }
 .wiki-modify-editor-card .toastui-editor-toolbar {
     border-left: none !important; border-right: none !important; border-top: none !important;
@@ -445,11 +495,24 @@
     background: #fff; border-radius: 20px;
     border: 1px solid #DDD6FE;
     box-shadow: 0 2px 8px rgba(109,94,247,.06);
-    display: flex; flex-direction: column; overflow: visible;
-    min-height: calc(100vh - 200px);
+    display: flex; flex-direction: column;
+    height: calc(100vh - 200px);
+    overflow: hidden;
 }
-.wiki-register-editor-card .toastui-editor-defaultUI { border: none !important; border-radius: 0 !important; }
+.wiki-register-editor-card .toastui-editor-defaultUI {
+    border: none !important; border-radius: 0 !important;
+    flex: 1;
+    height: 100% !important;
+}
 .wiki-register-editor-card .toastui-editor-toolbar   { border-left: none !important; border-right: none !important; border-top: none !important; }
+
+/* Toast UI 에디터 본체(#wikiEditor)가 카드 안에서 남는 공간을 모두 차지하고,
+   내용이 길어지면 카드가 늘어나는 대신 에디터 내부에서 스크롤되도록 함. */
+#wikiEditor {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
 
 .wiki-register-parent-select {
     height: 36px; padding: 0 10px;
@@ -468,7 +531,7 @@
     padding: 14px 20px 16px;
     background: #FAFAFC; flex-shrink: 0;
     border-radius: 0 0 20px 20px;
-    position: relative;   /* 드롭다운 fixed 기준점 */
+    position: relative;
     overflow: visible;
 }
 .wiki-register-relation-label {
@@ -500,7 +563,6 @@
     max-height: 200px;
     overflow-y: auto;
     min-width: 240px;
-    /* 부모 overflow에 영향받지 않도록 */
     pointer-events: all;
 }
 .wiki-hashtag-item {
@@ -558,54 +620,3 @@
 }
 .wiki-history-card-link:hover { background: #F1EDFF; border-color: rgba(109,94,247,.35); }
 .wiki-history-card-link:hover .whc-version { color: #6D5EF7; }
-
-/* ══════════════════════════════════════
-   위키 트리 무한 depth 지원
-══════════════════════════════════════ */
-/* 모든 하위 ul에 동일 적용 */
-.wiki-tree-children { list-style: none; padding: 0; margin: 0; }
-
-/* 1단계 하위 */
-.wiki-tree > li > ul.wiki-tree-children > li > a {
-    padding-left: 22px;
-}
-/* 2단계 하위 */
-.wiki-tree > li > ul > li > ul.wiki-tree-children > li > a {
-    padding-left: 34px;
-}
-/* 3단계 이상: CSS 변수로 동적 들여쓰기 */
-.wiki-tree ul ul ul a { padding-left: 44px; }
-.wiki-tree ul ul ul ul a { padding-left: 54px; }
-.wiki-tree ul ul ul ul ul a { padding-left: 64px; }
-
-/* 모든 depth의 하위 링크 공통 스타일 */
-.wiki-tree ul li a {
-    display: flex;
-    align-items: center;
-    font-size: 12.5px;
-    font-weight: 400;
-    color: #475569;
-    text-decoration: none;
-    transition: background .12s;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    padding-right: 14px;
-}
-.wiki-tree ul li a::before {
-    content: '└';
-    font-size: 11px;
-    color: #CBD5E1;
-    margin-right: 6px;
-    flex-shrink: 0;
-    font-family: monospace;
-}
-.wiki-tree ul li a:hover { background: #EFEAFF; color: #5B4FEA; }
-.wiki-tree ul li a.active {
-    background: #F1EDFF;
-    color: #6D5EF7;
-    font-weight: 600;
-    border-left: 3px solid #6D5EF7;
-}

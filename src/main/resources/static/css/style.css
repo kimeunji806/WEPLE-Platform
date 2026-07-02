@@ -36,10 +36,8 @@ body.nav-md .container.body .left_col,
     background: #ffffff !important;
     border-bottom: 1px solid #DDD6FE !important;
     border-right: 1px solid #DDD6FE !important;
-    text-align: left !important;
-
-    /* 🔥 상단 내부 여백을 조절하여 WEPLE 문구를 박스 세로 정중앙으로 배치 */
-    padding: 10px 0 0 24px !important;
+    text-align: center !important;
+    padding: 10px 16px 0 0 !important;
     margin: 0 !important;
     width: 230px !important;
 
@@ -47,7 +45,6 @@ body.nav-md .container.body .left_col,
     top: 0 !important;
     left: 0 !important;
 
-    /* 🔥 하단 가로선이 우측 영역과 수평을 이루도록 높이 조절 및 내부 정렬 라인 매칭 */
     height: 81px !important;
     line-height: 60px !important;
 

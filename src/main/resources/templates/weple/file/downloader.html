@@ -59,7 +59,7 @@
 					        <td
 					            th:text="${item.fileSize != null and item.fileSize != 0} ? ${item.fileSize} + ' B' : '-'">-</td>
 					        <td><span class="version-badge"
-					            th:text="${item.versionNumber != null and item.versionNumber != 0} ? 'v' + ${item.versionNumber} + '.0' : 'v1.0'">v1.0</span>
+					            th:text="${item.versionNumber != null and item.versionNumber != 0} ? 'v' + ${item.versionNumber} : 'v1'">v1</span>
 					        </td>
 					        <td
 					            th:text="${item.downloadedAt != null} ? ${#dates.format(item.downloadedAt, 'yyyy-MM-dd HH:mm')} : '-'">-</td>

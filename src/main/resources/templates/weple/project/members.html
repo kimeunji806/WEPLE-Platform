@@ -15,8 +15,8 @@
 
         <!-- 테이블 헤더 영역: 삭제 버튼 우측 고정 -->
         <div class="members-toolbar">
-		    <button type="button"
-		            id="deleteSelectedBtn"
+		    <button th:if="${canManageMember}"
+		            type="button" id="deleteSelectedBtn"
 		            class="btn-delete-selected disabled"
 		            onclick="confirmDeleteSelected()">
 		        삭제
@@ -79,9 +79,8 @@
 
         <!-- 구성원 추가 버튼: 우측 하단 -->
         <div class="members-add-wrap">
-		    <button type="button"
-		            class="btn-add-member"
-		            onclick="openAddModal()">
+		    <button th:if="${canManageMember}"
+		            type="button" class="btn-add-member" onclick="openAddModal()">
 		        구성원 추가
 		    </button>
 		</div>
@@ -318,7 +317,7 @@
             var wrap = document.getElementById(wrapId);
             if (!list || !list.length) { wrap.innerHTML = '<p class="modal-empty">검색 결과가 없습니다.</p>'; return; }
             wrap.innerHTML = list.map(function(u) {
-                var img = showAvatar ? '<img src="' + (u.profileImage||'/images/hamster.jpg') + '" class="chip-avatar" onerror="this.src=\'/images/hamster.jpg\'">' : '';
+                var img = showAvatar ? '<img src="' + (u.profileImage||'/images/default-profile.svg') + '" class="chip-avatar" onerror="this.src=\'/images/default-profile.svg\'">' : '';
                 var already = u.isAlreadyMember === true || u.isAlreadyMember === 1;
                 var checkedAttr = already ? 'checked disabled' : '';
                 var extraClass  = already ? ' chip-already' : '';

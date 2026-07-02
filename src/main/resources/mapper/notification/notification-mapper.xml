@@ -64,29 +64,27 @@
 	<!-- 알림 생성 전 수신자의 알림 수신 범위/이메일 연동 설정 조회 (신규 컬럼 없이 기존 USERS 컬럼만 사용) -->
 	<select id="selectNotificationPreference" resultType="com.weple.cloud.notification.service.NotificationPreferenceVO">
 		SELECT user_code AS userCode,
-		       email AS email,
-		       NVL(notification_area, 'all') AS notificationArea,
-		       NVL(email_notification_yn, 'N') AS emailNotificationYn
+		       NVL(notification_area, 'all') AS notificationArea
 		FROM users
 		WHERE user_code = #{userCode}
 	</select>
 
 	<!-- 알림 목록 페이지 -->
 	<select id="findAlarmList" resultType="AlarmVO">
-		SELECT * FROM (
-			SELECT inner_q.*, ROWNUM rnum FROM (
-				SELECT
-					<include refid="alarmSelectColumns" />
-				FROM alarm a
-					<include refid="alarmJoins" />
-				WHERE a.user_code = #{userCode}
-					<if test="status == 'read'">AND a.check_yn = 'Y'</if>
-					<if test="status == 'unread'">AND a.check_yn = 'N'</if>
-				ORDER BY a.alarm_date DESC
-			) inner_q
-			WHERE ROWNUM <![CDATA[ <= ]]> (#{offset} + #{pageSize})
-		)
-		WHERE rnum <![CDATA[ > ]]> #{offset}
+	    SELECT * FROM (
+	        SELECT inner_q.*, ROWNUM rnum FROM (
+	            SELECT
+	                <include refid="alarmSelectColumns" />
+	            FROM alarm a
+	                <include refid="alarmJoins" />
+	            WHERE a.user_code = #{userCode}
+	                <if test="status == 'read'">AND a.check_yn = 'Y'</if>
+	                <if test="status == 'unread'">AND a.check_yn = 'N'</if>
+	            ORDER BY a.alarm_date DESC, a.alarm_id DESC
+	        ) inner_q
+	        WHERE ROWNUM <![CDATA[ <= ]]> (#{offset} + #{pageSize})
+	    )
+	    WHERE rnum <![CDATA[ > ]]> #{offset}
 	</select>
 
 	<select id="countAlarmList" resultType="int">
@@ -99,15 +97,15 @@
 
 	<!-- 헤더 드롭다운 - 최근 알림 N건 -->
 	<select id="findRecentAlarmList" resultType="AlarmVO">
-		SELECT * FROM (
-			SELECT
-				<include refid="alarmSelectColumns" />
-			FROM alarm a
-				<include refid="alarmJoins" />
-			WHERE a.user_code = #{userCode}
-			ORDER BY a.alarm_date DESC
-		)
-		WHERE ROWNUM <![CDATA[ <= ]]> #{limit}
+	    SELECT * FROM (
+	        SELECT
+	            <include refid="alarmSelectColumns" />
+	        FROM alarm a
+	            <include refid="alarmJoins" />
+	        WHERE a.user_code = #{userCode}
+	        ORDER BY a.alarm_date DESC, a.alarm_id DESC
+	    )
+	    WHERE ROWNUM <![CDATA[ <= ]]> #{limit}
 	</select>
 
 	<!-- 읽지 않은 알림 개수 -->

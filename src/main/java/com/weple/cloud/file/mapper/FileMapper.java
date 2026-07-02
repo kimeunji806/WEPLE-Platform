@@ -48,6 +48,12 @@ public interface FileMapper {
     // 프로젝트별 구분
     public long deleteProjectFileVersionByFileId(String fileId);
     
+    // 파일 삭제 전, 해당 파일의 버전들에 걸린 다운로드 이력부터 선삭제 (FK 제약 위반 방지)
+    public long deleteDownloadHistoryByFileId(@Param("fileId") String fileId);
+    
+    // 같은 프로젝트 + 같은 일감(또는 둘 다 미연결) 안에 동일한 파일명이 이미 등록돼 있는지 조회
+    public String findProjectFileIdByName(@Param("projectId") Long projectId, @Param("taskId") String taskId, @Param("logicalName") String logicalName);
+    
     // 다운로드
     public ProjectFileVersionsVO findVersionForDownload(String versionId);
     
@@ -60,6 +66,9 @@ public interface FileMapper {
     
     // 등록
     public long insertProjectFileVersion(ProjectFileVersionsVO projectFileVersionsVO);
+    
+    // 현재 파일의 최신(최대) 버전 번호 조회
+    public Long findMaxVersionNumber(@Param("fileId") String fileId);
     
     // 삭제
     public long deleteProjectFileVersion(String versionId);

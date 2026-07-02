@@ -10,6 +10,8 @@
 <body>
 <section class="wiki-page">
 
+    <div id="wikiToastContainer" class="wiki-toast-container"></div>
+
     <h3 class="wiki-page-title">위키 문서 수정</h3>
 
     <!-- 편집 잠금 배너 -->
@@ -154,6 +156,33 @@
         var inp = null;
         var dd  = null;
 
+        /* ── 토스트 (detail.html과 동일) ── */
+        var TOAST_ICONS = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
+		function wikiToast(type, title, msg, duration) {
+		    var overlay = document.createElement('div');
+		    overlay.className = 'wiki-toast-overlay';
+		
+		    var toast = document.createElement('div');
+		    toast.className = 'wiki-toast toast-' + (type || 'info');
+		    var icon = TOAST_ICONS[type] || 'ℹ️';
+		    var msgHtml = msg ? '<span class="wiki-toast-msg">' + msg + '</span>' : '';
+		    toast.innerHTML =
+		        '<span class="wiki-toast-icon">' + icon + '</span>' +
+		        '<div class="wiki-toast-body"><span class="wiki-toast-title">' + title + '</span>' + msgHtml + '</div>' +
+		        '<button class="wiki-toast-close" onclick="wikiToastClose(this.closest(\'.wiki-toast-overlay\'))">✕</button>';
+		
+		    overlay.appendChild(toast);
+		    document.body.appendChild(overlay);
+		    setTimeout(function() { wikiToastClose(overlay); }, duration || 2500);
+		}
+		function wikiToastClose(overlay) {
+		    if (!overlay || overlay.classList.contains('removing')) return;
+		    overlay.classList.add('removing');
+		    var toast = overlay.querySelector('.wiki-toast');
+		    if (toast) toast.classList.add('removing');
+		    setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 200);
+		}
+
         document.addEventListener('DOMContentLoaded', function () {
             wikiEditor = new toastui.Editor({
                 el: document.getElementById('wikiEditor'),
@@ -176,9 +205,9 @@
 
         function submitWikiForm() {
             var title = document.getElementById('titleInput').value.trim();
-            if (!title) { alert('문서 제목은 필수 입력 항목입니다.'); return; }
+            if (!title) { wikiToast('warning', '문서 제목은 필수 입력 항목입니다.'); return; }
             var content = wikiEditor.getMarkdown();
-            if (!content.trim()) { alert('내용을 입력하세요.'); return; }
+            if (!content.trim()) { wikiToast('warning', '내용을 입력하세요.'); return; }
             document.getElementById('contentInput').value = content;
             document.getElementById('wikiForm').submit();
         }
@@ -215,7 +244,7 @@
         function goToSelectedVersion() {
             var selected = document.querySelector('input[name="modifyHistoryVersion"]:checked');
             if (!selected || selected.value === 'latest') {
-                alert('이전 버전을 선택해주세요.');
+            	wikiToast('warning', '이전 버전을 선택해주세요.', '변경 이력에서 보고 싶은 버전을 선택한 후 눌러주세요.');
                 return;
             }
             window.open(
@@ -332,7 +361,7 @@
                 method: 'POST', headers: headers, body: params.toString()
             }).then(function(r) {
                 if (r.ok) { addChip(item); }
-                else { r.text().then(function(t) { alert('연관문서 등록 실패: ' + t); }); }
+                else { r.text().then(function(t) { wikiToast('error', '연관문서 등록 실패', t); }); }
             }).catch(function(e) { console.error('relation add error:', e); });
 
             if (inp) inp.value = '';

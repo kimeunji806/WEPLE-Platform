@@ -14,7 +14,7 @@
 	    <result property="countSpentHour" column="countSpentHour"/>
 		<result property="totalSpentHour" column="totalSpentHour"/>
 	</resultMap>
-	
+
 	<select id="SelectTotalTimeAll" resultType="SelectTotalTimeVO">
 		SELECT w_tme.work_id
        		   , p.project_id
@@ -36,9 +36,9 @@
 		LEFT JOIN users u ON u.user_code = w_tme.user_code
 		LEFT JOIN work_classification w_cls ON w_tme.work_name = w_cls.task_classification_id
 		LEFT JOIN task t ON t.task_id = w_tme.task_id
-		ORDER BY w_tme.work_id
+		ORDER BY w_tme.work_id DESC
 	</select>
-	
+
 	<!-- 등록 -->
 	<insert id="insertSelectTotalTime" parameterType="SelectTotalTimeVO">
 		INSERT INTO work_time (
@@ -65,8 +65,8 @@
 		        , SYSDATE
 		        , SYSDATE
 		)
-	</insert>	
-	
+	</insert>
+
 	<!-- 수정 -->
 	<update id="updateSelectTotalTime" parameterType="SelectTotalTimeVO">
 		UPDATE work_time
@@ -80,12 +80,12 @@
        		   , updated_at = SYSDATE  WHERE work_id = #{workId}
 		WHERE work_id = #{workId}
 	</update>
-	
+
 	<!-- 삭제 -->
 	<delete id="deleteSelectTotalTime" parameterType="long">
 		DELETE FROM work_time
 		WHERE work_id = #{workId}
 	</delete>
-	
-	
+
+
 </mapper>

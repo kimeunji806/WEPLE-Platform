@@ -39,4 +39,6 @@ public interface RoleMapper {
 	
 	// 역할 삭제
 	int deleteRole(Long roleId);
+	
+	Long selectRoleIdByName(@Param("companyId") Long companyId, @Param("roleName") String roleName);
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org/"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
 <head>
@@ -20,9 +21,10 @@
                     <input type="text" name="keyword" th:value="${keyword}" placeholder="프로젝트명을 입력하세요.">
                 </div>
             </form>
-            <a th:href="@{/system/project}" class="project-create-btn">
-                <i class="fa fa-folder"></i> 프로젝트 생성
-            </a>
+            <a th:href="@{/system/project}" class="project-create-btn"
+			   sec:authorize="hasAnyAuthority('ROLE_COMPANY_OWNER','ROLE_COMPANY_ADMIN')">
+			    <i class="fa fa-folder"></i> 프로젝트 생성
+			</a>
         </div>
 
         <div class="project-table-wrap">

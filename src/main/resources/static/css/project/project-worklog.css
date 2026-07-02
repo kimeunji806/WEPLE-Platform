@@ -3,11 +3,11 @@
         .project-page { padding: 15px; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         .project-toolbar-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
         .project-title { margin: 0; font-size: 24px; font-weight: 700; color: #222; letter-spacing: -0.5px; white-space: nowrap; }
-        .total-time-card { width: 180px; min-width: 180px; height: 95px; background: #fff; border: 1px solid #e6ecf5; border-radius: 12px; padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .total-time-card { width: 180px; min-width: 180px; height: 95px; background: #fff; border: 1px solid #DDD6FE; border-radius: 12px; padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: center; }
         .time-title { font-size: 11px; font-weight: 600; color: #9aa8c4; }
-        .time-value { font-size: 18px; font-weight: 700; color: #4d84ff; margin: 4px 0; }
+        .time-value { font-size: 18px; font-weight: 700; color: #6D5EF7; margin: 4px 0; }
         .time-period { font-size: 11px; color: #adb5bd; }
-        .project-card { width: 100%; background: #fff; border-radius: 14px; padding: 20px; border: 1px solid #e6ecf5; }
+        .project-card { width: 100%; background: #fff; border-radius: 14px; padding: 20px; border: 1px solid #DDD6FE; }
         .filter-toolbar { display: flex; align-items: center; gap: 15px; width: 100%; padding-bottom: 15px; border-bottom: 1px solid #edf1f7; overflow-x: auto; white-space: nowrap; }
         .filter-group { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
         .filter-label { font-size: 12px; font-weight: 700; color: #8a99b5; }
@@ -20,15 +20,15 @@
         .checkbox-inline { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: #495057; cursor: pointer; }
         .checkbox-inline input[type="checkbox"] { display: none; }
         .custom-check-box { display: inline-block; width: 16px; height: 16px; border: 2px solid #adb5bd; border-radius: 4px; background: #fff; position: relative; flex-shrink: 0; }
-        .checkbox-inline input[type="checkbox"]:checked + .custom-check-box { border-color: #4d84ff; }
-        .checkbox-inline input[type="checkbox"]:checked + .custom-check-box::after { content: ""; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid #4d84ff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+        .checkbox-inline input[type="checkbox"]:checked + .custom-check-box { border-color: #6D5EF7; }
+        .checkbox-inline input[type="checkbox"]:checked + .custom-check-box::after { content: ""; position: absolute; left: 4px; top: 1px; width: 4px; height: 8px; border: solid #6D5EF7; border-width: 0 2px 2px 0; transform: rotate(45deg); }
         .sub-list-title { font-size: 16px; font-weight: 700; color: #222; margin: 25px 0 15px; }
-        .date-section-title { font-size: 14px; font-weight: 700; color: #4d84ff; margin: 18px 0 8px; }
+        .date-section-title { font-size: 14px; font-weight: 700; color: #6D5EF7; margin: 18px 0 8px; }
         .date-section-title:first-of-type { margin-top: 0; }
 
         /* ★ 가로 스크롤 추가 */
         .project-table-wrap {
-            border: 1px solid #e6ecf5;
+            border: 1px solid #DDD6FE;
             border-radius: 10px;
             overflow-x: auto;
             background: #fff;
@@ -49,7 +49,7 @@
         .project-table tbody tr:first-child td { border-top: none; }
         .project-table tbody tr:hover { background: #fafcff; }
         .status-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 70px; height: 24px; border-radius: 6px; font-size: 11px; font-weight: 700; }
-        .type-dev     { background: #eef4ff; color: #4d84ff; }
+        .type-dev     { background: #F1EDFF; color: #6D5EF7; }
         .type-bug     { background: #fff1f1; color: #f64e60; }
         .type-support { background: #fbf2ff; color: #b55dff; }
         .type-improve { background: #e8fff3; color: #50cd89; }
@@ -92,7 +92,7 @@
 		}
 		
 		.page-btn.active {
-		    background: #4d84ff;
+		    background: #6D5EF7;
 		    color: #fff;
 		    font-weight: 700;
 		}
@@ -103,8 +103,8 @@
 		}
 		
 		.page-btn:hover:not(.active):not(.disabled) {
-		    background: #eef4ff;
-		    color: #4d84ff;
+		    background: #F1EDFF;
+		    color: #6D5EF7;
 		}
 
         /* ★ 검색 버튼 */
@@ -113,14 +113,14 @@
             padding: 0 20px;
             border: none;
             border-radius: 8px;
-            background: #4d84ff;
+            background: #6D5EF7;
             color: #fff;
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: background .2s;
         }
-        .btn-search:hover { background: #3970eb; }
+        .btn-search:hover { background: #5B4FEA; }
 
         .flatpickr-calendar { width: 240px !important; max-width: 240px !important; padding: 8px !important; }
         .flatpickr-calendar.arrowTop:before, .flatpickr-calendar.arrowTop:after { display: none; }
@@ -128,19 +128,20 @@
         .flatpickr-months .flatpickr-month { height: 36px; color: #222; }
         .flatpickr-current-month, .flatpickr-current-month .flatpickr-monthDropdown-months, .flatpickr-current-month input.cur-year { font-size: 14px; font-weight: 700; color: #222 !important; background: transparent; border-radius: 6px; padding: 0; }
         .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 8px; fill: #8a99b5; }
-        .flatpickr-months .flatpickr-prev-month:hover, .flatpickr-months .flatpickr-next-month:hover { background: #eef4ff; }
-        .flatpickr-months .flatpickr-prev-month:hover svg, .flatpickr-months .flatpickr-next-month:hover svg { fill: #4d84ff; }
+        .flatpickr-months .flatpickr-prev-month:hover, .flatpickr-months .flatpickr-next-month:hover { background: #F1EDFF; }
+        .flatpickr-months .flatpickr-prev-month:hover svg, .flatpickr-months .flatpickr-next-month:hover svg { fill: #6D5EF7; }
         .flatpickr-weekdays { margin-bottom: 4px; }
         span.flatpickr-weekday { font-size: 11px; font-weight: 700; color: #9aa8c4; }
         .dayContainer { width: 224px !important; min-width: 224px !important; }
         .flatpickr-days { width: 224px !important; }
         .flatpickr-day { width: 30px !important; max-width: 30px !important; height: 30px !important; line-height: 30px !important; font-size: 12px !important; border-radius: 6px !important; }
         .flatpickr-day.flatpickr-disabled, .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { color: #7a8aa8; }
-        .flatpickr-day:hover { background: #eef4ff; border-color: #eef4ff; color: #4d84ff; }
-        .flatpickr-day.today { background: #eef4ff !important; color: #4d84ff !important; border: none !important; border-radius: 8px !important; }
-        .flatpickr-day.today:hover { background: #eef4ff !important; border-color: #4d84ff !important; border-radius: 8px !important; color: #4d84ff !important; }
-        .flatpickr-day.selected, .flatpickr-day.selected:hover, .flatpickr-day.startRange, .flatpickr-day.startRange:hover, .flatpickr-day.endRange, .flatpickr-day.endRange:hover, .flatpickr-day.today.selected { background: #4d84ff !important; border-color: #4d84ff !important; color: #fff !important; font-weight: 700 !important; border-radius: 8px !important; }
-        .flatpickr-day.inRange { background: #eef4ff !important; border-color: #eef4ff !important; box-shadow: -5px 0 0 #eef4ff, 5px 0 0 #eef4ff !important; color: #4d84ff !important; }
+        .flatpickr-day:hover { background: #F1EDFF; border-color: #F1EDFF; color: #6D5EF7; }
+        .flatpickr-day.today { background: #F1EDFF !important; color: #6D5EF7 !important; border: none !important; border-radius: 8px !important; }
+        .flatpickr-day.today:hover { background: #F1EDFF !important; border-color: #6D5EF7 !important; border-radius: 8px !important; color: #6D5EF7 !important; }
+        .flatpickr-day.selected, .flatpickr-day.selected:hover, .flatpickr-day.startRange, .flatpickr-day.startRange:hover, .flatpickr-day.endRange, .flatpickr-day.endRange:hover, .flatpickr-day.today.selected { background: #6D5EF7 !important; border-color: #6D5EF7 !important; color: #fff !important; font-weight: 700 !important; border-radius: 8px !important; }
+        .flatpickr-day.inRange { background: #F1EDFF !important; border-color: #F1EDFF !important; box-shadow: -5px 0 0 #F1EDFF, 5px 0 0 #F1EDFF
+         !important; color: #6D5EF7 !important; }
         .numInputWrapper:hover { background: transparent; }
 
         /* flatpickr z-index */

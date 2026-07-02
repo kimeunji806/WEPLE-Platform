@@ -28,9 +28,13 @@ public class OutlineController {
 		model.addAttribute("sidebarMenu", "project");
 		model.addAttribute("projectId", projectId); 
 		
-		// 프로젝트 정보 조회
+		// 프로젝트 정보 조회 - 삭제되었거나 존재하지 않으면 안내 후 접근 제한
 		ProjectVO project = outlineService.getProjectById(projectId);
-	    model.addAttribute("project", project);
+		if (project == null) {
+		    model.addAttribute("accessDenideTitle", "삭제되었거나 존재하지 않는 프로젝트입니다.");
+		    model.addAttribute("accessDenideMessage", "요청하신 프로젝트를 찾을 수 없습니다. 삭제되었거나 잘못된 경로일 수 있습니다.");
+		    return "weple/access-denide";
+		}
 	    
 		// 그룹별 프로젝트 참여 멤버 조회
 		List<ProjectGroupMemberDTO> groupMembers = outlineService.selectProjectMembersByGroup(projectId);

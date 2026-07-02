@@ -128,6 +128,8 @@ public class TimeController {
 	    model.addAttribute("projectList", projectList);
 	    model.addAttribute("taskList", taskList);
 	    model.addAttribute("workTypeList", workTypeList);
+	    model.addAttribute("loginUserCode", loginUser.getLoginUser().getUserCode());
+	    model.addAttribute("loginUserName", loginUser.getLoginUser().getUserName());
 		return "weple/time/insert";
 	}
 
@@ -136,12 +138,13 @@ public class TimeController {
 	public String insertProjectTimeProcess(WorkTimeVO workTimeVO,
 										   @RequestParam(value="taskId", required=false) String taskId,
 										   RedirectAttributes redirectAttributes,
-										   @AuthenticationPrincipal LoginUserDetails loginUser) {
+										   @AuthenticationPrincipal LoginUserDetails loginUser,
+                        @RequestParam(value="returnTo", required=false) String returnTo) {
 
 	    
 	    
 	    TaskVO before = (taskId != null) ? taskService.findTaskDetail(taskId) : null;
-	    long oldSpentHours = (before != null) ? before.getSpentHoursSum() : 0;
+	    long oldSpentHours = (before != null) ? before.getSpentHoursSum() : 0; 
 	    
 	    timeService.addProjectTime(workTimeVO);
 	    redirectAttributes.addFlashAttribute("toastMessage", "소요시간이 등록되었습니다.");
@@ -173,14 +176,19 @@ public class TimeController {
 	        );
 	    }
 	    
-	    if (workTimeVO.getProjectId() != null && workTimeVO.getProjectId() != 0) {
-	        String redirectUrl = "redirect:/projectTimeList?projectId=" + workTimeVO.getProjectId();
-	        if (taskId != null && !taskId.isEmpty()) {
-	            redirectUrl += "&taskId=" + taskId;  // ✅ taskId 있으면 추가
-	        }
-	        return redirectUrl;
+								
+
+	    redirectAttributes.addFlashAttribute("toastMessage", "소요시간이 등록되었습니다.");
+	    // 일감 상세 페이지의 모달에서 등록한 경우, 해당 일감 상세 페이지로 되돌아감
+	    if ("detail".equals(returnTo) && taskId != null && !taskId.isEmpty()) {
+	        return "redirect:/project/task/detail/" + taskId + "?projectId=" + workTimeVO.getProjectId();
 	    }
-	    return "redirect:/totalTimeList";
+	    // 그 외(프로젝트 소요시간 탭 / 전체 소요시간 목록에서 진입한 경우)는
+	    // 목록이 아니라 일감을 선택하던 등록 페이지 자체로 되돌아감
+	    if (workTimeVO.getProjectId() != null && workTimeVO.getProjectId() != 0) {
+	        return "redirect:/insertProjectTime?projectId=" + workTimeVO.getProjectId();
+	    }
+	    return "redirect:/insertProjectTime";
 	}
 
 	//일감 설명 가져옴
@@ -195,6 +203,40 @@ public class TimeController {
 	@ResponseBody
 	public List<TaskVO> getTasksByProject(@RequestParam("projectId") Long projectId) {
 	    return taskService.findAll(projectId);
+	}
+
+	// 진척도 수정 가능 여부 판단용
+	// 규칙: ① 하위일감이 없으면 잠금 아님(false)
+	//      ② 하위/하위의 하위일감(전체 계층) 중 진행률 100%가 아닌 것이 하나라도 있으면 잠금(true)
+	//      ③ 하위 계층이 있어도 전부 100%(완료)면 잠금 아님(false)
+	@GetMapping("/hasChildTask")
+	@ResponseBody
+	public boolean hasChildTask(@RequestParam("taskId") String taskId) {
+	    List<TaskVO> descendants = new java.util.ArrayList<>();
+	    collectDescendants(taskId, descendants, new java.util.HashSet<>());
+
+	    if (descendants.isEmpty()) {
+	        return false;
+	    }
+	    boolean allCompleted = descendants.stream()
+	            .allMatch(c -> c.getTaskProgress() != null && c.getTaskProgress() == 100L);
+	    return !allCompleted;
+	}
+
+	// taskId 하위의 모든 일감(자식, 손자, ...)을 재귀적으로 수집
+	// visited: 데이터가 잘못 얽혀 순환 참조가 생기는 경우를 대비한 방어 로직
+	private void collectDescendants(String taskId, List<TaskVO> acc, java.util.Set<String> visited) {
+	    if (!visited.add(taskId)) {
+	        return;
+	    }
+	    List<TaskVO> children = taskService.findChildTask(taskId);
+	    if (children == null || children.isEmpty()) {
+	        return;
+	    }
+	    for (TaskVO child : children) {
+	        acc.add(child);
+	        collectDescendants(child.getTaskId(), acc, visited);
+	    }
 	}
 	
 	// 수정 폼

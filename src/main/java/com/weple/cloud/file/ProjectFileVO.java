@@ -35,7 +35,6 @@ public class ProjectFileVO {
     private String userName;
     private String typeName;
     private String taskType;
-    private String hashtag;
     private String versionId;
     
 }

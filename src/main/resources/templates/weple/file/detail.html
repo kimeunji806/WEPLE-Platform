@@ -42,7 +42,7 @@
 					</div>
 					<div class="meta-item">
 					    <span class="meta-label">버전</span> <span class="meta-value"
-					        th:text="${!#lists.isEmpty(projectFileVersionList)} ? 'v' + ${#lists.size(projectFileVersionList)} + '.0' : '-'">-</span>
+					        th:text="${!#lists.isEmpty(projectFileVersionList)} ? 'v' + ${#lists.size(projectFileVersionList)} : '-'">-</span>
 					</div>
 					<div class="meta-item">
 						<span class="meta-label">연결 일감</span> <span class="meta-value">
@@ -77,22 +77,25 @@
 				                  #strings.endsWith(projectFileInfo.logicalName, '.jpg') or
 				                  #strings.endsWith(projectFileInfo.logicalName, '.jpeg') or
 				                  #strings.endsWith(projectFileInfo.logicalName, '.gif') or
-				                  #strings.endsWith(projectFileInfo.logicalName, '.webp'))}">
-				        <img th:src="${'https://weple-cloud-files.s3.ap-northeast-2.amazonaws.com/' + projectFileVersionList[0].savedName}">
+				                  #strings.endsWith(projectFileInfo.logicalName, '.webp'))}"
+				         style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+				        <img class="preview-img" th:src="${'https://weple-cloud-files.s3.ap-northeast-2.amazonaws.com/' + projectFileVersionList[0].savedName}">
 				    </div>
 				
 				    <!-- PDF 미리보기 -->
 				    <div th:if="${!#lists.isEmpty(projectFileVersionList) and
 				                 projectFileInfo.logicalName != null and
-				                 #strings.endsWith(projectFileInfo.logicalName, '.pdf')}">
-				        <iframe th:src="${'https://weple-cloud-files.s3.ap-northeast-2.amazonaws.com/' + projectFileVersionList[0].savedName}"></iframe>
+				                 #strings.endsWith(projectFileInfo.logicalName, '.pdf')}"
+				         style="width:100%; height:100%;">
+				        <iframe class="preview-pdf" th:src="${'https://weple-cloud-files.s3.ap-northeast-2.amazonaws.com/' + projectFileVersionList[0].savedName}"></iframe>
 				    </div>
 				
 				    <!-- 텍스트 미리보기 -->
 				    <div th:if="${!#lists.isEmpty(projectFileVersionList) and
 				                 projectFileInfo.logicalName != null and
 				                 (#strings.endsWith(projectFileInfo.logicalName, '.txt') or
-				                  #strings.endsWith(projectFileInfo.logicalName, '.csv'))}">
+				                  #strings.endsWith(projectFileInfo.logicalName, '.csv'))}"
+				         style="width:100%; height:100%;">
 				        <pre class="preview-text" id="previewText">미리보기 로딩 중...</pre>
 				        <script th:inline="javascript">
 				            const filePath = /*[[${projectFileVersionList[0].savedName}]]*/ '';
@@ -146,7 +149,7 @@
 							    <td th:text="${projectFileInfo.logicalName != null} ? ${projectFileInfo.logicalName} : '-'">-</td>
 							    <td th:text="${projectFileInfo.userName != null} ? ${projectFileInfo.userName} : '-'">-</td>
 							    <td th:text="${ver.uploadedAt != null} ? ${#dates.format(ver.uploadedAt, 'yyyy-MM-dd')} : '-'">-</td>
-							    <td><span class="version-badge" th:text="'v' + ${verStat.count} + '.0'">v1.0</span></td>
+							    <td><span class="version-badge" th:text="'v' + ${verStat.count}">v1</span></td>
 							    <td>
 							        <span th:if="${projectFileInfo.taskId != null}"
 							              class="task-badge-linked"
@@ -373,14 +376,15 @@ function downloadFile(versionId) {
 
 .preview-pdf {
 	width: 100%;
-	height: 500px;
+	height: 360px;
 	border: none;
 	display: block;
 }
 
 .preview-text {
 	width: 100%;
-	max-height: 300px;
+	height: 100%;
+	max-height: 360px;
 	overflow: auto;
 	padding: 16px;
 	font-size: 15px;

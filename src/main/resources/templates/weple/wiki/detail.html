@@ -14,7 +14,7 @@
 
     <h3 class="wiki-page-title">위키</h3>
 
-    <div class="wiki-layout">
+    <div class="wiki-layout" th:classappend="${selectedWiki == null} ? ' wiki-layout-empty' : ''">
 
         <!-- ① 좌측: 위키 목록 -->
         <div class="wiki-sidebar">
@@ -33,8 +33,9 @@
                                onchange="this.form.submit()">
                     </div>
                 </form>
-                <a th:href="@{/project/wiki/register(projectId=${projectId})}"
-                   class="wiki-add-btn">등록</a>
+                <a th:if="${canEdit}"
+				   th:href="@{/project/wiki/register(projectId=${projectId})}"
+				   class="wiki-add-btn">등록</a>
             </div>
 
             <div class="wiki-tree-wrap">
@@ -51,7 +52,7 @@
                 <div th:if="${searchResult == null}">
                     <div th:if="${#lists.isEmpty(wikiTree)}" class="wiki-empty">등록된 위키가 없습니다.</div>
                     <ul class="wiki-tree" th:unless="${#lists.isEmpty(wikiTree)}">
-                        <th:block th:replace="~{weple/wiki/detail :: wikiTreeFragment(${wikiTree})}"></th:block>
+                        <th:block th:replace="~{weple/wiki/detail :: wikiTreeFragment(${wikiTree}, 0)}"></th:block>
                     </ul>
                 </div>
             </div>
@@ -98,13 +99,15 @@
                         </div>
                     </div>
                     <div class="wiki-doc-actions" th:unless="${isVersionView}">
-                        <a th:href="@{/project/wiki/modify/{id}(id=${selectedWiki.wikiPageId}, projectId=${projectId})}"
-                           class="wiki-btn wiki-btn-edit">수정</a>
-                        <button type="button" class="wiki-btn wiki-btn-delete"
-                                onclick="wikiConfirm('정말 삭제하시겠습니까?', '삭제된 위키는 복구할 수 없습니다.', function(){ document.getElementById('deleteForm').submit(); })">
-                            삭제
-                        </button>
-                    </div>
+					    <a th:if="${canEdit}"
+					       th:href="@{/project/wiki/modify/{id}(id=${selectedWiki.wikiPageId}, projectId=${projectId})}"
+					       class="wiki-btn wiki-btn-edit">수정</a>
+					    <button th:if="${canDelete}"
+					            type="button" class="wiki-btn wiki-btn-delete"
+					            onclick="wikiConfirm('정말 삭제하시겠습니까?', '삭제된 위키는 복구할 수 없습니다.', function(){ document.getElementById('deleteForm').submit(); })">
+					        삭제
+					    </button>
+					</div>
                 </div>
                 <hr class="wiki-divider">
 
@@ -221,38 +224,31 @@
         var viewingVersion = /*[[${isVersionView and selectedWiki != null ? selectedWiki.currentVersion : 0}]]*/ 0;
         /*]]>*/
 
-        var _toastContainer = null;
-        function getToastContainer() {
-            if (!_toastContainer) {
-                _toastContainer = document.getElementById('wikiToastContainer');
-                if (!_toastContainer) {
-                    _toastContainer = document.createElement('div');
-                    _toastContainer.id = 'wikiToastContainer';
-                    _toastContainer.className = 'wiki-toast-container';
-                    document.body.appendChild(_toastContainer);
-                }
-            }
-            return _toastContainer;
-        }
         var TOAST_ICONS = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
-        function wikiToast(type, title, msg, duration) {
-            var container = getToastContainer();
-            var toast = document.createElement('div');
-            toast.className = 'wiki-toast toast-' + (type || 'info');
-            var icon = TOAST_ICONS[type] || 'ℹ️';
-            var msgHtml = msg ? '<span class="wiki-toast-msg">' + msg + '</span>' : '';
-            toast.innerHTML =
-                '<span class="wiki-toast-icon">' + icon + '</span>' +
-                '<div class="wiki-toast-body"><span class="wiki-toast-title">' + title + '</span>' + msgHtml + '</div>' +
-                '<button class="wiki-toast-close" onclick="wikiToastClose(this.parentElement)">✕</button>';
-            container.appendChild(toast);
-            setTimeout(function() { wikiToastClose(toast); }, duration || 3200);
-        }
-        function wikiToastClose(el) {
-            if (!el || el.classList.contains('removing')) return;
-            el.classList.add('removing');
-            setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 220);
-        }
+		function wikiToast(type, title, msg, duration) {
+		    var overlay = document.createElement('div');
+		    overlay.className = 'wiki-toast-overlay';
+		
+		    var toast = document.createElement('div');
+		    toast.className = 'wiki-toast toast-' + (type || 'info');
+		    var icon = TOAST_ICONS[type] || 'ℹ️';
+		    var msgHtml = msg ? '<span class="wiki-toast-msg">' + msg + '</span>' : '';
+		    toast.innerHTML =
+		        '<span class="wiki-toast-icon">' + icon + '</span>' +
+		        '<div class="wiki-toast-body"><span class="wiki-toast-title">' + title + '</span>' + msgHtml + '</div>' +
+		        '<button class="wiki-toast-close" onclick="wikiToastClose(this.closest(\'.wiki-toast-overlay\'))">✕</button>';
+		
+		    overlay.appendChild(toast);
+		    document.body.appendChild(overlay);
+		    setTimeout(function() { wikiToastClose(overlay); }, duration || 2500);
+		}
+		function wikiToastClose(overlay) {
+		    if (!overlay || overlay.classList.contains('removing')) return;
+		    overlay.classList.add('removing');
+		    var toast = overlay.querySelector('.wiki-toast');
+		    if (toast) toast.classList.add('removing');
+		    setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 200);
+		}
 
         function wikiConfirm(title, msg, onOk, onCancel) {
             var overlay = document.createElement('div');
@@ -396,6 +392,18 @@
             }
         }
 
+        /* ── 위키 트리 펼치기/접기 ──
+           기본은 전체 펼침 상태. 화살표 버튼 클릭 시 해당 노드의 하위 <ul>만 토글. */
+        function toggleWikiNode(btn) {
+            var li = btn.closest('li');
+            if (!li) return;
+            var childUl = li.querySelector(':scope > ul.wiki-tree-children');
+            if (!childUl) return;
+            var collapsed = childUl.classList.toggle('collapsed');
+            btn.classList.toggle('collapsed', collapsed);
+            btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
                 initWikiViewer();
@@ -429,32 +437,39 @@
 
 </section>
 
-<!-- 위키 트리 프래그먼트: 무한 depth 재귀 -->
-<th:block th:fragment="wikiTreeFragment(nodes)">
+<!-- 위키 트리 프래그먼트: 무한 depth 재귀 (depth를 직접 받아 인라인 padding으로 고정) -->
+<th:block th:fragment="wikiTreeFragment(nodes, depth)">
     <li th:each="node : ${nodes}">
-        <a th:href="@{/project/wiki(projectId=${projectId}, wikiPageId=${node.wikiPageId})}"
-           th:text="${node.title}"
-           th:classappend="${selectedWiki != null and selectedWiki.wikiPageId == node.wikiPageId} ? 'active' : ''"></a>
+        <span class="wiki-tree-row" th:style="${'padding-left:' + (depth * 14) + 'px'}">
+            <button th:if="${node.children != null and !#lists.isEmpty(node.children)}"
+                    type="button" class="wiki-tree-toggle" aria-expanded="true"
+                    onclick="toggleWikiNode(this)">▼</button>
+            <span th:unless="${node.children != null and !#lists.isEmpty(node.children)}"
+                  class="wiki-tree-toggle-spacer"></span>
+            <a th:href="@{/project/wiki(projectId=${projectId}, wikiPageId=${node.wikiPageId})}"
+               th:text="${node.title}"
+               th:classappend="${selectedWiki != null and selectedWiki.wikiPageId == node.wikiPageId} ? 'active' : ''"></a>
+        </span>
         <ul th:if="${node.children != null and !#lists.isEmpty(node.children)}"
             class="wiki-tree-children">
-            <th:block th:replace="~{weple/wiki/detail :: wikiTreeFragment(${node.children})}"></th:block>
+            <th:block th:replace="~{weple/wiki/detail :: wikiTreeFragment(${node.children}, ${depth + 1})}"></th:block>
         </ul>
     </li>
 </th:block>
 
 <!-- 상위 페이지 select 옵션용 재귀 fragment -->
 <th:block th:fragment="selectTreeFragment(nodes, depth)">
-    <option th:each="node : ${nodes}"
-            th:value="${node.wikiPageId}"
-            th:selected="${node.wikiPageId == parentPageId}">
-        <th:block th:if="${depth > 0}">
-            <th:block th:each="i : ${#numbers.sequence(1, depth)}">　</th:block>└ 
+    <th:block th:each="node : ${nodes}">
+        <option th:value="${node.wikiPageId}"
+                th:selected="${node.wikiPageId == parentPageId}">
+            <th:block th:if="${depth > 0}">
+                <th:block th:each="i : ${#numbers.sequence(1, depth)}">　</th:block>└ 
+            </th:block>
+            <th:block th:text="${node.title}"></th:block>
+        </option>
+        <th:block th:if="${node.children != null and !#lists.isEmpty(node.children)}">
+            <th:block th:replace="~{weple/wiki/detail :: selectTreeFragment(${node.children}, ${depth + 1})}"></th:block>
         </th:block>
-        <th:block th:text="${node.title}"></th:block>
-    </option>
-    <th:block th:if="${node.children != null and !#lists.isEmpty(node.children)}"
-              th:each="node : ${nodes}">
-        <th:block th:replace="~{weple/wiki/detail :: selectTreeFragment(${node.children}, ${depth + 1})}"></th:block>
     </th:block>
 </th:block>
 

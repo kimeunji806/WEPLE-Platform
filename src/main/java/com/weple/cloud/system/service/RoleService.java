@@ -23,4 +23,6 @@ public interface RoleService {
 	
 	// 역할 삭제
 	int deleteRole(Long roleId);
+	
+	Long selectRoleIdByName(Long companyId, String roleName);
 }

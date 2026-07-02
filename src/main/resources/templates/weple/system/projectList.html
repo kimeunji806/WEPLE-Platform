@@ -7,8 +7,6 @@
     <meta charset="UTF-8">
     <title>프로젝트 목록</title>
     <link rel="stylesheet" href="/css/system/project-list.css">
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
@@ -25,7 +23,7 @@
           class="filter-toolbar">
 
         <div class="project-search">
-            <i class="fas fa-search"></i>
+            <i class="fa fa-search"></i>
             <input type="text"
                    name="keyword"
                    th:value="${keyword}"
@@ -37,9 +35,9 @@
 
     <!-- 버튼 -->
     <a th:href="@{/system/project}" class="project-create-btn">
-        <i class="fas fa-folder"></i>
-        <span>프로젝트 생성</span>
-    </a>
+	    <i class="fa fa-folder"></i>
+	    <span>프로젝트 생성</span>
+	</a>
 
 </div>
 
@@ -63,7 +61,12 @@
                     </tr>
                     <tr th:each="project, stat : ${projectList}">
                         <td th:text="${(currentPage - 1) * 10 + stat.count}"></td>
-                        <td th:text="${project.projectTitle}"></td>
+                        <td>
+						    <a class="project-link"
+						       th:href="@{/project/outline(projectId=${project.projectId})}"
+						       th:text="${project.projectTitle}">
+						    </a>
+						</td>
                         <td th:text="${project.projectDescribe}"></td>
                         <td th:text="${project.createdAt != null ? #dates.format(project.createdAt,'yyyy-MM-dd') : '-'}"></td>
                         <td th:text="${project.finishDate != null ? #dates.format(project.finishDate,'yyyy-MM-dd') : '-'}"></td>

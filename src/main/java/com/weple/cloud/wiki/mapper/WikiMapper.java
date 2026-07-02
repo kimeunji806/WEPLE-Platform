@@ -43,6 +43,10 @@ public interface WikiMapper {
     List<WikiRelationVO> searchWikiByHashtag(@Param("projectId") Long   projectId,
                                               @Param("keyword")   String keyword);
 
-    // ★ 유저 프로필 이미지 조회
+    // 유저 프로필 이미지 조회
     String selectUserProfileImg(@Param("userCode") String userCode);
+    
+    List<String> selectProjectPermissionCodes(
+    	    @Param("userCode") String userCode,
+    	    @Param("projectId") Long projectId);
 }

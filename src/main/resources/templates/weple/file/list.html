@@ -29,8 +29,7 @@
 					<div id="search-container">
 						<div class="search-item" id="fileName-filter">
 							<label>파일명</label> <input type="text" name="fileName"
-								placeholder="파일명을 입력하세요."
-								onkeydown="if(event.key==='Enter') applySearch()">
+								placeholder="파일명을 입력하세요.">
 						</div>
 					</div>
 					<div class="search-right-area">
@@ -48,8 +47,6 @@
 					            onchange="toggleFilter(this, 6)"> 업로드일</label><br>
 					        <label><input type="checkbox" value="7"
 					            onchange="toggleFilter(this, 7)"> 파일 버전</label>
-					        <label><input type="checkbox" value="2-hashtag"
-        						onchange="toggleFilter(this, '2-hashtag')"> 해시태그</label>
 					    </div>
 					</div>
 				</div>
@@ -74,7 +71,7 @@
 							<th>업로드 사용자</th>
 							<th>업로드일</th>
 							<th>파일 버전</th>
-							<th width="60" style="text-align: center;">다운로드</th>
+							<th width="90" style="text-align: center; white-space: nowrap;">다운로드</th>
 							<th width="60" style="text-align: center;">삭제</th>
 						</tr>
 					</thead>
@@ -95,7 +92,7 @@
 								th:text="${file.projectTitle != null} ? ${file.projectTitle} : '-'">-</td>
 							<td><span th:if="${file.taskId != null}"
 									    class="task-badge-linked"
-									    th:text="${(file.hashtag != null and !#strings.isEmpty(file.hashtag)) ? '[' + file.hashtag + '] ' + (file.taskTitle != null ? file.taskTitle : file.taskId) : (file.taskTitle != null ? file.taskTitle : file.taskId)}"></span>
+									    th:text="${file.taskTitle != null ? file.taskTitle : file.taskId}"></span>
 									    <span th:if="${file.taskId == null}" class="task-badge-none">-</span>
 									</td>
 							<td th:text="${file.typeName != null} ? ${file.typeName} : '-'">-</td>
@@ -105,7 +102,7 @@
 							<td
     th:text="${file.uploadedAt != null} ? ${#dates.format(file.uploadedAt, 'yyyy-MM-dd HH:mm')} : (${file.createdAt != null} ? ${#dates.format(file.createdAt, 'yyyy-MM-dd HH:mm')} : '-')">-</td>
 							<td><span class="version-badge"
-								th:text="${file.versionNumber != null and file.versionNumber != 0} ? 'v' + ${file.versionNumber} + '.0' : 'v1.0'">v1.0</span>
+								th:text="${file.versionNumber != null and file.versionNumber != 0} ? 'v' + ${file.versionNumber} : 'v1'">v1</span>
 							</td>
 							<td class="td-center">
     <button class="icon-btn" title="다운로드"
@@ -133,7 +130,7 @@
 
 		<!-- 파일 업로드 모달 -->
 		<div id="uploadModal" class="modal-backdrop" style="display: none;">
-		    <div class="modal-box">
+		    <div class="modal-box modal-box-lg">
 		        <div class="modal-header">
 		            <span class="modal-title">파일 등록</span>
 		            <button class="modal-close" onclick="closeUploadModal()">✕</button>
@@ -156,12 +153,7 @@
 		                placeholder="일감명을 입력하세요 (초성 검색 가능)" autocomplete="off">
 		            <input type="hidden" id="taskIdHidden">
 		            <div id="taskAutocompleteList"
-		                style="display:none; position:absolute; left:24px; right:24px; top:68px; background:#fff; border:1px solid var(--weple-purple-border); border-radius:8px; max-height:180px; overflow-y:auto; z-index:10000; box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
-		        </div>
-		        <div class="modal-form-group">
-		            <label class="modal-label">태그 입력 <span class="req">*</span></label>
-		            <input type="text" id="fileTagInput" class="form-input-text"
-		                placeholder="#디자인 #피그마">
+		                style="display:none; position:absolute; left:24px; right:24px; top:68px; background:#fff; border:1px solid var(--weple-purple-border); border-radius:8px; max-height:220px; overflow-y:auto; z-index:10000; box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
 		        </div>
 		        <div class="modal-footer">
 		            <button type="button" class="page-btn btn-cancel"
@@ -223,6 +215,21 @@ document.addEventListener('DOMContentLoaded', () => {
   allRows = Array.from(document.querySelectorAll('#fileTableBody tr[data-file-name]'));
   filteredRows = allRows.slice();
   showPage(1);
+
+  // 삭제/업로드 결과 안내
+  const params = new URLSearchParams(location.search);
+  if (params.get('deleted') === '1') {
+    showToast('파일이 삭제되었습니다.', 'success');
+  } else if (params.get('error') === 'delete_failed') {
+    showToast('파일 삭제 중 오류가 발생했습니다.', 'error');
+  } else if (params.get('error') === 'upload_failed') {
+    showToast('파일 업로드 중 오류가 발생했습니다.', 'error');
+  } else if (params.get('error') === 'insert_failed') {
+    showToast('파일 등록 중 오류가 발생했습니다.', 'error');
+  }
+  if (params.has('deleted') || params.has('error')) {
+    history.replaceState(null, '', location.pathname);
+  }
 });
 
 function showPage(page) {
@@ -279,7 +286,7 @@ function toggleFilter(checkbox, colIndex) {
 	    div.id = 'filter-col-' + colIndex;
 	    const label = checkbox.nextSibling.textContent.trim();
 	    const inputType = (colIndex === 6) ? 'date' : 'text';
-	    div.innerHTML = `<label>${label}</label><input type="${inputType}" data-col="${colIndex}" placeholder="검색어 입력" onkeydown="if(event.key==='Enter') applySearch()">`;
+	    div.innerHTML = `<label>${label}</label><input type="${inputType}" data-col="${colIndex}" placeholder="검색어 입력">`;
 	    container.appendChild(div);
 	  } else {
 	    const el = document.getElementById('filter-col-' + colIndex);
@@ -365,7 +372,6 @@ function getProjectId() {
 // 업로드 모달
 function openUploadModal() {
   document.getElementById('selectedFileName').textContent = '';
-  document.getElementById('fileTagInput').value = '';
   document.getElementById('fileInput').value = '';
   document.getElementById('taskSearchInput').value = '';
   document.getElementById('taskIdHidden').value = '';
@@ -390,16 +396,13 @@ function onFileSelected(input) {
 // 실제 업로드 처리
 function submitUpload() {
   const fileInput = document.getElementById('fileInput');
-  const tagInput = document.getElementById('fileTagInput');
   const taskIdHidden = document.getElementById('taskIdHidden');
 
   if (!fileInput.files[0]) { showToast('업로드할 파일을 선택해 주세요.', 'error'); return; }
-  if (!tagInput.value.trim()) { showToast('태그를 입력해 주세요.', 'error'); return; }
 
   const projectId = getProjectId();
   const formData = new FormData();
   formData.append('file', fileInput.files[0]);
-  formData.append('tag', tagInput.value.trim());
   if (taskIdHidden && taskIdHidden.value) {
     formData.append('taskId', taskIdHidden.value);
   }
@@ -870,10 +873,18 @@ document.addEventListener('DOMContentLoaded', () => {
 	box-shadow: 0 12px 40px rgba(139, 124, 248, .18);
 }
 
+/* 파일 등록 모달 - 기존보다 크게 */
+.modal-box-lg {
+	width: 680px;
+	max-width: 95vw;
+}
+
 .modal-header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	width: 100%;
+	box-sizing: border-box;
 	padding: 18px 24px;
 	border-bottom: 1px solid var(--weple-purple-border);
 	background: var(--weple-purple-light);
@@ -894,6 +905,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	font-size: 18px;
 	color: var(--weple-text-muted);
 	cursor: pointer;
+	margin-left: auto;
 }
 
 .modal-close:hover {
@@ -903,8 +915,8 @@ document.addEventListener('DOMContentLoaded', () => {
 .drop-zone {
 	border: 2px dashed var(--weple-purple-border);
 	border-radius: 8px;
-	margin: 20px 24px 4px;
-	padding: 32px;
+	margin: 24px 28px 4px;
+	padding: 48px 32px;
 	text-align: center;
 	cursor: pointer;
 	transition: .2s;
@@ -917,27 +929,27 @@ document.addEventListener('DOMContentLoaded', () => {
 }
 
 .drop-icon {
-	font-size: 32px;
+	font-size: 40px;
 	display: block;
-	margin-bottom: 8px;
+	margin-bottom: 10px;
 	color: var(--weple-purple);
 }
 
 .drop-text {
-	font-size: 14px;
+	font-size: 15px;
 	color: var(--weple-text);
 	margin: 0;
 }
 
 .drop-sub {
-	font-size: 13px;
+	font-size: 14px;
 	color: var(--weple-purple-dark);
-	margin: 6px 0 0;
+	margin: 8px 0 0;
 	font-weight: 600;
 }
 
 .modal-form-group {
-	padding: 10px 24px;
+	padding: 12px 28px;
 }
 
 .modal-label {
@@ -950,11 +962,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 .form-input-text {
 	width: 100%;
-	height: 36px;
+	height: 40px;
 	border: 1px solid var(--weple-purple-border);
 	border-radius: 6px;
-	padding: 0 10px;
-	font-size: 13px;
+	padding: 0 12px;
+	font-size: 14px;
 	outline: none;
 	box-sizing: border-box;
 	transition: border-color .15s;
@@ -968,7 +980,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	display: flex;
 	justify-content: flex-end;
 	gap: 10px;
-	padding: 16px 24px;
+	padding: 18px 28px;
 	background: var(--weple-purple-light);
 	border-top: 1px solid var(--weple-purple-border);
 	border-radius: 0 0 12px 12px;

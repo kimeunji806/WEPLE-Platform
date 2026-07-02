@@ -1,6 +1,7 @@
 package com.weple.cloud.project.service;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ProjectService {
 	// 전체 목록 조회(페이징)
@@ -29,4 +30,11 @@ public interface ProjectService {
 	
 	// URL 접근 제어 - 모듈 활성화 여부
 	public boolean isModuleActive(Long projectId, String moduleName);
+	
+	public Set<String> findProjectPermissionCodes(String userCode, Long projectId);
+	public boolean isMember(String userCode, Long projectId);
+	
+	// 일반 사용자용 참여 프로젝트 목록 조회
+	public List<ProjectVO> findAllByMember(String userCode, String keyword, int offset, int pageSize);
+	public int countAllByMember(String userCode, String keyword);
 }

@@ -1,6 +1,7 @@
 package com.weple.cloud.project.service;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,10 +22,11 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
     @Override
-    public List<ProjectMemberVO> searchUsersForAdd(Long projectId, String keyword) {
+    public List<ProjectMemberVO> searchUsersForAdd(Long projectId, String keyword, Long companyId) {
         ProjectMemberSearchVO searchVO = new ProjectMemberSearchVO();
         searchVO.setProjectId(projectId);
         searchVO.setKeyword(keyword);
+        searchVO.setCompanyId(companyId);
         return memberMapper.searchUsersForAdd(searchVO);
     }
 
@@ -51,12 +53,22 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
 	@Override
-	public List<ProjectMemberVO> findGroupList() {
-		return memberMapper.selectGroupList();
+	public List<ProjectMemberVO> findGroupList(Long companyId) {
+		return memberMapper.selectGroupList(companyId);
 	}
 
 	@Override
 	public List<ProjectMemberVO> findUsersByGroupId(Long groupId, Long projectId) {
 		return memberMapper.selectUsersByGroupId(groupId, projectId);
+	}
+
+	@Override
+	public Set<String> findProjectPermissionCodes(String userCode, Long projectId) {
+		return new java.util.HashSet<>(memberMapper.selectProjectPermissionCodes(userCode, projectId));
+	}
+
+	@Override
+	public boolean isMember(String userCode, Long projectId) {
+		return memberMapper.isMember(userCode, projectId);
 	}
 }

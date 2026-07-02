@@ -3,9 +3,7 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.weple.cloud.wiki.mapper.WikiMapper">
 
-    <!-- ═══════════════════════════════════════════════
-         ResultMap
-    ═══════════════════════════════════════════════ -->
+    <!-- ResultMap -->
     <resultMap id="wikiPageResultMap" type="com.weple.cloud.wiki.service.WikiPageVO">
         <result column="wiki_page_id"    property="wikiPageId"/>
         <result column="project_id"      property="projectId"/>
@@ -45,9 +43,7 @@
         <result column="target_url"       property="targetUrl"/>
     </resultMap>
 
-    <!-- ═══════════════════════════════════════════════
-         위키 기본 CRUD
-    ═══════════════════════════════════════════════ -->
+    <!-- 위키 기본 CRUD -->
 
     <!-- 목록 (트리용) -->
     <select id="selectWikiList" resultMap="wikiPageResultMap">
@@ -138,9 +134,7 @@
         ORDER BY created_at ASC
     </select>
 
-    <!-- ═══════════════════════════════════════════════
-         변경 이력
-    ═══════════════════════════════════════════════ -->
+    <!-- 변경 이력 -->
 
     <!-- 이력 전체 목록 (버전 내림차순) -->
     <select id="selectHistoryList" resultMap="wikiHistoryResultMap">
@@ -175,9 +169,7 @@
         WHERE user_code = #{userCode}
     </select>
 
-    <!-- ═══════════════════════════════════════════════
-         편집 잠금
-    ═══════════════════════════════════════════════ -->
+    <!-- 편집 잠금 -->
 
     <!--
         잠금 획득:
@@ -214,9 +206,7 @@
         WHERE w.wiki_page_id = #{wikiPageId}
     </select>
 
-    <!-- ═══════════════════════════════════════════════
-         wiki_relations (연관 문서 / 해시태그)
-    ═══════════════════════════════════════════════ -->
+    <!-- wiki_relations (연관 문서 / 해시태그) -->
 
     <!--
         연관 문서 목록 조회
@@ -312,6 +302,16 @@
         WHERE w.project_id = #{projectId}
           AND w.title LIKE '%' || #{keyword} || '%'
         ORDER BY w.created_at
+    </select>
+    
+    <!-- 프로젝트별 권한 코드 조회 (위키 권한 체크용) -->
+    <select id="selectProjectPermissionCodes" resultType="string">
+        SELECT DISTINCT rp.permission_code
+        FROM members m
+        JOIN member_roles mr ON m.member_id = mr.member_id
+        JOIN role_permissions rp ON mr.role_id = rp.role_id
+        WHERE m.user_code = #{userCode}
+          AND m.project_id = #{projectId}
     </select>
 
 </mapper>

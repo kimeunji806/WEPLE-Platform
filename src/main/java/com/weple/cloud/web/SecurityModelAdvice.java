@@ -24,6 +24,9 @@ public class SecurityModelAdvice {
     private final RepositoryService repositoryService;
     private final ProjectService projectService;
 
+    // 프로젝트 설정 권한 코드 (ProjectController.PERM_SELECT와 동일한 값)
+    private static final String PERM_SELECT = "k1_select";
+
     // 상단 메뉴에서 가입승인 탭을 노출할 수 있는지 판단합니다.
     @ModelAttribute("canApproveSignup")
     public boolean canApproveSignup() {
@@ -80,6 +83,61 @@ public class SecurityModelAdvice {
             return projectService.findActiveModuleNames(Long.valueOf(projectId));
         } catch (NumberFormatException e) {
             return Collections.emptyList();
+        }
+    }
+    
+    @ModelAttribute("isCompanyManager")
+    public boolean isCompanyManager() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof LoginUserDetails)) {
+            return false;
+        }
+        LoginUserVO user = ((LoginUserDetails) authentication.getPrincipal()).getLoginUser();
+        return Integer.valueOf(1).equals(user.getOwnerYn())
+            || Integer.valueOf(1).equals(user.getAdminYn());
+    }
+
+    // 기업 최고관리자(owner)인지 여부. 관리자(admin)는 포함하지 않음 - "관리-설정" 같은
+    // owner 전용 화면/탭을 노출할지 판단할 때 사용
+    @ModelAttribute("isCompanyOwner")
+    public boolean isCompanyOwner() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof LoginUserDetails)) {
+            return false;
+        }
+        LoginUserVO user = ((LoginUserDetails) authentication.getPrincipal()).getLoginUser();
+        return Integer.valueOf(1).equals(user.getOwnerYn());
+    }
+
+    // 현재 프로젝트에서 "설정" 탭(모듈 저장 권한)을 노출할지 여부.
+    // owner/admin은 항상 true, 그 외 사용자는 역할로 부여받은 k1_select 권한이 있을 때만 true.
+    // 프로젝트 서브메뉴(navbar.html)에서 어느 탭에 있든 일관되게 "설정" 탭이 보이도록 전역으로 판단한다.
+    @ModelAttribute("canSaveSetting")
+    public boolean canSaveSetting(HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof LoginUserDetails)) {
+            return false;
+        }
+        LoginUserVO user = ((LoginUserDetails) authentication.getPrincipal()).getLoginUser();
+
+        if (Integer.valueOf(1).equals(user.getOwnerYn()) || Integer.valueOf(1).equals(user.getAdminYn())) {
+            return true;
+        }
+
+        String projectId = request.getParameter("projectId");
+        if (projectId == null) {
+            String uri = request.getRequestURI();
+            java.util.regex.Matcher m =
+                java.util.regex.Pattern.compile("/project/(\\d+)").matcher(uri);
+            if (m.find()) projectId = m.group(1);
+        }
+        if (projectId == null) return false;
+
+        try {
+            java.util.Set<String> perms = projectService.findProjectPermissionCodes(user.getUserCode(), Long.valueOf(projectId));
+            return perms != null && perms.contains(PERM_SELECT);
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 }

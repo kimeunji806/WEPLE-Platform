@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +20,7 @@ public class WikiServiceImpl implements WikiService {
 
     private final WikiMapper wikiMapper;
 
-    // ── 위키 기본 ───────────────────────────────────────────
+    // 위키 기본
 
     @Override
     public List<WikiPageVO> findWikiTree(Long projectId) {
@@ -95,7 +96,7 @@ public class WikiServiceImpl implements WikiService {
         return wikiMapper.deleteWiki(wikiPageId);
     }
 
-    // ── 변경 이력 ────────────────────────────────────────────
+    // 변경 이력
 
     @Override
     public List<WikiHistoryVO> findHistoryList(String wikiPageId) {
@@ -107,7 +108,7 @@ public class WikiServiceImpl implements WikiService {
         return wikiMapper.selectHistoryByVersion(wikiPageId, wikiVersion);
     }
 
-    // ── 편집 잠금 ────────────────────────────────────────────
+    // 편집 잠금
 
     @Override
     @Transactional
@@ -126,7 +127,7 @@ public class WikiServiceImpl implements WikiService {
         return wikiMapper.selectLockInfo(wikiPageId);
     }
 
-    // ── 연관문서 ─────────────────────────────────────────────
+    // 연관문서
 
     @Override
     public List<WikiRelationVO> findRelationList(String wikiPageId) {
@@ -168,7 +169,7 @@ public class WikiServiceImpl implements WikiService {
         return result;
     }
 
-    // ── 트리 변환 ─────────────────────────────────────────────
+    // 트리 변환
 
     private List<WikiPageVO> buildTree(List<WikiPageVO> flatList) {
         Map<String, WikiPageVO> map   = new LinkedHashMap<>();
@@ -188,4 +189,9 @@ public class WikiServiceImpl implements WikiService {
         }
         return roots;
     }
+
+	@Override
+	public Set<String> findProjectPermissionCodes(String userCode, Long projectId) {
+		return new java.util.HashSet<>(wikiMapper.selectProjectPermissionCodes(userCode, projectId));
+	}
 }

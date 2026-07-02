@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head></head>
 <body>
-<div th:fragment="navbarFragment" class="sub_menu_nav" th:if="${currentMenu != 'none' and currentMenu != 'mypage' and sidebarMenu != 'system'}">
+<div th:fragment="navbarFragment" class="sub_menu_nav" th:if="${currentMenu != null and currentMenu != 'none' and currentMenu != 'mypage' and sidebarMenu != 'system' and moduleNames != null and !#lists.isEmpty(moduleNames)}">
     <ul> 
     	<li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b1')}"
 		    th:classappend="${currentMenu == 'outline'} ? 'active' : ''">
@@ -62,10 +62,12 @@
         	<a th:href="@{/project/calendar(projectId=${projectId})}">캘린더</a>
         </li>
         
-        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b11')}"
-            th:classappend="${currentMenu == 'setting'} ? 'active' : ''">
-          <a th:href="@{/project/{id}/setting(id=${projectId})}">설정</a>
-        </li>
+        <li th:if="${moduleNames != null 
+		             and #lists.contains(moduleNames, 'b11') 
+		             and (canSaveSetting == true or isCompanyManager == true)}"
+		    th:classappend="${currentMenu == 'setting'} ? 'active' : ''">
+		  <a th:href="@{/project/{id}/setting(id=${projectId})}">설정</a>
+		</li>
     </ul>
 </div>
 </body>

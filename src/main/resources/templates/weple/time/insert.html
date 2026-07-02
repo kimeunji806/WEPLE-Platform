@@ -87,6 +87,12 @@
 
 				<!-- 선택 버튼 -->
 				<div class="select-btn-row">
+					<button type="button" class="btn-select btn-list"
+						th:if="${workTimeVO.projectId != null and workTimeVO.projectId != 0}"
+						th:onclick="|location.href='@{/projectTimeList(projectId=${workTimeVO.projectId})}'|">목록으로</button>
+					<button type="button" class="btn-select btn-list"
+						th:if="${workTimeVO.projectId == null or workTimeVO.projectId == 0}"
+						onclick="location.href='/totalTimeList'">목록으로</button>
 					<button class="btn-select" onclick="openModal()">선택</button>
 				</div>
 			</div>
@@ -119,20 +125,12 @@
 						</div>
 					</div>
 
-					<!-- 사용자 -->
+					<!-- 사용자 (로그인한 계정으로 고정) -->
 					<div class="modal-field modal-field-user">
 						<label>사용자 <span class="req">*</span></label>
-						<div class="user-search-wrap">
-							<input type="text" id="userSearchInput" placeholder="이름으로 검색"
-								autocomplete="off"> <input type="hidden"
-								id="selectedUserCode" name="userCode" required>
-							<ul id="userDropdown" class="user-dropdown"></ul>
-						</div>
+						<span class="modal-static-user" th:text="${loginUserName}">-</span>
+						<input type="hidden" name="userCode" th:value="${loginUserCode}">
 					</div>
-					<!-- Thymeleaf로 userList JS 배열 생성 -->
-					<script th:inline="javascript">
-        const userList = /*[[${userList}]]*/ [];
-      </script>
 
 					<!-- 작업일자 -->
 					<div class="modal-field">
@@ -166,6 +164,7 @@
 								class="progress-text">0%</span>
 						</div>
 					</div>
+					<p class="progress-hint" id="progressHint" style="display: none;">* 하위일감이 있는 일감은 현재 진척도보다 낮게는 등록할 수 없습니다.</p>
 
 					<!-- 내용 -->
 					<div class="modal-field modal-field-textarea">
@@ -356,6 +355,17 @@ function clearSearch() {
 // ── 모달 ──
 let selectedRow = null;
 
+// range input의 트랙을 현재 값(min~max 대비 %)만큼 색이 채워지도록 갱신
+function updateRangeFill(rangeEl) {
+  const min = parseInt(rangeEl.min) || 0;
+  const max = parseInt(rangeEl.max) || 100;
+  const val = parseInt(rangeEl.value) || 0;
+  const percent = max > min ? ((val - min) / (max - min)) * 100 : 0;
+  const filledColor = rangeEl.disabled ? '#94a3b8' : '#6D5EF7';
+  rangeEl.style.background =
+    `linear-gradient(to right, ${filledColor} 0%, ${filledColor} ${percent}%, #e2e8f0 ${percent}%, #e2e8f0 100%)`;
+}
+
 function openModal() {
   const checked = document.querySelector('input[name="taskRadio"]:checked');
   if (!checked) { showToast('일감을 선택해주세요.', 'error'); return; }
@@ -370,82 +380,56 @@ function openModal() {
   document.getElementById('modalTaskId').value = selectedRow.id;
   document.getElementById('summaryTitle').textContent = selectedRow.title    || '-';
   document.getElementById('summaryDesc').textContent  = selectedRow.describe || '-';
-  // 진척도를 일감 현재 진척도로 초기화
+
   const initProgress = selectedRow.progress || 0;
-  document.getElementById('progressRange').value = initProgress;
+  const rangeEl = document.getElementById('progressRange');
+  rangeEl.disabled = false;
+  rangeEl.classList.remove('progress-locked');
+  rangeEl.min = 0;
+  rangeEl.value = initProgress;
   document.getElementById('progressText').textContent = initProgress + '%';
+  document.getElementById('progressHint').style.display = 'none';
   document.getElementById('spentHourInput').value = '';
-  resetUserSearch();
+  updateRangeFill(rangeEl);
+
+  // 하위 일감 유무에 따라 진척도 편집 가능 여부/범위 결정
+  applyProgressLock(selectedRow.id, initProgress);
 
   document.getElementById('timeModal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
 
-// ── 사용자 검색 자동완성 ──
-const userSearchInput = document.getElementById('userSearchInput');
-const userDropdown    = document.getElementById('userDropdown');
-const selectedUserCode = document.getElementById('selectedUserCode');
-
-// 초성 추출 함수
-function getChosung(str) {
-  const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-  return (str || '').split('').map(ch => {
-    const code = ch.charCodeAt(0) - 0xAC00;
-    return code >= 0 && code <= 11171 ? CHO[Math.floor(code / 588)] : ch;
-  }).join('');
-}
-
-function matchUser(userName, kw) {
-  if (!kw) return true;
-  const name = (userName || '').toLowerCase();
-  // 일반 포함 검색
-  if (name.includes(kw)) return true;
-  // 초성 검색
-  const chosung = getChosung(userName);
-  return chosung.includes(kw);
-}
-
-userSearchInput.addEventListener('input', function() {
-  const kw = this.value.trim().toLowerCase();
-  userDropdown.innerHTML = '';
-  selectedUserCode.value = ''; // 직접 입력 시 선택 초기화
-
-  if (!kw) { userDropdown.style.display = 'none'; return; }
-
-  const matched = (typeof userList !== 'undefined' ? userList : [])
-    .filter(u => matchUser(u.userName, kw));
-
-  if (matched.length === 0) {
-    userDropdown.style.display = 'none'; return;
-  }
-
-  matched.forEach(u => {
-    const li = document.createElement('li');
-    li.textContent = u.userName;
-    li.dataset.code = u.userCode;
-    li.addEventListener('click', function() {
-      userSearchInput.value  = u.userName;
-      selectedUserCode.value = u.userCode;
-      userDropdown.style.display = 'none';
+function applyProgressLock(taskId, currentProgress) {
+  const rangeEl = document.getElementById('progressRange');
+  const hint = document.getElementById('progressHint');
+  fetch('/hasChildTask?taskId=' + encodeURIComponent(taskId))
+    .then(res => res.json())
+    .then(hasChild => {
+      if (hasChild) {
+        // 하위일감이 있으면 완전 잠금
+        rangeEl.disabled = true;
+        rangeEl.classList.add('progress-locked');
+        rangeEl.value = currentProgress;
+        document.getElementById('progressText').textContent = currentProgress + '%';
+        hint.textContent = '* 완료되지 않은 하위일감이 있어 진척도를 수정할 수 없습니다.';
+        hint.style.display = 'block';
+      } else {
+        // 하위일감이 없으면 편집 가능, 단 현재값보다 낮게는 불가
+        rangeEl.disabled = false;
+        rangeEl.classList.remove('progress-locked');
+        rangeEl.min = currentProgress;
+        hint.textContent = '* 진척도는 현재보다 낮게 설정할 수 없습니다.';
+        hint.style.display = 'block';
+      }
+      updateRangeFill(rangeEl);
+    })
+    .catch(() => {
+      rangeEl.disabled = false;
+      rangeEl.min = 0;
+      hint.style.display = 'none';
+      updateRangeFill(rangeEl);
     });
-    userDropdown.appendChild(li);
-  });
-  userDropdown.style.display = 'block';
-});
-
-// 모달 열릴 때 사용자 검색창 초기화
-function resetUserSearch() {
-  userSearchInput.value  = '';
-  selectedUserCode.value = '';
-  userDropdown.style.display = 'none';
 }
-
-// 모달 바깥 클릭 시 드롭다운 닫기
-document.addEventListener('click', function(e) {
-  if (!userSearchInput.contains(e.target) && !userDropdown.contains(e.target)) {
-    userDropdown.style.display = 'none';
-  }
-});
 
 function closeModal() {
   document.getElementById('timeModal').style.display = 'none';
@@ -454,9 +438,11 @@ function closeModal() {
 
 document.getElementById('progressRange').addEventListener('input', function() {
   document.getElementById('progressText').textContent = this.value + '%';
+  updateRangeFill(this);
 });
 
 // 모달 바깥 클릭 시 닫기 - 비활성화 (취소 버튼으로만 닫힘)
+
 
 // 초기 렌더
 renderTable();
@@ -476,15 +462,18 @@ if (urlTaskId) {
             tr.style.cursor = 'default';
         }
     });
+
+    // task detail에서 넘어온 경우 목록 선택 없이 바로 모달 오픈
+    openModal();
 }
 </script>
 
 		<style>
 /* ── 전체 래퍼 ── */
 .insert-wrap {
-	max-width: 1000px;
+	width: 95%;
 	margin: 32px auto;
-	padding: 0 16px;
+	padding: 0;
 	font-family: "Noto Sans KR", "Malgun Gothic", sans-serif;
 	font-size: 14px;
 	color: #333;
@@ -711,7 +700,7 @@ if (urlTaskId) {
 /* ── 선택 버튼 ── */
 .select-btn-row {
 	display: flex;
-	justify-content: flex-end;
+	justify-content: space-between;
 	margin-top: 16px;
 }
 
@@ -742,10 +731,11 @@ if (urlTaskId) {
 	z-index: 9999;
 }
 
+/* 파일 등록 모달(.modal-box-lg)과 동일한 크기로 확대 */
 .modal-box {
 	background: #fff;
 	border-radius: 10px;
-	width: 480px;
+	width: 680px;
 	max-width: 95vw;
 	max-height: 90vh;
 	overflow-y: auto;
@@ -756,6 +746,8 @@ if (urlTaskId) {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	width: 100%;
+	box-sizing: border-box;
 	padding: 18px 24px;
 	border-bottom: 1px solid #e2e8f0;
 	background: #f8fafc;
@@ -777,6 +769,7 @@ if (urlTaskId) {
 	color: #94a3b8;
 	cursor: pointer;
 	line-height: 1;
+	margin-left: auto;
 }
 
 .modal-close:hover {
@@ -786,8 +779,8 @@ if (urlTaskId) {
 .modal-task-summary {
 	background: #F1EDFF;
 	border-left: 3px solid #6D5EF7;
-	margin: 20px 24px 8px;
-	padding: 12px 14px;
+	margin: 24px 28px 10px;
+	padding: 14px 16px;
 	border-radius: 0 6px 6px 0;
 }
 
@@ -816,12 +809,12 @@ if (urlTaskId) {
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	padding: 10px 24px;
+	padding: 12px 28px;
 	border-bottom: 1px solid #f1f5f9;
 }
 
 .modal-field label {
-	width: 90px;
+	width: 100px;
 	font-weight: 600;
 	color: #475569;
 	font-size: 13px;
@@ -831,10 +824,10 @@ if (urlTaskId) {
 .modal-field input[type="date"], .modal-field input[type="number"],
 	.modal-field select {
 	flex: 1;
-	height: 36px;
+	height: 40px;
 	border: 1px solid #d1d5db;
 	border-radius: 6px;
-	padding: 0 10px;
+	padding: 0 12px;
 	font-size: 14px;
 	outline: none;
 }
@@ -845,6 +838,13 @@ if (urlTaskId) {
 
 .req {
 	color: #ef4444;
+}
+
+.modal-static-user {
+	flex: 1;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1e293b;
 }
 
 /* 사용자 검색 */
@@ -859,10 +859,10 @@ if (urlTaskId) {
 
 .user-search-wrap input[type="text"] {
 	width: 100%;
-	height: 36px;
+	height: 40px;
 	border: 1px solid #d1d5db;
 	border-radius: 6px;
-	padding: 0 10px;
+	padding: 0 12px;
 	font-size: 14px;
 	outline: none;
 }
@@ -881,7 +881,7 @@ if (urlTaskId) {
 	border: 1px solid #d1d5db;
 	border-radius: 6px;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
-	max-height: 180px;
+	max-height: 220px;
 	overflow-y: auto;
 	z-index: 10000;
 	list-style: none;
@@ -910,7 +910,40 @@ if (urlTaskId) {
 
 .progress-wrap input[type="range"] {
 	flex: 1;
-	accent-color: #6D5EF7;
+	-webkit-appearance: none;
+	appearance: none;
+	height: 6px;
+	border-radius: 3px;
+	outline: none;
+	cursor: pointer;
+	background: #e2e8f0; /* JS가 값에 따라 linear-gradient로 덮어씀 */
+}
+
+.progress-wrap input[type="range"]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: #6D5EF7;
+	cursor: pointer;
+	border: 2px solid #fff;
+	box-shadow: 0 0 0 1px #6D5EF7;
+}
+
+.progress-wrap input[type="range"]::-moz-range-thumb {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: #6D5EF7;
+	cursor: pointer;
+	border: 2px solid #fff;
+	box-shadow: 0 0 0 1px #6D5EF7;
+}
+
+.progress-wrap input[type="range"]::-moz-range-track {
+	height: 6px;
+	border-radius: 3px;
+	background: transparent;
 }
 
 .progress-text {
@@ -920,9 +953,31 @@ if (urlTaskId) {
 	text-align: right;
 }
 
+.progress-wrap input[type="range"].progress-locked {
+	opacity: .5;
+	cursor: not-allowed;
+}
+
+.progress-wrap input[type="range"].progress-locked::-webkit-slider-thumb {
+	background: #94a3b8;
+	box-shadow: 0 0 0 1px #94a3b8;
+}
+
+.progress-wrap input[type="range"].progress-locked::-moz-range-thumb {
+	background: #94a3b8;
+	box-shadow: 0 0 0 1px #94a3b8;
+}
+
+.progress-hint {
+	margin: -8px 28px 0;
+	padding-left: 100px;
+	font-size: 12px;
+	color: #94a3b8;
+}
+
 .modal-field-textarea {
 	align-items: flex-start;
-	padding-top: 12px;
+	padding-top: 14px;
 }
 
 .modal-field-textarea label {
@@ -933,12 +988,12 @@ if (urlTaskId) {
 	flex: 1;
 	border: 1px solid #d1d5db;
 	border-radius: 6px;
-	padding: 8px 10px;
+	padding: 10px 12px;
 	font-size: 14px;
 	font-family: inherit;
 	outline: none;
 	resize: vertical;
-	min-height: 72px;
+	min-height: 84px;
 	line-height: 1.5;
 }
 
@@ -950,7 +1005,7 @@ if (urlTaskId) {
 	display: flex;
 	justify-content: flex-end;
 	gap: 10px;
-	padding: 16px 24px;
+	padding: 18px 28px;
 	background: #f8fafc;
 	border-top: 1px solid #e2e8f0;
 }

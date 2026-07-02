@@ -84,7 +84,6 @@
 			
 			    </div>
 			</div>
-            </div>
 
             <div class="form-group-row">
                 <div class="module-label-row">
@@ -103,12 +102,11 @@
                 <div class="module-box-container">
                     <div class="module-flex-layout">
                         <div class="module-item-wrapper">
-                            <label class="checkbox-inline">
-                                <input type="checkbox" name="moduleNames" value="b1"
-                                       th:checked="${project.moduleNames != null and project.moduleNames.contains('b1')}">
-                                <span class="custom-check-box"></span>
-                                <span class="module-text">개요</span>
-                            </label>
+                            <label class="checkbox-inline" id="labelOverview">
+							    <input type="checkbox" name="moduleNames" value="b1" id="moduleOverview" checked>
+							    <span class="custom-check-box"></span>
+							    <span class="module-text">개요</span>
+							</label>
                         </div>
                         <div class="module-item-wrapper">
                             <label class="checkbox-inline">

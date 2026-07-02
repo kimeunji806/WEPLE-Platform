@@ -5,12 +5,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.weple.cloud.notification.mapper.NotificationMapper;
-import com.weple.cloud.notification.service.mail.NotificationMailService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationMapper notificationMapper;
-    // 메일 발송 기능은 선택사항
-    private final ObjectProvider<NotificationMailService> mailServiceProvider;
 
     @Override
     @Transactional
@@ -51,21 +47,6 @@ public class NotificationServiceImpl implements NotificationService {
         alarmVO.setTargetId(targetId);
 
         notificationMapper.insertAlarm(alarmVO);
-        
-        // "이메일 알림 수신 연동"이 켜져 있으면 이메일도 함께 발송
-        // 메일 발송 실패가 알림(웹) 생성 자체를 막으면 안 되므로 별도로 try/catch 함
-        if ("Y".equals(preference.getEmailNotificationYn())) {
-            NotificationMailService mailService = mailServiceProvider.getIfAvailable();
-            if (mailService == null) {
-                log.debug("메일 발송 서비스가 등록되어 있지 않아 이메일 발송을 건너뜁니다. (spring.mail.* 설정 필요) userCode={}", userCode);
-            } else {
-                try {
-                    mailService.sendAlarmMail(preference.getEmail(), alarmTag, alarmContent);
-                } catch (Exception e) {
-                    log.warn("알림 메일 발송에 실패했습니다. userCode={}, error={}", userCode, e.getMessage());
-                }
-            }
-        }
     }
 
     @Override

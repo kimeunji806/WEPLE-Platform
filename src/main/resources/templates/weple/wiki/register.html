@@ -10,6 +10,8 @@
 <body>
 <section class="wiki-page">
 
+    <div id="wikiToastContainer" class="wiki-toast-container"></div>
+
     <h3 class="wiki-page-title">위키 문서 등록</h3>
 
     <form id="wikiForm" method="post" th:action="@{/project/wiki/register}">
@@ -74,6 +76,33 @@
         var inp = null;
         var dd  = null;
 
+        /* ── 토스트 (detail.html / modify.html과 동일) ── */
+        var TOAST_ICONS = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
+		function wikiToast(type, title, msg, duration) {
+		    var overlay = document.createElement('div');
+		    overlay.className = 'wiki-toast-overlay';
+		
+		    var toast = document.createElement('div');
+		    toast.className = 'wiki-toast toast-' + (type || 'info');
+		    var icon = TOAST_ICONS[type] || 'ℹ️';
+		    var msgHtml = msg ? '<span class="wiki-toast-msg">' + msg + '</span>' : '';
+		    toast.innerHTML =
+		        '<span class="wiki-toast-icon">' + icon + '</span>' +
+		        '<div class="wiki-toast-body"><span class="wiki-toast-title">' + title + '</span>' + msgHtml + '</div>' +
+		        '<button class="wiki-toast-close" onclick="wikiToastClose(this.closest(\'.wiki-toast-overlay\'))">✕</button>';
+		
+		    overlay.appendChild(toast);
+		    document.body.appendChild(overlay);
+		    setTimeout(function() { wikiToastClose(overlay); }, duration || 2500);
+		}
+		function wikiToastClose(overlay) {
+		    if (!overlay || overlay.classList.contains('removing')) return;
+		    overlay.classList.add('removing');
+		    var toast = overlay.querySelector('.wiki-toast');
+		    if (toast) toast.classList.add('removing');
+		    setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 200);
+		}
+
         /* ── DOMContentLoaded ── */
         document.addEventListener('DOMContentLoaded', function () {
             wikiEditor = new toastui.Editor({
@@ -99,9 +128,13 @@
         /* ── 등록 처리 ── */
         function submitWikiForm() {
             var title = document.getElementById('titleInput').value.trim();
-            if (!title) { alert('문서 제목은 필수 입력 항목입니다.'); document.getElementById('titleInput').focus(); return; }
+            if (!title) {
+                wikiToast('warning', '문서 제목은 필수 입력 항목입니다.');
+                document.getElementById('titleInput').focus();
+                return;
+            }
             var content = wikiEditor.getMarkdown();
-            if (!content.trim()) { alert('내용을 입력하세요.'); return; }
+            if (!content.trim()) { wikiToast('warning', '내용을 입력하세요.'); return; }
             document.getElementById('contentInput').value = content;
             // null 제거 후 JSON 전송
             document.getElementById('relationsInput').value =

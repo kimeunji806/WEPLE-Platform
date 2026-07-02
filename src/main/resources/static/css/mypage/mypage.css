@@ -231,7 +231,7 @@
     font-size: 12px;
     cursor: pointer;
 }
-.mypage-notice-options input { accent-color: #6D5EF7; }
+.mypage-notice-options input { margin: 0; accent-color: #6D5EF7; }
 .mypage-notice-options span { font-weight: 700; }
 .mypage-notice-options small { color: #6b7280; font-size: 11px; }
 
@@ -260,7 +260,10 @@
     background: #ffffff;
     color: #EF4444;
 }
-.mypage-cancel-button:hover { background: #FEF2F2; }
+.mypage-cancel-button:hover {
+    background: #FEF2F2;
+    color: #EF4444;
+}
 .mypage-submit-button {
     border: 1px solid #6D5EF7;
     background: #6D5EF7;

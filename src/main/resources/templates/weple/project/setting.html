@@ -21,11 +21,14 @@
             <!-- 프로젝트 이름 (필수) -->
             <div class="form-row">
                 <label class="form-label required">이름</label>
+                <!-- ↓↓↓ th:readonly, th:classappend 추가 ↓↓↓ -->
                 <input type="text"
                        name="projectTitle"
                        class="form-input"
                        th:value="${setting.projectTitle}"
                        placeholder="프로젝트 이름을 입력하세요."
+                       th:readonly="${!canSaveSetting}"
+                       th:classappend="${!canSaveSetting} ? 'readonly' : ''"
                        required>
             </div>
 
@@ -34,10 +37,12 @@
                 <label class="form-label">설명</label>
                 <textarea name="projectDescribe"
                           class="form-textarea"
-                          th:text="${setting.projectDescribe}"></textarea>
+                          th:text="${setting.projectDescribe}"
+                          th:readonly="${!canSaveSetting}"
+                          th:classappend="${!canSaveSetting} ? 'readonly' : ''"></textarea>
             </div>
 
-            <!-- 식별자 (읽기 전용) -->
+            <!-- 식별자 (읽기 전용) — 원래부터 readonly라 변경 없음 -->
             <div class="form-row">
                 <label class="form-label">식별자</label>
                 <input type="text"
@@ -51,24 +56,46 @@
                 <label class="form-label">모듈</label>
                 <div class="module-checks">
                     <div class="module-flex">
+
+                        <!-- 개요: 항상 강제 포함, 읽기 전용 -->
+                        <div class="module-item">
+                            <label id="labelOverview">
+                                <input type="checkbox" name="moduleNames" value="b1" checked disabled>
+                                <input type="hidden" name="moduleNames" value="b1">
+                                <span class="custom-check-box"></span>
+                                <span class="module-text">개요</span>
+                            </label>
+                        </div>
+
                         <div class="module-item" th:each="m : ${modules}">
-						    <th:block th:if="${m.name != 'b11'}">
-						        <label>
-						            <input type="checkbox" name="moduleNames"
-						                   th:value="${m.name}" th:checked="${m.checked}">
-						            <span class="custom-check-box"></span>
-						            <span class="module-text" th:text="${m.label}"></span>
-						        </label>
-						    </th:block>
-						</div>
+                            <label>
+                                <input type="checkbox" name="moduleNames"
+                                       th:value="${m.name}"
+                                       th:checked="${m.checked}"
+                                       th:disabled="${!canSaveSetting}">
+                                <span class="custom-check-box"></span>
+                                <span class="module-text" th:text="${m.label}"></span>
+                            </label>
+                        </div>
+
+                        <!-- 설정: 항상 강제 포함, 읽기 전용 -->
+                        <div class="module-item">
+                            <label id="labelSettings">
+                                <input type="checkbox" name="moduleNames" value="b11" checked disabled>
+                                <input type="hidden" name="moduleNames" value="b11">
+                                <span class="custom-check-box"></span>
+                                <span class="module-text">설정</span>
+                            </label>
+                        </div>
+
                     </div>
                 </div>
             </div>
 
             <!-- 저장 버튼 -->
             <div class="form-btn-area">
-                <button type="submit" class="btn-save">저장</button>
-            </div>
+			    <button th:if="${canSaveSetting}" type="submit" class="btn-save">저장</button>
+			</div>
 
         </form>
     </div>

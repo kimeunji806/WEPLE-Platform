@@ -7,15 +7,15 @@
 	           , default_describe
 	    FROM common_code
 	    WHERE common_code = '0B'
-	    ORDER BY common_code
+	    ORDER BY common_id
 	</select>
     
     <!-- 회사가 이미 노출 설정해둔 모듈 코드 목록 -->
     <select id="findEnabledModuleCodes" parameterType="Long" resultType="String">
-        SELECT module_id
-        FROM modules
-        WHERE company_id = #{companyId}
-    </select>
+	    SELECT module_name
+	    FROM modules
+	    WHERE company_id = #{companyId}
+	</select>
 
     <delete id="deleteModulesByCompany" parameterType="Long">
         DELETE FROM modules

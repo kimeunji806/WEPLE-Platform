@@ -73,22 +73,23 @@ public class NotificationController {
         return "weple/notification/popover :: #popoverBody";
     }
 
-    // 실시간 알림 팝업(토스트) 감지용 - 가장 최근 알림 1건 + 읽지 않은 개수 (폴링)
+	// 실시간 알림 팝업(토스트) 감지용 - 최근 알림 여러 건 + 읽지 않은 개수 (폴링)
     @GetMapping("/notification/latest")
     @ResponseBody
     public ResponseEntity<?> latest(@AuthenticationPrincipal LoginUserDetails loginUser) {
         String userCode = loginUser.getLoginUser().getUserCode();
 
-        List<AlarmVO> latest = notificationService.findRecentAlarmList(userCode, 1);
+        // 폴링 주기 사이 여러 건이 쌓여도 놓치지 않도록 1건이 아니라 최근 N건을 가져온다.
+        List<AlarmVO> latestList = notificationService.findRecentAlarmList(userCode, RECENT_LIMIT);
         int unreadCount = notificationService.countUnread(userCode);
 
-        // 알림이 없을 수 있어(latest == null) HashMap 사용 - Map.of()는 null value를 허용하지 않음
         Map<String, Object> body = new HashMap<>();
-        body.put("latest", latest.isEmpty() ? null : latest.get(0));
+        body.put("latestList", latestList); // 최신순(0번째 인덱스가 가장 최근)
         body.put("unreadCount", unreadCount);
 
         return ResponseEntity.ok(body);
     }
+    
     @GetMapping("/notification/unread-count")
     @ResponseBody
     public ResponseEntity<?> unreadCount(@AuthenticationPrincipal LoginUserDetails loginUser) {

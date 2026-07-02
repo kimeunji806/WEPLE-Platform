@@ -1,4 +1,5 @@
-<div th:fragment="sidebarFragment" class="left_col scroll-view">
+<div th:fragment="sidebarFragment" class="left_col scroll-view"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
   <div class="navbar nav_title" style="border: 0">
     <a th:href="@{/dashboard/index}" class="site_title">
       <i class="fa fa-group"></i> <span>WEPLE</span>
@@ -19,7 +20,10 @@
                 <li><a th:href="@{/dashboard/calendar}"><i class="fa fa-calendar"></i> 캘린더</a></li>
                 <li th:classappend="${sidebarMenu == 'time'} ? 'active' : ''"><a th:href="@{/totalTimeList}"><i class="fa fa-clock-o"></i> 소요시간</a></li>
                 <li><a th:href="@{/dashboard/board}"><i class="fa fa-comments"></i> 게시판</a></li>
-                <li th:classappend="${sidebarMenu == 'system'} ? 'active' : ''"><a th:href="@{/system/project/list}"><i class="fa fa-gears"></i> 관리</a></li>
+                <li th:classappend="${sidebarMenu == 'system'} ? 'active' : ''"
+                    sec:authorize="hasAnyAuthority('ROLE_COMPANY_OWNER','ROLE_COMPANY_ADMIN')">
+                    <a th:href="@{/system/project/list}"><i class="fa fa-gears"></i> 관리</a>
+                </li>
             </ul>
         </div>
     </div>

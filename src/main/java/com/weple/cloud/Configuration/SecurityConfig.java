@@ -69,13 +69,25 @@ public class SecurityConfig {
                 .requestMatchers("/userList", "/userList/**")
                 .hasAnyAuthority("ROLE_COMPANY_OWNER", "ROLE_COMPANY_ADMIN")
 
-                // 저장소 등록 설정은 기업 최고관리자 또는 관리자만 사용할 수 있음
+                // 저장소 화면은 프로젝트별 k4 권한을 컨트롤러에서 다시 확인함
                 .requestMatchers("/repository/management", "/repository/management/**", "/repository", "/repository/update", "/repository/delete")
-                .hasAnyAuthority("ROLE_COMPANY_OWNER", "ROLE_COMPANY_ADMIN")
+                .authenticated()
                 // 관리 설정탭 접근은 기업 최고관리자 또는 관리자만 사용할 수 있음
                 .requestMatchers("/settingDetail")
                 .hasAnyAuthority("ROLE_COMPANY_OWNER", "ROLE_COMPANY_ADMIN")
+                
+                // 역할·권한 관리는 기업 최고관리자 또는 관리자만 접근할 수 있음-은
+                .requestMatchers("/system/role", "/system/role/**")
+                .hasAnyAuthority("ROLE_COMPANY_OWNER", "ROLE_COMPANY_ADMIN")
+                
+                // 관리 페이지 내부 프로젝트 생성·수정·목록은 기업 최고관리자 또는 관리자만 접근할 수 있음-은
+                .requestMatchers("/system/project", "/system/project/**")
+                .hasAnyAuthority("ROLE_COMPANY_OWNER", "ROLE_COMPANY_ADMIN")
 
+                // 관리-설정(모듈/일감유형 기본값 설정)은 기업 최고관리자만 접근할 수 있음
+                .requestMatchers("/system/systemModules", "/system/systemModules/**")
+                .hasAuthority("ROLE_COMPANY_OWNER")
+                
                 // 그 외 요청은 로그인 필요
                 .anyRequest().authenticated()
             )

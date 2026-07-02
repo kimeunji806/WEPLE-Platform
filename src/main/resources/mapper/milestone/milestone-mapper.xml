@@ -52,84 +52,32 @@
 
 
 	
-    <select id="selectMilestoneAll" parameterType="long" resultMap="ParentMilestoneInfoResultMap">
-        WITH 
-        /* 1) 각 마일스톤별 일감 통계 계산 (하위 마일스톤의 통계 기반이 됨) */
-        task_stats AS (
-            SELECT 
-                milestone_id,
-                COUNT(*) AS total_task_count,
-                COUNT(CASE WHEN task_progress = 100 THEN 1 END) AS closed_task_count,
-                ROUND(AVG(NVL(task_progress, 0))) AS progress_percentage
-            FROM task
-            WHERE project_id = #{projectId}
-            GROUP BY milestone_id
-        ),
-        
-        /* 2) 하위 마일스톤 데이터를 기반으로 상위 마일스톤용 롤업 통계 계산 */
-        parent_stats AS (
-            SELECT 
-                c.parent_milestone_id,
-                COUNT(c.milestone_id) AS total_milestone_count,
-                COUNT(CASE WHEN c.milestone_status = 'g2' THEN 1 END) AS closed_milestone_count, -- 'g2'가 완료 상태 공통코드라고 가정
-                ROUND(AVG(NVL(ts.progress_percentage, 0))) AS parent_progress
-            FROM milestone c
-            LEFT JOIN task_stats ts ON c.milestone_id = ts.milestone_id
-            WHERE c.project_id = #{projectId} AND c.parent_milestone_id IS NOT NULL
-            GROUP BY c.parent_milestone_id
-        )
-        
-        SELECT 
-            /* ======= 최상위(부모) 마일스톤 컬럼 ======= */
-            m.milestone_id, 
-            m.project_id, 
-            m.user_code, 
-            m.milestone_title, 
-            m.milestone_describe, 
-            m.finish_date, 
-            m.milestone_status,
-            m.created_at,
-            m.updated_at,
-            NVL(ps.total_milestone_count, 0)  AS total_milestone_count,
-            NVL(ps.closed_milestone_count, 0) AS closed_milestone_count,
-            NVL(ps.parent_progress, 0)         AS progress_percentage,
-            CASE 
-                WHEN NVL(ps.parent_progress, 0) &lt; 100 AND TRUNC(SYSDATE) > TRUNC(m.finish_date)
-                THEN TRUNC(SYSDATE) - TRUNC(m.finish_date)
-                ELSE 0 
-            END AS delay_days,
-            
-            /* ======= 하위(자식) 마일스톤 컬럼 (접두어 child_ 부여) ======= */
-            c.milestone_id                     AS child_milestone_id,
-            c.project_id                       AS child_project_id,
-            c.user_code                        AS child_user_code,
-            c.milestone_title                  AS child_milestone_title,
-            c.milestone_describe               AS child_milestone_describe,
-            c.finish_date                      AS child_finish_date,
-            c.milestone_status                 AS child_milestone_status,
-            c.created_at                       AS child_created_at,
-            c.updated_at                       AS child_updated_at,
-            NVL(cts.total_task_count, 0)       AS child_total_task_count,
-            NVL(cts.closed_task_count, 0)      AS child_closed_task_count,
-            NVL(cts.progress_percentage, 0)    AS child_progress_percentage,
-            CASE 
-                WHEN NVL(cts.progress_percentage, 0) &lt; 100 AND TRUNC(SYSDATE) > TRUNC(c.finish_date)
-                THEN TRUNC(SYSDATE) - TRUNC(c.finish_date)
-                ELSE 0 
-            END AS child_delay_days
-            
-        FROM milestone m
-        /* 상위 마일스톤 통계 조인 */
-        LEFT JOIN parent_stats ps ON m.milestone_id = ps.parent_milestone_id
-        /* 하위 마일스톤 관계 조인 */
-        LEFT JOIN milestone c ON m.milestone_id = c.parent_milestone_id
-        /* 하위 마일스톤의 일감 통계 조인 */
-        LEFT JOIN task_stats cts ON c.milestone_id = cts.milestone_id
-        
-        /* 메인 조건: 최상위 부모 마일스톤만 조회 축으로 설정 */
-        WHERE m.project_id = #{projectId} AND m.parent_milestone_id IS NULL
-        ORDER BY m.created_at DESC, c.created_at ASC
-    </select>
+    <select id="selectFlatMilestones" resultType="MilestoneVO">
+	    SELECT 
+	        milestone_id         AS milestoneId,
+	        project_id           AS projectId,
+	        user_code            AS userCode,
+	        milestone_title      AS milestoneTitle,
+	        milestone_describe   AS milestoneDescribe,
+	        finish_date          AS finishDate,
+	        milestone_status     AS milestoneStatus,
+	        created_at           AS createdAt,
+	        updated_at           AS updatedAt,
+	        parent_milestone_id  AS parentMilestoneId
+	    FROM milestone
+	    WHERE project_id = #{projectId}
+	</select>
+	
+	<select id="selectTaskStatsFlat" resultType="TaskStatDTO">
+	    SELECT 
+	        milestone_id                                    AS milestoneId,
+	        COUNT(*)                                        AS totalTaskCount,
+	        COUNT(CASE WHEN task_progress = 100 THEN 1 END) AS closedTaskCount,
+	        ROUND(AVG(NVL(task_progress, 0)))               AS progressPercentage
+	    FROM task
+	    WHERE project_id = #{projectId} AND milestone_id IS NOT NULL
+	    GROUP BY milestone_id
+	</select>
 
 	<!-- 상세조회
 		마일스톤 아이디 | 프로젝트 아이디 | 회원 코드 | 마일스톤 제목 | 마일스톤 설명 | 목표 완료일 | 마일스톤 상태 | 생성일자 | 수정일자 | 연결된 일감 전체 개수 | 연결된 일감 완료 개수 | 진척도(일감 평균) | 지연일자 | 추정시간 | 소요시간 |   

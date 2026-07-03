@@ -67,6 +67,7 @@ public class WikiController {
             @RequestParam Long projectId,
             @RequestParam(required = false) String  wikiPageId,
             @RequestParam(required = false) String  keyword,
+            @RequestParam(required = false) Boolean lockError,
             Model model) {
     	
     	Set<String> perms;
@@ -93,6 +94,13 @@ public class WikiController {
         if (selectedWiki != null) {
             historyList  = wikiService.findHistoryList(selectedWiki.getWikiPageId());
             relationList = wikiService.findRelationList(selectedWiki.getWikiPageId());
+        }
+        
+        if (Boolean.TRUE.equals(lockError) && selectedWiki != null) {
+            WikiPageVO lockInfo = wikiService.getLockInfo(selectedWiki.getWikiPageId());
+            model.addAttribute("lockError", true);
+            model.addAttribute("lockUserName", lockInfo != null ? lockInfo.getLockUserName() : "다른 사용자");
+            model.addAttribute("lockedAt", lockInfo != null ? lockInfo.getLockedAt() : null);
         }
 
         // 키워드 검색

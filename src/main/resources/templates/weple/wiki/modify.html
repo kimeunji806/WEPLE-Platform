@@ -360,8 +360,14 @@
             fetch('/project/wiki/relation/add', {
                 method: 'POST', headers: headers, body: params.toString()
             }).then(function(r) {
-                if (r.ok) { addChip(item); }
-                else { r.text().then(function(t) { wikiToast('error', '연관문서 등록 실패', t); }); }
+                if (r.ok) {
+                    r.text().then(function(text) {
+                        var relationId = text.split(':')[1];
+                        addChip(item, relationId);
+                    });
+                } else {
+                    r.text().then(function(t) { wikiToast('error', '연관문서 등록 실패', t); });
+                }
             }).catch(function(e) { console.error('relation add error:', e); });
 
             if (inp) inp.value = '';
@@ -369,12 +375,13 @@
             if (inp) inp.focus();
         }
 
-        function addChip(item) {
+        function addChip(item, relationId) {
             var chip = document.createElement('span');
             chip.className = 'wiki-tag-chip ' + (item.targetType === 'TASK' ? 'chip-task' : 'chip-wiki');
+            chip.setAttribute('data-relation-id', relationId);
             chip.innerHTML = '#' + item.targetTitle
                 + ' <button type="button" class="wiki-chip-remove"'
-                + " onclick=\"this.closest('span').remove()\">✕</button>";
+                + " onclick=\"removeExistingRelation('" + relationId + "', this)\">✕</button>";
             document.getElementById('newChipList').appendChild(chip);
         }
         /*]]>*/

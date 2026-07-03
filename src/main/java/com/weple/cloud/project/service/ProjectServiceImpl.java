@@ -117,4 +117,9 @@ public class ProjectServiceImpl implements ProjectService {
 		return projectMapper.countAllByMember(userCode, keyword);
 	}
 
+	@Override
+	public Set<String> findAnyProjectPermissionCodes(String userCode) {
+		return new HashSet<>(projectMapper.selectAnyProjectPermissionCodes(userCode));
+	}
+
 }

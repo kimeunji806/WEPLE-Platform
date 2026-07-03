@@ -243,19 +243,22 @@
     </select>
 
     <!-- 관계 추가 -->
-    <insert id="insertRelation" parameterType="com.weple.cloud.wiki.service.WikiRelationVO">
-        INSERT INTO wiki_relations (
-            wiki_relation_id, wiki_page_id, target_type,
-            project_id, target_task_id, target_wiki_id
-        ) VALUES (
-            wiki_relation_id_seq.NEXTVAL,
-            #{wikiPageId,   jdbcType=VARCHAR},
-            #{targetType,   jdbcType=VARCHAR},
-            #{projectId,    jdbcType=NUMERIC},
-            #{targetTaskId, jdbcType=VARCHAR},
-            #{targetWikiId, jdbcType=VARCHAR}
-        )
-    </insert>
+	<insert id="insertRelation" parameterType="com.weple.cloud.wiki.service.WikiRelationVO">
+	    <selectKey keyProperty="wikiRelationId" resultType="Long" order="BEFORE">
+	        SELECT wiki_relation_id_seq.NEXTVAL FROM DUAL
+	    </selectKey>
+	    INSERT INTO wiki_relations (
+	        wiki_relation_id, wiki_page_id, target_type,
+	        project_id, target_task_id, target_wiki_id
+	    ) VALUES (
+	        #{wikiRelationId},
+	        #{wikiPageId,   jdbcType=VARCHAR},
+	        #{targetType,   jdbcType=VARCHAR},
+	        #{projectId,    jdbcType=NUMERIC},
+	        #{targetTaskId, jdbcType=VARCHAR},
+	        #{targetWikiId, jdbcType=VARCHAR}
+	    )
+	</insert>
 
     <!-- 관계 단건 삭제 -->
     <delete id="deleteRelation">

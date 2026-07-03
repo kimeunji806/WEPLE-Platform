@@ -222,6 +222,9 @@
         var wikiContent    = /*[[${selectedWiki != null ? selectedWiki.content : ''}]]*/ '';
         var isVersionView  = /*[[${isVersionView != null ? isVersionView : false}]]*/ false;
         var viewingVersion = /*[[${isVersionView and selectedWiki != null ? selectedWiki.currentVersion : 0}]]*/ 0;
+        var lockError    = /*[[${lockError != null ? lockError : false}]]*/ false;
+        var lockUserName = /*[[${lockUserName != null ? lockUserName : ''}]]*/ '';
+        var lockedAt      = /*[[${lockedAt != null ? #temporals.format(lockedAt,'yyyy-MM-dd HH:mm') : ''}]]*/ '';
         /*]]>*/
 
         var TOAST_ICONS = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
@@ -405,6 +408,10 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+        	if (lockError) {
+                wikiToast('warning', '편집 잠금 상태',
+                    lockUserName + '님이 문서를 수정 중입니다.' + (lockedAt ? ' (' + lockedAt + ')' : ''));
+            }
             setTimeout(function() {
                 initWikiViewer();
                 bindHistoryRadios();

@@ -8,31 +8,31 @@
             <a th:href="@{/system/project/list}" 
                th:class="${menu == 'project'} ? 'active' : ''">프로젝트</a>
         </li>
-        <li>
-            <a th:href="@{/userList}" 
-               th:class="${menu == 'user'} ? 'active' : ''">사용자</a>
-        </li>
-       <li>
-            <a th:href="@{/groupList}" 
-               th:class="${menu == 'group'} ? 'active' : ''">그룹</a>
-        </li>
-        <li th:classappend="${currentMenu == 'systemrole'} ? 'active' : ''">
-            <a th:href="@{/system/role}" 
-               th:class="${menu == 'role'} ? 'active' : ''">역할 및 권한</a>
-        </li>
-        <li th:classappend="${currentMenu == 'taskType'} ? 'active' : ''">
-            <a th:href="@{/system/taskType}" 
-               th:class="${menu == 'taskType'} ? 'active' : ''">일감 유형</a>
-        </li>
-        <li>
-            <a th:href="@{/codeValueList}" 
-               th:class="${menu == 'codeValue'} ? 'active' : ''">코드값</a>
-        </li>
+        <li th:if="${isCompanyManager}">
+		    <a th:href="@{/userList}" 
+		       th:class="${menu == 'user'} ? 'active' : ''">사용자</a>
+		</li>
+		<li th:if="${isCompanyManager}">
+		    <a th:href="@{/groupList}" 
+		       th:class="${menu == 'group'} ? 'active' : ''">그룹</a>
+		</li>
+		<li th:if="${isCompanyManager}" th:classappend="${currentMenu == 'systemrole'} ? 'active' : ''">
+		    <a th:href="@{/system/role}" 
+		       th:class="${menu == 'role'} ? 'active' : ''">역할 및 권한</a>
+		</li>
+		<li th:if="${isCompanyManager}" th:classappend="${currentMenu == 'taskType'} ? 'active' : ''">
+		    <a th:href="@{/system/taskType}" 
+		       th:class="${menu == 'taskType'} ? 'active' : ''">일감 유형</a>
+		</li>
+		<li th:if="${isCompanyManager}">
+		    <a th:href="@{/codeValueList}" 
+		       th:class="${menu == 'codeValue'} ? 'active' : ''">코드값</a>
+		</li>
         <li th:if="${canApproveSignup}" th:classappend="${menu == 'approval'} ? 'active' : ''">
             <a th:href="@{/approvalList}" 
                th:class="${menu == 'approval'} ? 'active' : ''">가입승인</a>
         </li>
-        <li th:if="${isCompanyOwner}">
+        <li th:if="${isCompanyManager}">
 		    <a th:href="@{/system/systemModules}" 
 		       th:class="${menu == 'setting'} ? 'active' : ''">설정</a>
 		</li>

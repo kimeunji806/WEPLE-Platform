@@ -82,11 +82,20 @@ public class SecurityConfig {
                 
                 // 관리 페이지 내부 프로젝트 생성·수정·목록은 기업 최고관리자 또는 관리자만 접근할 수 있음-은
                 .requestMatchers("/system/project", "/system/project/**")
-                .hasAnyAuthority("ROLE_COMPANY_OWNER", "ROLE_COMPANY_ADMIN")
+                .authenticated()
 
                 // 관리-설정(모듈/일감유형 기본값 설정)은 기업 최고관리자만 접근할 수 있음
                 .requestMatchers("/system/systemModules", "/system/systemModules/**")
-                .hasAuthority("ROLE_COMPANY_OWNER")
+                .hasAnyAuthority("ROLE_COMPANY_OWNER", "ROLE_COMPANY_ADMIN")
+                
+                // 관리 페이지 내부 그룹 관리는 기업 최고관리자 또는 관리자만 접근할 수 있음
+                .requestMatchers("/groupList", "/groupInsert", "/groupDelete",
+                                  "/groupUserList", "/groupUserInsert", "/groupUserUpdate", "/groupUserDelete")
+                .hasAnyAuthority("ROLE_COMPANY_OWNER", "ROLE_COMPANY_ADMIN")
+                
+                // 관리 페이지 내부 코드값 관리는 기업 최고관리자 또는 관리자만 접근할 수 있음
+                .requestMatchers("codeValueList", "/codeInsert", "codeUpdate", "/updateOrder")
+                .hasAnyAuthority("ROLE_COMPANY_OWNER", "ROLE_COMPANY_ADMIN")
                 
                 // 그 외 요청은 로그인 필요
                 .anyRequest().authenticated()

@@ -44,10 +44,17 @@
                     p.created_at
                 FROM project p
                 <where>
-                    <if test="keyword != null and keyword != ''">
-                        p.project_title LIKE '%' || #{keyword} || '%'
-                    </if>
-                </where>
+				    <if test="keyword != null and keyword != ''">
+				        p.project_title LIKE '%' || #{keyword} || '%'
+				    </if>
+				    <if test="userCode != null and userCode != ''">
+				        AND EXISTS (
+				            SELECT 1 FROM members m
+				            WHERE m.project_id = p.project_id
+				              AND m.user_code = #{userCode}
+				        )
+				    </if>
+				</where>
                 ORDER BY p.project_id DESC
             ) inner_q
             WHERE ROWNUM &lt;= #{offset} + #{pageSize}
@@ -62,10 +69,17 @@
         SELECT COUNT(*)
         FROM PROJECT p
         <where>
-            <if test="keyword != null and keyword != ''">
-                p.project_title LIKE '%' || #{keyword} || '%'
-            </if>
-        </where>
+		    <if test="keyword != null and keyword != ''">
+		        p.project_title LIKE '%' || #{keyword} || '%'
+		    </if>
+		    <if test="userCode != null and userCode != ''">
+		        AND EXISTS (
+		            SELECT 1 FROM members m
+		            WHERE m.project_id = p.project_id
+		              AND m.user_code = #{userCode}
+		        )
+		    </if>
+		</where>
     </select>
 
     <!-- 식별자 중복 체크 -->

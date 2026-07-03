@@ -73,9 +73,9 @@
                     </div>
                 </div>
 
-                <!-- 사용자 필터 -->
+                <!-- 작업자 필터 -->
                 <div class="filter-group">
-                    <label class="filter-label">사용자</label>
+                    <label class="filter-label">작업자</label>
                     <select name="userCode" class="filter-select">
                         <option value="">전체</option>
                         <option th:each="user : ${users}"
@@ -118,6 +118,11 @@
                            th:checked="${typeNames != null and #lists.contains(typeNames, '피드백')}">
                     <span class="custom-check-box"></span> 피드백
                 </label>
+                <label class="checkbox-inline">
+			        <input type="checkbox" name="typeNames" value="위키"
+			               th:checked="${typeNames != null and #lists.contains(typeNames, '위키')}">
+			        <span class="custom-check-box"></span> 위키
+			    </label>
             </div>
         </form>
 
@@ -145,8 +150,8 @@
                             <tr>
                                 <th>등록일시</th>
                                 <th>프로젝트</th>
-                                <th>사용자</th>
-                                <th>일감</th>
+                                <th>작업자</th>
+                                <th>제목</th>
                                 <th>일감유형</th>
                                 <th>작업유형</th>
                             </tr>
@@ -157,30 +162,36 @@
                                 <!-- ★ 프로젝트명 링크 → 프로젝트 개요 -->
                                 <td>
                                     <a th:if="${log.projectId != null}"
-                                       th:href="@{/project/overview(projectId=${log.projectId})}"
-                                       class="table-link"
-                                       th:text="${log.projectTitle}">
-                                    </a>
+									   th:href="@{/project/outline(projectId=${log.projectId})}"
+									   class="table-link"
+									   th:text="${log.projectTitle}">
+									</a>
                                     <span th:if="${log.projectId == null}" th:text="${log.projectTitle}"></span>
                                 </td>
                                 <td th:text="${log.userName}"></td>
                                 <!-- ★ 일감명 링크 → 일감 상세 -->
-                                <td class="text-left">
-                                    <a th:if="${log.taskId != null and log.projectId != null}"
-                                       th:href="@{/project/task/detail/{tId}(tId=${log.taskId}, projectId=${log.projectId})}"
-                                       class="table-link"
-                                       th:text="${log.taskTitle}">
-                                    </a>
-                                    <span th:if="${log.taskId == null or log.projectId == null}" th:text="${log.taskTitle}"></span>
-                                </td>
+                               <td class="text-left">
+								    <a th:if="${log.typeName == '위키' and log.taskId != null and log.projectId != null}"
+								       th:href="@{/project/wiki(projectId=${log.projectId}, wikiPageId=${log.taskId})}"
+								       class="table-link"
+								       th:text="${log.taskTitle}">
+								    </a>
+								    <a th:if="${log.typeName != '위키' and log.taskId != null and log.projectId != null}"
+								       th:href="@{/project/task/detail/{tId}(tId=${log.taskId}, projectId=${log.projectId})}"
+								       class="table-link"
+								       th:text="${log.taskTitle}">
+								    </a>
+								    <span th:if="${log.taskId == null or log.projectId == null}" th:text="${log.taskTitle}"></span>
+								</td>
                                 <td>
-                                    <span th:if="${log.typeName == '기획'}" class="status-badge type-dev" th:text="${log.typeName}"></span>
-                                    <span th:if="${log.typeName == '새 기능'}" class="status-badge type-bug" th:text="${log.typeName}"></span>
-                                    <span th:if="${log.typeName == '개선'}" class="status-badge type-support" th:text="${log.typeName}"></span>
-                                    <span th:if="${log.typeName == '피드백'}" class="status-badge type-improve" th:text="${log.typeName}"></span>
-                                    <span th:if="${log.typeName != '기획' and log.typeName != '새 기능' and log.typeName != '개선' and log.typeName != '피드백'}"
-                                          class="status-badge type-default" th:text="${log.typeName}"></span>
-                                </td>
+								    <span th:if="${log.typeName == '기획'}" class="status-badge type-dev" th:text="${log.typeName}"></span>
+								    <span th:if="${log.typeName == '새 기능'}" class="status-badge type-bug" th:text="${log.typeName}"></span>
+								    <span th:if="${log.typeName == '개선'}" class="status-badge type-support" th:text="${log.typeName}"></span>
+								    <span th:if="${log.typeName == '피드백'}" class="status-badge type-improve" th:text="${log.typeName}"></span>
+								    <span th:if="${log.typeName == '위키'}" class="status-badge type-wiki" th:text="${log.typeName}"></span>
+								    <span th:if="${log.typeName != '기획' and log.typeName != '새 기능' and log.typeName != '개선' and log.typeName != '피드백' and log.typeName != '위키'}"
+								          class="status-badge type-default" th:text="${log.typeName}"></span>
+								</td>
                                 <td>
                                     <span th:if="${log.actionType == 'CREATE'}" class="action-badge action-create">CREATE</span>
                                     <span th:if="${log.actionType == 'UPDATE'}" class="action-badge action-update">UPDATE</span>
@@ -216,110 +227,9 @@
 
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/ko.js"></script>
-
-    <script th:inline="javascript">
-        (function () {
-            var DATE_FORMAT = 'Y.m.d';
-            if (window.flatpickr && flatpickr.l10ns && flatpickr.l10ns.ko) {
-                flatpickr.localize(flatpickr.l10ns.ko);
-            }
-            function parseFormatted(str) {
-                if (!str) return null;
-                var parts = str.split('.');
-                if (parts.length !== 3) return null;
-                var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-                return isNaN(d.getTime()) ? null : d;
-            }
-            function addDays(date, days) {
-                var d = new Date(date.getTime());
-                d.setDate(d.getDate() + days);
-                return d;
-            }
-
-            var startInput = document.getElementById('startDateInput');
-            var endInput   = document.getElementById('endDateInput');
-            var searchForm = document.getElementById('searchForm');
-            var searchFlag = document.getElementById('searchFlag');
-
-            function syncTimePeriod() {
-                var periodEl = document.querySelector('.time-period');
-                if (periodEl && startInput.value && endInput.value) {
-                    periodEl.textContent = startInput.value + ' ~ ' + endInput.value;
-                }
-            }
-
-            var startPicker = flatpickr(startInput, {
-                dateFormat: DATE_FORMAT, allowInput: false,
-                onChange: function (selectedDates) {
-                    if (selectedDates[0]) endPicker.set('minDate', selectedDates[0]);
-                }
-            });
-            var endPicker = flatpickr(endInput, {
-                dateFormat: DATE_FORMAT, allowInput: false,
-                onChange: function (selectedDates) {
-                    if (selectedDates[0]) startPicker.set('maxDate', selectedDates[0]);
-                }
-            });
-
-            function setRange(start, end) {
-                startPicker.set('maxDate', null);
-                endPicker.set('minDate', null);
-                startPicker.setDate(start, false);
-                endPicker.setDate(end, false);
-                startPicker.set('maxDate', end);
-                endPicker.set('minDate', start);
-            }
-            function applyRecentDays(days) {
-                var today = new Date();
-                setRange(addDays(today, -(days - 1)), today);
-            }
-
-            var initStart = parseFormatted(startInput.value);
-            var initEnd   = parseFormatted(endInput.value);
-            if (initStart && initEnd) {
-                setRange(initStart, initEnd);
-            } else {
-                applyRecentDays(5);
-            }
-            syncTimePeriod();
-
-            document.getElementById('recentPeriodBtn').addEventListener('click', function () {
-                applyRecentDays(5);
-                searchFlag.value = 'true';
-                setTimeout(function () { syncTimePeriod(); searchForm.submit(); }, 0);
-            });
-
-            document.getElementById('dateBackBtn').addEventListener('click', function () {
-                var curStart = parseFormatted(startInput.value);
-                var curEnd   = parseFormatted(endInput.value);
-                if (!curStart || !curEnd) {
-                    applyRecentDays(5);
-                } else {
-                    var rangeDays = Math.round((curEnd.getTime() - curStart.getTime()) / (24*60*60*1000)) + 1;
-                    var newEnd    = addDays(curStart, -1);
-                    var newStart  = addDays(newEnd, -(rangeDays - 1));
-                    setRange(newStart, newEnd);
-                }
-                searchFlag.value = 'true';
-                setTimeout(function () { syncTimePeriod(); searchForm.submit(); }, 0);
-            });
-
-            document.getElementById('resetBtn').addEventListener('click', function () {
-                var projectSelect = searchForm.querySelector('select[name="projectId"]');
-                if (projectSelect) projectSelect.value = '';
-                var userSelect = searchForm.querySelector('select[name="userCode"]');
-                if (userSelect) userSelect.value = '';
-                searchForm.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
-                    cb.checked = false;
-                });
-                applyRecentDays(5);
-                searchFlag.value = 'false';
-                setTimeout(function () { syncTimePeriod(); searchForm.submit(); }, 0);
-            });
-        })();
-    </script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/ko.js"></script>
+	<script src="/js/history/worklog.js"></script>
 </section>
 
 </body>

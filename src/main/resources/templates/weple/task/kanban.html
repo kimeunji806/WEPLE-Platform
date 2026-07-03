@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org/"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:replace="~{common/layouts/default_layout :: layout(~{::section}, ~{::head})}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>칸반보드</title>
+    <link rel="stylesheet" href="/css/task/task-kanban.css">
+</head>
+
+<body>
+
+<section class="project-page">
+
+    <div class="kanban-page-header">
+        <h3 class="project-title">칸반보드</h3>
+        <div class="kanban-actions">
+            <span id="kanbanPendingBadge" class="kanban-pending-badge" style="display:none;">
+                변경 <span id="kanbanPendingCount">0</span>건
+            </span>
+            <button type="button" class="kanban-btn kanban-btn-reset" id="kanbanResetBtn" onclick="kanbanReset()" disabled>초기화</button>
+            <button type="button" class="kanban-btn kanban-btn-submit" id="kanbanSubmitBtn" onclick="kanbanSubmit()" disabled>완료</button>
+        </div>
+    </div>
+
+    <div class="kanban-board" id="kanbanBoard">
+
+        <div class="kanban-column" th:each="status : ${statusList}" th:attr="data-status-id=${status.commonId}">
+		    <div class="kanban-col-header">
+		        <span class="kanban-col-title" th:text="${status.defaultDescribe}">상태</span>
+		        <span class="kanban-col-count"
+		              th:text="${(tasksByStatus.get(status.commonId) != null ? #lists.size(tasksByStatus.get(status.commonId)) : 0)} + '개'">0개</span>
+		    </div>
+		
+		    <div class="kanban-col-body"
+		         th:attr="data-status-id=${status.commonId}"
+		         ondragover="kanbanAllowDrop(event)"
+		         ondrop="kanbanDrop(event)"
+		         ondragenter="kanbanDragEnter(event)"
+		         ondragleave="kanbanDragLeave(event)">
+		
+		        <div th:each="task : ${tasksByStatus.get(status.commonId)}"
+				     th:with="canEditThis=${isAdminOrOwner
+				                     or (taskPerms != null and taskPerms.k3Edit == 'k3_edit')
+				                     or (taskPerms != null and taskPerms.k3Myedit == 'k3_myedit' and task.taskManagerId == loginUserCode)}"
+				     class="kanban-card"
+				     th:classappend="${canEditThis} ? 'kanban-card-editable' : 'kanban-card-readonly'"
+				     th:attr="data-task-id=${task.taskId}"
+				     th:draggable="${canEditThis}"
+				     ondragstart="kanbanDragStart(event)"
+				     ondragend="kanbanDragEnd(event)">
+				
+				    <span th:if="${canEditThis}" class="kanban-edit-badge" title="수정 가능">
+				        <i class="fa fa-pencil"></i>
+				    </span>
+				
+				    <div class="kanban-card-top">
+					    <span class="kanban-type-badge"
+					          th:classappend="${task.typeName == '기획'} ? 'type-dev'
+					                          : (${task.typeName == '새 기능'} ? 'type-bug'
+					                          : (${task.typeName == '개선'} ? 'type-support'
+					                          : (${task.typeName == '피드백'} ? 'type-improve' : 'type-default')))"
+					          th:text="${task.typeName}">유형</span>
+					
+					    <span class="kanban-task-no"
+					          th:text="'#' + ${task.taskId}">
+					        #0
+					    </span>
+					
+					    <span th:class="${#strings.contains(task.priority,'매우높음')} ?
+						        'kanban-priority priority-critical' :
+						        (${#strings.contains(task.priority,'높음')} ?
+						        'kanban-priority priority-high' :
+						        (${#strings.contains(task.priority,'매우낮음')} ?
+						        'kanban-priority priority-lowest' :
+						        (${#strings.contains(task.priority,'낮음')} ?
+						        'kanban-priority priority-low' :
+						        'kanban-priority priority-normal')))"
+						>
+						    <i class="fa fa-signal priority-icon"></i>
+						    <span th:text="${task.priority}"></span>
+						</span>
+					</div>
+		
+		            <div class="kanban-card-title" th:text="${task.taskTitle}">일감 제목</div>
+		
+		            <div class="kanban-card-bottom">
+					    <span class="kanban-card-manager" th:if="${task.taskManager != null}">
+					        <img th:if="${task.taskManagerProfileImage != null and !#strings.isEmpty(task.taskManagerProfileImage)}"
+					             th:src="${task.taskManagerProfileImage}"
+					             class="kanban-avatar-img"
+					             alt="">
+					
+					        <span th:unless="${task.taskManagerProfileImage != null and !#strings.isEmpty(task.taskManagerProfileImage)}"
+					              class="kanban-avatar"
+					              th:text="${#strings.substring(task.taskManager,0,1)}">
+					        </span>
+					
+					        <span th:text="${task.taskManager}"></span>
+					    </span>
+					
+					    <span class="kanban-card-due"
+						      th:if="${task.finishDate != null}"
+						      th:text="${#temporals.format(task.finishDate,'MM.dd')}">
+						</span>
+						<span class="kanban-card-due kanban-card-due-empty"
+						      th:unless="${task.finishDate != null}">
+						    마감일 없음
+						</span>
+					</div>
+		        </div>
+		
+		        <div class="kanban-empty" th:if="${tasksByStatus.get(status.commonId) == null or #lists.isEmpty(tasksByStatus.get(status.commonId))}">
+		            일감 없음
+		        </div>
+		    </div>
+		</div>
+
+    </div>
+
+    <div id="kanbanToastContainer" class="kanban-toast-container"></div>
+
+    <!-- 저장 안 된 변경사항이 있는 상태에서 내부 메뉴 클릭으로 이동하려 할 때 뜨는 확인 모달 -->
+    <div id="kanbanLeaveModal" class="kanban-modal-overlay" style="display:none;">
+        <div class="kanban-modal">
+            <p class="kanban-modal-title">사이트에서 나가시겠습니까?</p>
+            <p class="kanban-modal-msg" id="kanbanLeaveMsg">변경사항이 저장되지 않을 수 있습니다.</p>
+            <div class="kanban-modal-actions">
+                <button type="button" class="kanban-modal-btn confirm" onclick="kanbanLeaveConfirm()">나가기</button>
+                <button type="button" class="kanban-modal-btn cancel" onclick="kanbanLeaveCancel()">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        var kanbanProjectId  = /*[[${projectId}]]*/ 0;
+        var kanbanCsrfHeader = /*[[${_csrf.headerName}]]*/ '';
+        var kanbanCsrfToken  = /*[[${_csrf.token}]]*/ '';
+        /*]]>*/
+
+        var draggedCard = null;
+        // 드래그로 옮긴 카드들 (아직 저장 전) - taskId -> { card, originalParent, originalNext, originalStatusId, newStatusId }
+        var pendingChanges = {};
+
+        function kanbanShowToast(type, msg) {
+            var c = document.getElementById('kanbanToastContainer');
+            var el = document.createElement('div');
+            el.className = 'kanban-toast toast-' + type;
+            el.textContent = msg;
+            c.appendChild(el);
+            setTimeout(function () {
+                el.classList.add('out');
+                setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 200);
+            }, 2200);
+        }
+
+        function kanbanDragStart(e) {
+            draggedCard = e.currentTarget;
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', e.currentTarget.dataset.taskId);
+            setTimeout(function () { draggedCard.classList.add('dragging'); }, 0);
+        }
+
+        function kanbanDragEnd(e) {
+            if (draggedCard) draggedCard.classList.remove('dragging');
+            document.querySelectorAll('.kanban-col-body').forEach(function (col) {
+                col.classList.remove('drag-over');
+            });
+            draggedCard = null;
+        }
+
+        function kanbanAllowDrop(e) {
+            if (draggedCard) e.preventDefault();
+        }
+
+        function kanbanDragEnter(e) {
+            if (draggedCard) e.currentTarget.classList.add('drag-over');
+        }
+
+        function kanbanDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        // 드래그해서 놓으면 화면에서만 옮기고, 실제 저장은 '완료' 버튼을 눌러야 실행됨
+        function kanbanDrop(e) {
+            e.preventDefault();
+            var col = e.currentTarget;
+            col.classList.remove('drag-over');
+            if (!draggedCard) return;
+
+            var oldCol = draggedCard.closest('.kanban-col-body');
+            if (oldCol === col) return; // 같은 컬럼이면 아무 것도 안 함
+
+            var taskId = draggedCard.dataset.taskId;
+            var newStatusId = col.getAttribute('data-status-id');
+
+            if (!pendingChanges[taskId]) {
+                pendingChanges[taskId] = {
+                    card: draggedCard,
+                    originalParent: oldCol,
+                    originalNext: draggedCard.nextElementSibling,
+                    originalStatusId: oldCol.getAttribute('data-status-id'),
+                    newStatusId: newStatusId
+                };
+            } else {
+                pendingChanges[taskId].newStatusId = newStatusId;
+            }
+
+            col.insertBefore(draggedCard, col.querySelector('.kanban-empty'));
+
+            if (pendingChanges[taskId].originalStatusId === newStatusId) {
+                // 원래 있던 상태로 다시 돌아왔으면 변경 목록에서 제외
+                draggedCard.classList.remove('kanban-card-pending');
+                delete pendingChanges[taskId];
+            } else {
+                draggedCard.classList.add('kanban-card-pending');
+            }
+
+            updateKanbanCounts();
+            updatePendingUI();
+        }
+
+        function updatePendingUI() {
+            var count = Object.keys(pendingChanges).length;
+            document.getElementById('kanbanPendingCount').textContent = count;
+            document.getElementById('kanbanPendingBadge').style.display = count > 0 ? 'inline-flex' : 'none';
+            document.getElementById('kanbanResetBtn').disabled = count === 0;
+            document.getElementById('kanbanSubmitBtn').disabled = count === 0;
+        }
+
+        // 초기화 버튼: 옮긴 카드들을 전부 원래 자리로 되돌림
+        function kanbanReset() {
+            Object.keys(pendingChanges).forEach(function (taskId) {
+                var m = pendingChanges[taskId];
+                m.originalParent.insertBefore(m.card, m.originalNext);
+                m.card.classList.remove('kanban-card-pending');
+            });
+            pendingChanges = {};
+            updateKanbanCounts();
+            updatePendingUI();
+            kanbanShowToast('success', '변경 사항이 초기화되었습니다.');
+        }
+
+        // 완료 버튼: 변경된 항목을 한 번에 서버로 저장
+        function kanbanSubmit() {
+            var taskIds = Object.keys(pendingChanges);
+            if (taskIds.length === 0) return;
+
+            var changes = taskIds.map(function (taskId) {
+                return { taskId: taskId, taskStatus: pendingChanges[taskId].newStatusId };
+            });
+
+            var headers = { 'Content-Type': 'application/json' };
+            headers[kanbanCsrfHeader] = kanbanCsrfToken;
+
+            fetch('/api/task/kanban/status/batch', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({ projectId: kanbanProjectId, changes: changes })
+            })
+                .then(function (r) {
+                    if (!r.ok) return r.text().then(function (t) { throw new Error(t || '변경 실패'); });
+                    taskIds.forEach(function (taskId) {
+                        pendingChanges[taskId].card.classList.remove('kanban-card-pending');
+                    });
+                    pendingChanges = {};
+                    updatePendingUI();
+                    kanbanShowToast('success', '상태 변경이 저장되었습니다.');
+                })
+                .catch(function (err) {
+                    // 권한 없는 일감이 섞여 있으면 여기로 옴 (요구사항 6)
+                    kanbanShowToast('error', err.message || '상태 변경에 실패했습니다.');
+                });
+        }
+
+        // 카드 클릭 시 상세 페이지로 이동 (th:onclick은 Thymeleaf 3.1+에서 이벤트 속성에
+        // 문자열 표현식을 직접 못 넣게 막아서 TemplateProcessingException이 나므로 JS로 처리)
+        document.querySelectorAll('.kanban-card').forEach(function (card) {
+            card.addEventListener('click', function () {
+                location.href = '/project/task/detail/' + this.dataset.taskId + '?projectId=' + kanbanProjectId;
+            });
+        });
+
+        function updateKanbanCounts() {
+            document.querySelectorAll('.kanban-column').forEach(function (colWrap) {
+                var body = colWrap.querySelector('.kanban-col-body');
+                var count = body.querySelectorAll('.kanban-card').length;
+                colWrap.querySelector('.kanban-col-count').textContent = count + '개';
+
+                var emptyEl = body.querySelector('.kanban-empty');
+                if (emptyEl) emptyEl.style.display = count === 0 ? '' : 'none';
+            });
+        }
+
+        // 사이트 내 다른 메뉴 클릭으로 이동하려는 경우 가로채서 커스텀 모달로 확인
+        // (탭 닫기/새로고침/주소창 직접입력은 브라우저 보안 정책상 커스텀 UI로 대체 불가 - beforeunload로 최소한의 방어만)
+        var kanbanPendingNavUrl = null;
+
+        document.addEventListener('click', function (e) {
+            var link = e.target.closest('a[href]');
+            if (!link) return;
+            if (Object.keys(pendingChanges).length === 0) return;
+
+            var href = link.getAttribute('href');
+            if (!href || href.indexOf('#') === 0 || link.href === location.href) return;
+
+            e.preventDefault();
+            kanbanPendingNavUrl = link.href;
+            document.getElementById('kanbanLeaveModal').style.display = 'flex';
+        });
+
+        function kanbanLeaveCancel() {
+            document.getElementById('kanbanLeaveModal').style.display = 'none';
+            kanbanPendingNavUrl = null;
+        }
+
+        function kanbanLeaveConfirm() {
+            document.getElementById('kanbanLeaveModal').style.display = 'none';
+            pendingChanges = {}; // 나가기로 결정했으니 beforeunload가 다시 막지 않도록 비워둠
+            if (kanbanPendingNavUrl) location.href = kanbanPendingNavUrl;
+        }
+
+        // 저장 안 된 변경사항이 있는 채로 페이지를 벗어나려고 하면 경고 (탭 닫기/새로고침 등 - 브라우저 기본 대화상자)
+        window.addEventListener('beforeunload', function (e) {
+            if (Object.keys(pendingChanges).length > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+
+</section>
+
+</body>
+</html>

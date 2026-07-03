@@ -106,11 +106,16 @@ public class ProjectController {
         }
         
         int totalPages = (int) Math.ceil((double) totalCount / pageSize);
+        
+        // 관리자가 아니어도 어느 프로젝트에서든 k1_create 권한을 가진 역할을 맡고 있으면 생성 버튼 노출
+        boolean canCreateProject = isManager
+                || projectService.findAnyProjectPermissionCodes(userCode).contains("k1_create");
 
         model.addAttribute("projects", list);
         model.addAttribute("keyword", keyword);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", totalPages);
+        model.addAttribute("canCreateProject", canCreateProject);
         model.addAttribute("sidebarMenu", "project");
         model.addAttribute("currentMenu", "none");
         return "weple/project/list";

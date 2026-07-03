@@ -66,5 +66,7 @@ public class TaskVO {
     
     private String taskStatusId;
     private String taskManagerId;
+    
+    private String taskManagerProfileImage;
 
 }

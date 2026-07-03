@@ -71,4 +71,14 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 	public boolean isMember(String userCode, Long projectId) {
 		return memberMapper.isMember(userCode, projectId);
 	}
+
+	@Override
+	@Transactional
+	public int updateMemberRole(Long memberId, Long roleId) {
+		memberMapper.deleteMemberRoles(memberId);
+	    if (roleId != null) {
+	        return memberMapper.insertMemberRole(memberId, roleId);
+	    }
+	    return 1;
+	}
 }

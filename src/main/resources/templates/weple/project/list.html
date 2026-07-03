@@ -21,8 +21,7 @@
                     <input type="text" name="keyword" th:value="${keyword}" placeholder="프로젝트명을 입력하세요.">
                 </div>
             </form>
-            <a th:href="@{/system/project}" class="project-create-btn"
-			   sec:authorize="hasAnyAuthority('ROLE_COMPANY_OWNER','ROLE_COMPANY_ADMIN')">
+            <a th:if="${canCreateProject}" th:href="@{/system/project}" class="project-create-btn">
 			    <i class="fa fa-folder"></i> 프로젝트 생성
 			</a>
         </div>
@@ -86,17 +85,7 @@
 
     </div>
 
-    <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            const navigationEntries = performance.getEntriesByType('navigation');
-            if (navigationEntries.length > 0 && navigationEntries[0].type === 'reload') {
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.has('keyword')) {
-                    window.location.href = '/project';
-                }
-            }
-        });
-    </script>
+	<script src="/js/project/list.js"></script>
 </section>
 
 </body>

@@ -37,4 +37,6 @@ public interface ProjectService {
 	// 일반 사용자용 참여 프로젝트 목록 조회
 	public List<ProjectVO> findAllByMember(String userCode, String keyword, int offset, int pageSize);
 	public int countAllByMember(String userCode, String keyword);
+	
+	public Set<String> findAnyProjectPermissionCodes(String userCode);
 }

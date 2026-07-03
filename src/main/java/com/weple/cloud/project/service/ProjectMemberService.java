@@ -19,6 +19,8 @@ public interface ProjectMemberService {
 
 	public int removeMember(Long memberId, Long projectId);
 	
+	public int updateMemberRole(Long memberId, Long roleId);
+	
 	public Set<String> findProjectPermissionCodes(String userCode, Long projectId);
 	    boolean isMember(String userCode, Long projectId);
 }

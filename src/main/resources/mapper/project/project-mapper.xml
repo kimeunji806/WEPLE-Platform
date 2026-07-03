@@ -209,10 +209,21 @@
 	<select id="selectAllByMember" resultType="com.weple.cloud.project.service.ProjectVO">
 	    SELECT *
 	    FROM (
-	        SELECT p.project_id    AS projectId,
-	               p.project_title AS projectTitle,
-	               p.status,
-	               p.created_at    AS createdAt,
+	        SELECT p.project_id       AS projectId,
+	               p.project_title    AS projectTitle,
+	               p.project_describe AS projectDescribe,
+	               CASE
+	                   WHEN p.finish_date IS NOT NULL
+	                        AND p.finish_date &lt;= TRUNC(SYSDATE)
+	                   THEN '완료'
+	                   WHEN EXISTS (
+	                       SELECT 1 FROM task t WHERE t.project_id = p.project_id
+	                   )
+	                   THEN '진행 중'
+	                   ELSE '신규'
+	               END AS status,
+	               p.created_at       AS createdAt,
+	               p.finish_date      AS finishDate,
 	               ROWNUM AS rn
 	        FROM project p
 	        JOIN members m ON p.project_id = m.project_id
@@ -235,5 +246,15 @@
 	    <if test="keyword != null and keyword != ''">
 	        AND p.project_title LIKE '%' || #{keyword} || '%'
 	    </if>
+	</select>
+	
+	<!-- 프로젝트 한정 없이 이 사용자가 속한 모든 프로젝트에서 가진 k1_* 권한 코드 전체 (중복 제거) -->
+	<select id="selectAnyProjectPermissionCodes" resultType="string">
+	    SELECT DISTINCT rp.permission_code
+	    FROM members m
+	    JOIN member_roles mr ON m.member_id = mr.member_id
+	    JOIN role_permissions rp ON mr.role_id = rp.role_id
+	    WHERE m.user_code = #{userCode}
+	      AND rp.permission_code = 'k1_create'
 	</select>
 </mapper>

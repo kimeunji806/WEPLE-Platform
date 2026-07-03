@@ -72,4 +72,8 @@ public interface ProjectMapper {
 	public int countAllByMember(
 		    @Param("userCode") String userCode,
 		    @Param("keyword") String keyword);
+	
+	// 특정 프로젝트에 한정하지 않고 이 사용자가 "어딘가에서든" 가진 프로젝트 관련 권한 코드 전체 조회
+	// (프로젝트 생성 버튼 노출 여부 판단용)
+	public List<String> selectAnyProjectPermissionCodes(@Param("userCode") String userCode);
 }

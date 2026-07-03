@@ -196,9 +196,9 @@
 /* ===== 토스트 ===== */
 .toast-message {
     position: fixed;
-    top: 50%;
+    top: 24px;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     background: #111827;
     color: #fff;
     padding: 16px 30px;

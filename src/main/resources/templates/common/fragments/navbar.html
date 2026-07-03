@@ -53,14 +53,19 @@
         	<a th:href="@{/repository/list(projectId=${projectId})}">저장소</a>
         </li>
         
-        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b9')}">
-        	<a href="#">칸반보드</a>
-        </li>
+        <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b9')}"
+		    th:classappend="${currentMenu == 'kanban'} ? 'active' : ''">
+		    <a th:href="@{/project/task/kanban(projectId=${projectId})}">칸반보드</a>
+		</li>
         
         <li th:if="${moduleNames != null and #lists.contains(moduleNames, 'b10')}"
         	th:classappend="${currentMenu == 'calendar'} ? 'active' : ''">
         	<a th:href="@{/project/calendar(projectId=${projectId})}">캘린더</a>
         </li>
+        
+        <li th:classappend="${currentMenu == 'board'} ? 'active' : ''">
+		    <a th:href="@{/board(projectId=${projectId})}">게시판</a>
+		</li>
         
         <li th:if="${moduleNames != null 
 		             and #lists.contains(moduleNames, 'b11') 

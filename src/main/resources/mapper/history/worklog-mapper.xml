@@ -22,7 +22,7 @@
                     th.action_at
                 FROM task_history th
                 INNER JOIN task t
-                	ON th.task_id = t.task_id 
+                	ON th.task_id = t.task_id
                 INNER JOIN users u
                 	ON th.changed_by = u.user_code
                 INNER JOIN task_types tt
@@ -58,7 +58,68 @@
                         </foreach>
                     </if>
                 </where>
-                ORDER BY th.action_at DESC
+
+                <if test="typeNames == null or typeNames.size() == 0 or typeNames.contains('위키')">
+                UNION ALL
+
+                <!-- 위키 생성 이벤트 -->
+                SELECT
+                    NULL             AS history_id,
+                    w.wiki_page_id   AS task_id,
+                    w.project_id     AS projectId,
+                    p2.project_title AS projectTitle,
+                    u2.user_name     AS userName,
+                    w.title          AS taskTitle,
+                    '위키'           AS typeName,
+                    '위키 생성'       AS defaultDescribe,
+                    'CREATE'         AS action_type,
+                    w.created_at     AS action_at
+                FROM wiki_pages w
+                JOIN users u2 ON w.user_code = u2.user_code
+                LEFT JOIN project p2 ON w.project_id = p2.project_id
+                <where>
+                    <if test="projectId != null and projectId != ''">
+                        AND w.project_id = #{projectId}
+                    </if>
+                    <if test="userCode != null and userCode != ''">
+                        AND u2.user_code = #{userCode}
+                    </if>
+                    <if test="startDate != null and startDate != ''">
+                        AND w.created_at &gt;= TO_DATE(#{startDate}, 'YYYY.MM.DD')
+                    </if>
+                    <if test="endDate != null and endDate != ''">
+                        AND w.created_at &lt; TO_DATE(#{endDate}, 'YYYY.MM.DD') + INTERVAL '1' DAY
+                    </if>
+                </where>
+
+                UNION ALL
+
+                <!-- 위키 수정 이벤트 (수정할 때마다 이전 버전이 wiki_histories에 백업됨) -->
+                SELECT
+                    NULL, wp.wiki_page_id,
+                    wp.project_id, p3.project_title, u3.user_name,
+                    h.title, '위키', '위키 수정', 'UPDATE', h.created_at
+                FROM wiki_histories h
+                JOIN wiki_pages wp ON h.wiki_page_id = wp.wiki_page_id
+                JOIN users u3 ON h.user_code = u3.user_code
+                LEFT JOIN project p3 ON wp.project_id = p3.project_id
+                <where>
+                    <if test="projectId != null and projectId != ''">
+                        AND wp.project_id = #{projectId}
+                    </if>
+                    <if test="userCode != null and userCode != ''">
+                        AND u3.user_code = #{userCode}
+                    </if>
+                    <if test="startDate != null and startDate != ''">
+                        AND h.created_at &gt;= TO_DATE(#{startDate}, 'YYYY.MM.DD')
+                    </if>
+                    <if test="endDate != null and endDate != ''">
+                        AND h.created_at &lt; TO_DATE(#{endDate}, 'YYYY.MM.DD') + INTERVAL '1' DAY
+                    </if>
+                </where>
+                </if>
+
+                ORDER BY action_at DESC
             ) inner_q
             WHERE ROWNUM &lt;= #{offset} + #{pageSize}
         )
@@ -67,41 +128,66 @@
 
     <!-- 전체 건수 -->
     <select id="countAll" resultType="int">
-        SELECT COUNT(*)
-        FROM task_history th
-        LEFT JOIN task t
-                ON th.task_id = t.task_id
-        LEFT JOIN project p
-                ON t.project_id = p.project_id
-        LEFT JOIN users u
-                ON th.changed_by = u.user_code
-        LEFT JOIN task_types tt
-                ON t.type_id = tt.type_id
-        LEFT JOIN task_history_detail d_type
-        		ON th.history_id = d_type.history_id
-        		AND d_type.field_name = 'type_name'
-        <where>
-            <if test="projectId != null and projectId != ''">
-                AND t.project_id = #{projectId}
+        SELECT COUNT(*) FROM (
+            SELECT th.history_id
+            FROM task_history th
+            LEFT JOIN task t ON th.task_id = t.task_id
+            LEFT JOIN project p ON t.project_id = p.project_id
+            LEFT JOIN users u ON th.changed_by = u.user_code
+            LEFT JOIN task_types tt ON t.type_id = tt.type_id
+            LEFT JOIN task_history_detail d_type
+            		ON th.history_id = d_type.history_id
+            		AND d_type.field_name = 'type_name'
+            <where>
+                <if test="projectId != null and projectId != ''">
+                    AND t.project_id = #{projectId}
+                </if>
+                <if test="userCode != null and userCode != ''">
+                    AND u.user_code = #{userCode}
+                </if>
+                <if test="startDate != null and startDate != ''">
+                    AND th.action_at &gt;= TO_DATE(#{startDate}, 'YYYY.MM.DD')
+                </if>
+                <if test="endDate != null and endDate != ''">
+                    AND th.action_at &lt; TO_DATE(#{endDate}, 'YYYY.MM.DD') + INTERVAL '1' DAY
+                </if>
+                <if test="typeNames != null and typeNames.size() > 0">
+                    AND NVL(d_type.new_value, tt.type_name) IN
+                    <foreach collection="typeNames" item="type" open="(" separator="," close=")">
+                        #{type}
+                    </foreach>
+                </if>
+            </where>
+
+            <if test="typeNames == null or typeNames.size() == 0 or typeNames.contains('위키')">
+            UNION ALL
+
+            SELECT w.wiki_page_id AS history_id
+            FROM wiki_pages w
+            JOIN users u2 ON w.user_code = u2.user_code
+            <where>
+                <if test="projectId != null and projectId != ''">AND w.project_id = #{projectId}</if>
+                <if test="userCode != null and userCode != ''">AND u2.user_code = #{userCode}</if>
+                <if test="startDate != null and startDate != ''">AND w.created_at &gt;= TO_DATE(#{startDate}, 'YYYY.MM.DD')</if>
+                <if test="endDate != null and endDate != ''">AND w.created_at &lt; TO_DATE(#{endDate}, 'YYYY.MM.DD') + INTERVAL '1' DAY</if>
+            </where>
+
+            UNION ALL
+
+            SELECT h.wiki_history_id AS history_id
+            FROM wiki_histories h
+            JOIN wiki_pages wp ON h.wiki_page_id = wp.wiki_page_id
+            JOIN users u3 ON h.user_code = u3.user_code
+            <where>
+                <if test="projectId != null and projectId != ''">AND wp.project_id = #{projectId}</if>
+                <if test="userCode != null and userCode != ''">AND u3.user_code = #{userCode}</if>
+                <if test="startDate != null and startDate != ''">AND h.created_at &gt;= TO_DATE(#{startDate}, 'YYYY.MM.DD')</if>
+                <if test="endDate != null and endDate != ''">AND h.created_at &lt; TO_DATE(#{endDate}, 'YYYY.MM.DD') + INTERVAL '1' DAY</if>
+            </where>
             </if>
-            <if test="userCode != null and userCode != ''">
-                AND u.user_code = #{userCode}
-            </if>
-            <if test="startDate != null and startDate != ''">
-                AND th.action_at &gt;= TO_DATE(#{startDate}, 'YYYY.MM.DD')
-            </if>
-            <if test="endDate != null and endDate != ''">
-                AND th.action_at &lt; TO_DATE(#{endDate}, 'YYYY.MM.DD') + INTERVAL '1' DAY
-            </if>
-            <if test="typeNames != null and typeNames.size() > 0">
-                AND NVL(d_type.new_value, tt.type_name) IN
-                <foreach collection="typeNames" item="type" open="(" separator="," close=")">
-                    #{type}
-                </foreach>
-            </if>
-        </where>
+        )
     </select>
-    
+
     <!-- 총 소요시간 합계(해당 기간+필터 조건) -->
     <select id="sumSpentHour" resultType="java.lang.Double">
         SELECT NVL(SUM(w.spent_hour), 0)
@@ -129,90 +215,150 @@
             </if>
         </where>
     </select>
-    
+
     <!-- 조회 가능한 날짜 목록 (페이징용) -->
 	<select id="selectDistinctDates" resultType="string">
-	    SELECT DISTINCT TO_CHAR(th.action_at, 'YYYY-MM-DD') AS action_date
-	    FROM task_history th
-	    INNER JOIN task t
-	    		ON th.task_id = t.task_id
-	    LEFT JOIN users u
-	    		ON th.changed_by = u.user_code
-	    LEFT JOIN task_types tt
-	    		ON t.type_id = tt.type_id
-	    LEFT JOIN task_history_detail d_type
-	           ON th.history_id = d_type.history_id
-	          AND d_type.field_name = 'type_name'
-	    <where>
-	        <if test="projectId != null and projectId != ''">
-	            AND t.project_id = TO_NUMBER(#{projectId})
+	    SELECT DISTINCT action_date FROM (
+	        SELECT TO_CHAR(th.action_at, 'YYYY-MM-DD') AS action_date
+	        FROM task_history th
+	        INNER JOIN task t
+	        		ON th.task_id = t.task_id
+	        LEFT JOIN users u
+	        		ON th.changed_by = u.user_code
+	        LEFT JOIN task_types tt
+	        		ON t.type_id = tt.type_id
+	        LEFT JOIN task_history_detail d_type
+	               ON th.history_id = d_type.history_id
+	              AND d_type.field_name = 'type_name'
+	        <where>
+	            <if test="projectId != null and projectId != ''">
+	                AND t.project_id = TO_NUMBER(#{projectId})
+	            </if>
+	            <if test="userCode != null and userCode != ''">
+	                AND u.user_code = #{userCode}
+	            </if>
+	            <if test="startDate != null and startDate != ''">
+	                AND th.action_at &gt;= TO_DATE(#{startDate}, 'YYYY.MM.DD')
+	            </if>
+	            <if test="endDate != null and endDate != ''">
+	                AND th.action_at &lt; TO_DATE(#{endDate}, 'YYYY.MM.DD') + INTERVAL '1' DAY
+	            </if>
+	            <if test="typeNames != null and typeNames.size() > 0">
+	                AND NVL(d_type.new_value, tt.type_name) IN
+	                <foreach collection="typeNames" item="type" open="(" separator="," close=")">
+	                    #{type}
+	                </foreach>
+	            </if>
+	        </where>
+
+	        <if test="typeNames == null or typeNames.size() == 0 or typeNames.contains('위키')">
+	        UNION ALL
+
+	        SELECT TO_CHAR(w.created_at, 'YYYY-MM-DD') AS action_date
+	        FROM wiki_pages w
+	        JOIN users u2 ON w.user_code = u2.user_code
+	        <where>
+	            <if test="projectId != null and projectId != ''">AND w.project_id = TO_NUMBER(#{projectId})</if>
+	            <if test="userCode != null and userCode != ''">AND u2.user_code = #{userCode}</if>
+	            <if test="startDate != null and startDate != ''">AND w.created_at &gt;= TO_DATE(#{startDate}, 'YYYY.MM.DD')</if>
+	            <if test="endDate != null and endDate != ''">AND w.created_at &lt; TO_DATE(#{endDate}, 'YYYY.MM.DD') + INTERVAL '1' DAY</if>
+	        </where>
+
+	        UNION ALL
+
+	        SELECT TO_CHAR(h.created_at, 'YYYY-MM-DD') AS action_date
+	        FROM wiki_histories h
+	        JOIN wiki_pages wp ON h.wiki_page_id = wp.wiki_page_id
+	        JOIN users u3 ON h.user_code = u3.user_code
+	        <where>
+	            <if test="projectId != null and projectId != ''">AND wp.project_id = TO_NUMBER(#{projectId})</if>
+	            <if test="userCode != null and userCode != ''">AND u3.user_code = #{userCode}</if>
+	            <if test="startDate != null and startDate != ''">AND h.created_at &gt;= TO_DATE(#{startDate}, 'YYYY.MM.DD')</if>
+	            <if test="endDate != null and endDate != ''">AND h.created_at &lt; TO_DATE(#{endDate}, 'YYYY.MM.DD') + INTERVAL '1' DAY</if>
+	        </where>
 	        </if>
-	        <if test="userCode != null and userCode != ''">
-	            AND u.user_code = #{userCode}
-	        </if>
-	        <if test="startDate != null and startDate != ''">
-	            AND th.action_at &gt;= TO_DATE(#{startDate}, 'YYYY.MM.DD')
-	        </if>
-	        <if test="endDate != null and endDate != ''">
-	            AND th.action_at &lt; TO_DATE(#{endDate}, 'YYYY.MM.DD') + INTERVAL '1' DAY
-	        </if>
-	        <if test="typeNames != null and typeNames.size() > 0">
-	            AND NVL(d_type.new_value, tt.type_name) IN
-	            <foreach collection="typeNames" item="type" open="(" separator="," close=")">
-	                #{type}
-	            </foreach>
-	        </if>
-	    </where>
+	    )
 	    ORDER BY action_date DESC
 	</select>
 
 	<!-- 특정 날짜의 전체 데이터 조회 (페이징 없음) -->
 	<select id="selectByDate" resultType="com.weple.cloud.history.worklog.service.WorkLogVO">
-	    SELECT
-	        th.history_id,
-	        th.task_id,
-            t.project_id AS projectId,
-	        p.project_title AS projectTitle,
-	        u.user_name AS userName,
-	        NVL(d_title.new_value, t.task_title) AS taskTitle,
-	        NVL(d_type.new_value, tt.type_name) AS typeName,
-	        cc.default_describe AS defaultDescribe,
-	        th.action_type,
-	        th.action_at AS actionAt
-	    FROM task_history th
-	    INNER JOIN task t
-	    		ON th.task_id = t.task_id
-	    INNER JOIN users u
-	    		ON th.changed_by = u.user_code
-	    INNER JOIN task_types tt
-	    		ON t.type_id = tt.type_id
-	    LEFT JOIN project p
-	    		ON t.project_id = p.project_id
-	    LEFT JOIN task_history_detail d_title
-	           ON th.history_id = d_title.history_id
-	          AND d_title.field_name = 'task_title'
-	    LEFT JOIN task_history_detail d_type
-	           ON th.history_id = d_type.history_id
-	          AND d_type.field_name = 'type_name'
-	    LEFT OUTER JOIN common_code cc
-	                ON t.task_status = cc.common_id
-	               AND cc.common_code = '0E'
-	    <where>
-	        TO_CHAR(th.action_at, 'YYYY-MM-DD') = #{targetDate}
-	        <if test="projectId != null and projectId != ''">
-	            AND t.project_id = TO_NUMBER(#{projectId})
+	    SELECT * FROM (
+	        SELECT
+	            th.history_id,
+	            th.task_id,
+	            t.project_id AS projectId,
+	            p.project_title AS projectTitle,
+	            u.user_name AS userName,
+	            NVL(d_title.new_value, t.task_title) AS taskTitle,
+	            NVL(d_type.new_value, tt.type_name) AS typeName,
+	            cc.default_describe AS defaultDescribe,
+	            th.action_type,
+	            th.action_at AS actionAt
+	        FROM task_history th
+	        INNER JOIN task t
+	        		ON th.task_id = t.task_id
+	        INNER JOIN users u
+	        		ON th.changed_by = u.user_code
+	        INNER JOIN task_types tt
+	        		ON t.type_id = tt.type_id
+	        LEFT JOIN project p
+	        		ON t.project_id = p.project_id
+	        LEFT JOIN task_history_detail d_title
+	               ON th.history_id = d_title.history_id
+	              AND d_title.field_name = 'task_title'
+	        LEFT JOIN task_history_detail d_type
+	               ON th.history_id = d_type.history_id
+	              AND d_type.field_name = 'type_name'
+	        LEFT OUTER JOIN common_code cc
+	                    ON t.task_status = cc.common_id
+	                   AND cc.common_code = '0E'
+	        <where>
+	            TO_CHAR(th.action_at, 'YYYY-MM-DD') = #{targetDate}
+	            <if test="projectId != null and projectId != ''">
+	                AND t.project_id = TO_NUMBER(#{projectId})
+	            </if>
+	            <if test="userCode != null and userCode != ''">
+	                AND u.user_code = #{userCode}
+	            </if>
+	            <if test="typeNames != null and typeNames.size() > 0">
+	                AND NVL(d_type.new_value, tt.type_name) IN
+	                <foreach collection="typeNames" item="type" open="(" separator="," close=")">
+	                    #{type}
+	                </foreach>
+	            </if>
+	        </where>
+
+	        <if test="typeNames == null or typeNames.size() == 0 or typeNames.contains('위키')">
+	        UNION ALL
+
+	        SELECT
+	            NULL, w.wiki_page_id,
+	            w.project_id, p2.project_title, u2.user_name,
+	            w.title, '위키', '위키 생성', 'CREATE', w.created_at
+	        FROM wiki_pages w
+	        JOIN users u2 ON w.user_code = u2.user_code
+	        LEFT JOIN project p2 ON w.project_id = p2.project_id
+	        WHERE TO_CHAR(w.created_at, 'YYYY-MM-DD') = #{targetDate}
+	            <if test="projectId != null and projectId != ''">AND w.project_id = TO_NUMBER(#{projectId})</if>
+	            <if test="userCode != null and userCode != ''">AND u2.user_code = #{userCode}</if>
+
+	        UNION ALL
+
+	        SELECT
+	            NULL, wp.wiki_page_id,
+	            wp.project_id, p3.project_title, u3.user_name,
+	            h.title, '위키', '위키 수정', 'UPDATE', h.created_at
+	        FROM wiki_histories h
+	        JOIN wiki_pages wp ON h.wiki_page_id = wp.wiki_page_id
+	        JOIN users u3 ON h.user_code = u3.user_code
+	        LEFT JOIN project p3 ON wp.project_id = p3.project_id
+	        WHERE TO_CHAR(h.created_at, 'YYYY-MM-DD') = #{targetDate}
+	            <if test="projectId != null and projectId != ''">AND wp.project_id = TO_NUMBER(#{projectId})</if>
+	            <if test="userCode != null and userCode != ''">AND u3.user_code = #{userCode}</if>
 	        </if>
-	        <if test="userCode != null and userCode != ''">
-	            AND u.user_code = #{userCode}
-	        </if>
-	        <if test="typeNames != null and typeNames.size() > 0">
-	            AND NVL(d_type.new_value, tt.type_name) IN
-	            <foreach collection="typeNames" item="type" open="(" separator="," close=")">
-	                #{type}
-	            </foreach>
-	        </if>
-	    </where>
-	    ORDER BY th.action_at DESC
+	    )
+	    ORDER BY 10 DESC
 	</select>
 
 </mapper>

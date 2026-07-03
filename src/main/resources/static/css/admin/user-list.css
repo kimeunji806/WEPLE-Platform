@@ -608,6 +608,11 @@
     object-fit: cover;
 }
 
+.user-detail-avatar img.user-detail-avatar-default {
+    object-fit: contain;
+    background: #E5E7EB;
+}
+
 .user-detail-profile strong {
     display: block;
     color: var(--user-text);

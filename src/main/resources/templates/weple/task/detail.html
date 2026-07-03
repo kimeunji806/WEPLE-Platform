@@ -42,12 +42,18 @@
 
 			<div class="task-main-card">
 				<div class="task-title-area">
-					<p class="category-path" th:if="*{milestoneTitle} != null"
-						th:text="'마일스톤 : ' + *{milestoneTitle}"></p>
-					<h2 class="task-title" th:text="*{taskTitle} "></h2>
-					<p class="task-meta">
-						<span class="author" th:text="*{taskWriter}"></span>
-					</p>
+				    <p class="category-path" th:if="*{milestoneTitle} != null">
+				        마일스톤 : 
+				        <span th:text="*{milestoneTitle}" 
+				              th:onclick="|location.href='@{/project/milestone/detail(projectId=${projectId}, milestoneId=*{milestoneId})}'|"
+				              style="cursor: pointer; font-weight: bold; color: #6D5EF7;">
+				        </span>
+				    </p>
+				    
+				    <h2 class="task-title" th:text="*{taskTitle} "></h2>
+				    <p class="task-meta">
+				        <span class="author" th:text="*{taskWriter}"></span>
+				    </p>
 				</div>
 
 				<div class="task-info-grid">

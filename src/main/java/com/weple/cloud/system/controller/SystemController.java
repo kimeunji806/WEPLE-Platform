@@ -500,6 +500,7 @@ public class SystemController {
 		    vo.setPage(page);
 		    vo.setPageSize(pageSize);
 		    vo.setKeyword(keyword);
+		    vo.setCompanyId(String.valueOf(loginUser.getLoginUser().getCompanyId()));
 		    // 관리자가 아니면 본인이 속한 프로젝트만 필터링
 		    if (!isManager) {
 		        vo.setUserCode(userCode);
@@ -683,8 +684,10 @@ public class SystemController {
 	// 역할 목록
 	@GetMapping("/system/role")
 	public String roleList(@ModelAttribute("toastMessage") String toastMessage,
+						   @AuthenticationPrincipal LoginUserDetails loginUser,
 							Model model) {
-		model.addAttribute("roleList", roleService.selectRoleList());
+		Long companyId = loginUser.getLoginUser().getCompanyId();
+		model.addAttribute("roleList", roleService.selectRoleList(companyId));
 		
 		model.addAttribute("sidebarMenu", "system");
 	    model.addAttribute("currentMenu", "systemrole");
@@ -704,13 +707,19 @@ public class SystemController {
 	
 	// 역할 수정 폼
 	@GetMapping("/system/role/edit")
-	public String roleEditForm(@RequestParam Long roleId, Model model) {
-		model.addAttribute("role", roleService.selectRoleById(roleId));
-		model.addAttribute("checkedCodes", roleService.selectPermissionCodesByRoleid(roleId));
-		model.addAttribute("groupedPermissions", groupPermissions(roleService.selectPermissionList()));
-		model.addAttribute("mode", "edit");
-		
-		model.addAttribute("sidebarMenu", "system");
+	public String roleEditForm(@RequestParam Long roleId,
+	                            @AuthenticationPrincipal LoginUserDetails loginUser,
+	                            Model model) {
+	    Long companyId = loginUser.getLoginUser().getCompanyId();
+	    RoleVO role = roleService.selectRoleById(roleId, companyId);
+	    if (role == null) {
+	        return "weple/access-denide"; // 남의 회사 roleId면 여기서 차단
+	    }
+	    model.addAttribute("role", role);
+	    model.addAttribute("checkedCodes", roleService.selectPermissionCodesByRoleid(roleId));
+	    model.addAttribute("groupedPermissions", groupPermissions(roleService.selectPermissionList()));
+	    model.addAttribute("mode", "edit");
+	    model.addAttribute("sidebarMenu", "system");
 	    model.addAttribute("currentMenu", "systemrole");
 	    return "weple/system/roleCreate";
 	}
@@ -731,24 +740,30 @@ public class SystemController {
 	
 	// 역할 수정 처리
 	@PostMapping("/system/role/edit")
-	public String roleEditProcess(RoleVO roleVO,
-								  RedirectAttributes redirectAttributes) {
-		int result = roleService.updateRole(roleVO);
-		if(result > 0) {
-			redirectAttributes.addFlashAttribute("toastMessage", "역할이 수정되었습니다.");
-		}
-		return "redirect:/system/role";
+	public String roleEditProcess(@AuthenticationPrincipal LoginUserDetails loginUser,
+	                               RoleVO roleVO,
+	                               RedirectAttributes redirectAttributes) {
+	    roleVO.setCompanyId(loginUser.getLoginUser().getCompanyId());
+	    int result = roleService.updateRole(roleVO);
+	    if (result > 0) {
+	        redirectAttributes.addFlashAttribute("toastMessage", "역할이 수정되었습니다.");
+	    } else {
+	        redirectAttributes.addFlashAttribute("toastError", "수정 권한이 없거나 존재하지 않는 역할입니다.");
+	    }
+	    return "redirect:/system/role";
 	}
 	
 	// 역할 삭제
 	@PostMapping("/system/role/delete")
 	public String deleteRole(@RequestParam Long roleId,
-			 				 RedirectAttributes redirectAttributes) {
-		int result = roleService.deleteRole(roleId);
-		if(result > 0) {
-			redirectAttributes.addFlashAttribute("toastMessage", "역할이 삭제되었습니다.");
-		}
-		return "redirect:/system/role";
+	                          @AuthenticationPrincipal LoginUserDetails loginUser,
+	                          RedirectAttributes redirectAttributes) {
+	    Long companyId = loginUser.getLoginUser().getCompanyId();
+	    int result = roleService.deleteRole(roleId, companyId);
+	    if(result > 0) {
+	        redirectAttributes.addFlashAttribute("toastMessage", "역할이 삭제되었습니다.");
+	    }
+	    return "redirect:/system/role";
 	}
 	
 	// private 헬퍼: permissionList → tagLabel 기준 LinkedHashMap

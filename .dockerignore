@@ -1,7 +1,6 @@
 .git
 .idea
 .vscode
-target
 uploads
 *.log
 *.tmp

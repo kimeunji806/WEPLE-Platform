@@ -34,12 +34,15 @@ import lombok.RequiredArgsConstructor;
 public class MilestoneController {
 
 	private static final String PERMISSION_MILESTONE_CREATE_UPDATE_DELETE = "k1_version";
+	private static final String PERMISSION_TASK_CREATE = "k3_add";
+	private static final String PERMISSION_TASK_UPDATE = "k3_edit";
+	private static final String PERMISSION_TASK_MYUPDATE = "k3_myedit";
 	
 	private final MilestoneService milestoneService;
 	private final ProjectService projectService;
 	private final RepositoryService repositoryService; // [추가] 팀원의 프로젝트 권한 조회 메서드 활용
 
-	// 마일스톤 전체 조회
+	// 로드맵 전체 조회
 	@GetMapping
 	public String milestoneList(@AuthenticationPrincipal LoginUserDetails loginUser, // [추가]
 								@RequestParam Long projectId, 
@@ -69,6 +72,11 @@ public class MilestoneController {
 		// 권한 체크 및 뷰단 버튼 제어용 속성 추가
 		Set<String> permissionCodes = findMilestonePermissionCodes(loginUser, projectId);
 		addMilestonePermissionAttributes(model, permissionCodes);
+		
+		// [추가] 일감 추가 권한 및 일감 편집(전체 편집 OR 내 일감 편집) 권한을 화면단에 넘겨줌
+		model.addAttribute("canAddTask", hasMilestonePermission(permissionCodes, PERMISSION_TASK_CREATE));
+		model.addAttribute("canEditTask", hasMilestonePermission(permissionCodes, PERMISSION_TASK_UPDATE)
+				|| hasMilestonePermission(permissionCodes, PERMISSION_TASK_MYUPDATE));
 
         // 1. 마일스톤 상세 정보 및 4대 분류 통계 통합 조회
         MilestoneDetailVO detailInfo = milestoneService.getMilestoneDetailInfo(projectId, milestoneId);
@@ -271,6 +279,7 @@ public class MilestoneController {
 	@GetMapping("/unassigned-tasks")
 	@ResponseBody
 	public Map<String, Object> getUnassignedTasks(
+			@AuthenticationPrincipal LoginUserDetails loginUser, // [추가]
 	        @RequestParam("projectId") Long projectId,
 	        @RequestParam(value = "milestoneId", required = false) Long milestoneId, 
 	        @RequestParam(value = "page", defaultValue = "1") int page,
@@ -278,6 +287,18 @@ public class MilestoneController {
 	        @RequestParam(value = "priority", required = false) String priority,
 	        @RequestParam(value = "taskManager", required = false) String taskManager,
 	        @RequestParam(value = "typeId", required = false) Long typeId) {
+		
+		Set<String> permissionCodes = findMilestonePermissionCodes(loginUser, projectId);
+				
+		// [수정] 논리 오류 교정: 전체 편집(k3_edit)과 내 일감 편집(k3_myedit)이 '둘 다 없는 경우'에만 차단해야 합니다.
+		if (!hasMilestonePermission(permissionCodes, PERMISSION_TASK_UPDATE) && 
+			!hasMilestonePermission(permissionCodes, PERMISSION_TASK_MYUPDATE)) {
+					
+		// [수정] 리턴 타입이 Map이므로, 문자열(뷰네임)을 반환하면 컴파일 에러가 납니다. JSON 대응 에러 메시지 반환.
+		Map<String, Object> errorResult = new HashMap<>();
+		errorResult.put("error", "해당 프로젝트의 일감 편집 권한이 없습니다.");
+		return errorResult;
+		}
 	        
 		
 	    int pageSize = 10;

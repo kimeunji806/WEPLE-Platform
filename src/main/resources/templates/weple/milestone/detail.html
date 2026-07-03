@@ -337,16 +337,16 @@
 			            </h3>
 			            
 			            <div style="display: flex; gap: 8px;">
-                            <!-- <th:block th:if="${canManageMilestone}"> -->
+                            <th:block th:if="${canEditTask}">
                                 <span id="btnOpenModal" class="milestone-add-link" style="cursor: pointer;">
                                     + 기존 일감 연결
                                 </span>
                                 <button type="submit" class="milestone-add-link" id="btnSaveMapping" style="background: #2563eb; color: #fff; display: none;">
                                     💾 연결 저장
                                 </button>
-                            <!-- </th:block> -->
+                            </th:block>
                             
-                            <a th:href="@{/project/task/insert(projectId=${detail.projectId}, milestoneId=${detail.milestoneId})}" class="milestone-add-link">
+                            <a th:if="${canAddTask}" th:href="@{/project/task/insert(projectId=${detail.projectId}, milestoneId=${detail.milestoneId})}" class="milestone-add-link">
 			                    + 새 일감 추가
 			                </a>
 			            </div>

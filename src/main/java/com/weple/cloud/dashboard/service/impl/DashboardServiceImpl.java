@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.weple.cloud.dashboard.mapper.DashboardMapper;
 import com.weple.cloud.dashboard.service.DashboardService;
+import com.weple.cloud.project.service.ProjectVO;
 import com.weple.cloud.task.service.TaskVO;
 
 import lombok.RequiredArgsConstructor;
@@ -20,4 +21,10 @@ public class DashboardServiceImpl implements DashboardService {
     public List<TaskVO> getTasksDueWithinAWeek(String userCode) {
         return dashboardMapper.selectTasksDueWithinAWeek(userCode);
     }
+    
+    @Override
+    public List<ProjectVO> getProjectsByMember(String userCode) {
+    	return dashboardMapper.selectProjectsByMember(userCode);
+    }
+    
 }

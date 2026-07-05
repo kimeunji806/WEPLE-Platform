@@ -23,5 +23,32 @@
           AND t.finish_date BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) + 7
           ORDER BY t.finish_date ASC
     </select>
+    
+    <select id="selectProjectsByMember" resultType="ProjectVO">
+        SELECT 
+            p.project_id          AS projectId,
+            p.project_title       AS projectTitle,
+            p.project_describe    AS projectDescribe,
+            p.created_at          AS createdAt,
+            p.finish_date         AS finishDate,
+            COUNT(t.task_id)      AS totalTasks,
+            COUNT(CASE WHEN t.task_status = 'e3' THEN 1 END) AS completedTasks,
+            CASE 
+                WHEN COUNT(t.task_id) > 0 
+                THEN ROUND((COUNT(CASE WHEN t.task_status = 'e3' THEN 1 END) / COUNT(t.task_id)) * 100)
+                ELSE 0 
+            END AS taskProgress
+        FROM project p
+        INNER JOIN members m ON p.project_id = m.project_id
+        LEFT JOIN task t ON p.project_id = t.project_id
+        WHERE m.user_code = #{userCode}
+        GROUP BY 
+            p.project_id, 
+            p.project_title, 
+            p.project_describe, 
+            p.created_at, 
+            p.finish_date
+        ORDER BY p.created_at DESC, p.project_id DESC
+    </select>
 
 </mapper>

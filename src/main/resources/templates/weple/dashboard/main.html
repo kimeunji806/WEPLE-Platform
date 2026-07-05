@@ -9,169 +9,455 @@
     <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
     
     <style>
-        /* 대시보드 모듈용 기본 스타일 예시 */
-        .dashboard-grid {
+        /* 기본 배경 및 레이아웃 설정 */
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        /* image_1c72de.png 기준 3단 메인 그리드 레이아웃 */
+        .dashboard-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 20px;
-            padding: 20px;
+            grid-template-columns: 3fr 1fr 1fr;
+            gap: 24px;
+            padding: 24px;
         }
+
+        /* 메인 섹션들 (좌측 수직 정렬 공간) */
+        .main-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* 대시보드 메인 카드 스타일 */
         .dashboard-card {
-            background: #fff;
-            border: 1px solid #e3e6f0;
-            border-radius: 0.35rem;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-            padding: 1.5rem;
+            background: #ffffff;
+            border: 1px solid #eef2f5;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            padding: 24px;
         }
+
         .card-header-title {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 700;
-            color: #4e73df;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #eaecf4;
-            padding-bottom: 0.5rem;
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .loading-spinner {
+        
+        .project-card-grid {
+    display: grid;
+    /* 카드가 화면 너비에 따라 자동으로 줄바꿈되며 유연하게 늘어나는 구조 */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.project-item-card {
+    background: #ffffff;
+    border: 1px solid #eef2f5;
+    border-radius: 14px;
+    padding: 20px;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.01);
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    color: inherit;
+}
+
+/* 마우스 호버 시 부드럽게 위로 뜨는 효과 */
+.project-item-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* 프로젝트 상단 정보 (제목 & 설명) */
+.project-info-top h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 6px 0;
+}
+
+.project-info-top p {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.4;
+    /* 설명이 너무 길어지면 2줄 처리 후 말줄임표(...) 제한 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   [프로젝트 모듈] 하단 진척도(Progress Bar) 스타일
+   ========================================================================== */
+.project-progress-section {
+    margin-top: 20px;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 6px;
+    background-color: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    width: 0%; /* JavaScript에서 동적으로 fill 제어 */
+    transition: width 0.5s ease-in-out;
+}
+
+/* 대시보드 시안 맞춤형 테마 컬러 (스크립트에서 순환 적용) */
+.bg-blue   { background-color: #4e73df; }
+.bg-orange { background-color: #f6c23e; }
+.bg-green  { background-color: #1cc88a; }
+.bg-gray   { background-color: #beabc2; }
+
+/* 프로그레스 바 하단 텍스트 영역 (완료 개수 & 백분율) */
+.progress-txt-container {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.progress-count { 
+    font-weight: 500; 
+}
+
+.progress-percent { 
+    font-weight: 700; 
+    color: #4e73df; 
+}
+
+        /* 마감 임박 카드 컴포넌트 스타일 (image_1c72de.png 반영) */
+        .upcoming-box {
+            border: 1px solid #ffebe9; /* 부드러운 붉은 톤 외곽선 */
+            background-color: #ffffff;
+        }
+        
+        .task-card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task-item-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: #ffffff;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .task-item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* D-Day 배지 스타일링 */
+        .dday-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        /* 임박도에 따른 배지 색상 정의 */
+        .badge-danger { background-color: #fff1f2; color: #f43f5e; }  /* D-1 ~ D-2 */
+        .badge-warning { background-color: #fffbeb; color: #d97706; } /* D-3 ~ D-5 */
+        .badge-info { background-color: #eff6ff; color: #2563eb; }    /* D-6 ~ */
+
+        .task-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .task-card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .task-card-project {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        /* 스켈레톤/로딩 및 데이터 없음 공통 스타일 */
+        .loading-spinner, .empty-msg {
             text-align: center;
-            padding: 2rem;
-            color: #858796;
-        }
-        .task-list-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .task-list-table th, .task-list-table td {
-            padding: 0.5rem;
-            text-align: left;
-            border-bottom: 1px solid #eaecf4;
+            padding: 40px 0;
+            color: #94a3b8;
             font-size: 0.9rem;
-        }
-        .badge-priority {
-            padding: 0.25em 0.4em;
-            font-size: 75%;
-            font-weight: 700;
-            border-radius: 0.25rem;
-            background-color: #f6c23e;
-            color: #fff;
         }
     </style>
 </head>
 <body>
 <section>
-    <div class="container-fluid">
-        <h2 class="mt-4 mb-4" style="padding-left: 20px;">대시보드</h2>
+    <div class="dashboard-container">
         
-        <div class="dashboard-grid">
-            
-            <div class="dashboard-card" id="upcoming-tasks-module">
-                <div class="card-header-title">⏰ 마감 임박 일감 (7일 이내)</div>
-                <div class="card-body">
-                    <div class="loading-spinner">
-                        <span>데이터를 불러오는 중입니다...</span>
-                    </div>
+        <!-- 1. 좌측 칼럼 (프로젝트 & 내 일감) -->
+        <div class="main-column">
+            <!-- [플레이스홀더] 프로젝트 섹션 -->
+            <div class="dashboard-card" id="my-projects-module">
+            <div class="card-header-title">프로젝트</div>
+            <div class="card-body">
+                <div class="loading-spinner">
+                    <span>프로젝트 목록을 불러오는 중입니다...</span>
                 </div>
             </div>
-            
+        </div>
+
+            <!-- [플레이스홀더] 내 일감 섹션 -->
+            <div class="dashboard-card">
+                <div class="card-header-title">내 일감</div>
+                <div style="color: #94a3b8; font-size:0.9rem; text-align:center; padding:80px 0; border:1px dashed #e2e8f0; border-radius:8px;">
+                    우측 마감 임박 모듈 마그레이션 확인 후 여기에 내 일감 테이블 및 필터가 들어옵니다.
+                </div>
             </div>
+        </div>
+
+        <!-- 2. 중간 칼럼 (마감 임박 일감 모듈) -->
+        <div class="dashboard-card upcoming-box" id="upcoming-tasks-module">
+            <div class="card-header-title">마감 임박</div>
+            <div class="card-body">
+                <div class="loading-spinner">
+                    <span>데이터를 불러오는 중입니다...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 우측 칼럼 (최근 활동 플레이스홀더) -->
+        <div class="dashboard-card">
+            <div class="card-header-title">최근 활동</div>
+            <div style="color: #94a3b8; font-size:0.9rem; text-align:center; padding:100px 0; border:1px dashed #e2e8f0; border-radius:8px;">
+                최근 활동 히스토리 타임라인 영역
+            </div>
+        </div>
+
     </div>
 
     <script th:inline="javascript">
-        document.addEventListener("DOMContentLoaded", function () {
-            // 페이지 로드 시 마감 임박 일감 모듈 호출
-            loadUpcomingTasks();
-            
-            // 추후 생성할 다른 모듈 함수도 이곳에 차례로 작성하여 동시/순차 실행 가능
-            // loadProjectProgress();
+    document.addEventListener("DOMContentLoaded", function () {
+        // 대시보드 진입 시 두 가지 모듈을 비동기로 각각 호출합니다.
+        loadMyProjects();
+        loadUpcomingTasks();
+    });
+
+    /**
+     * 1. 내가 참여 중인 프로젝트 목록을 REST API(/api/dashboard/my-projects)로부터 호출
+     */
+     function loadMyProjects() {
+         const container = document.querySelector("#my-projects-module .card-body");
+         if (!container) return;
+
+         fetch('/api/dashboard/my-projects', {
+             method: 'GET',
+             headers: { 'Content-Type': 'application/json' }
+         })
+         .then(response => {
+             if (!response.ok) throw new Error('프로젝트 데이터를 가져오는 데 실패했습니다.');
+             return response.json();
+         })
+         .then(data => {
+             renderMyProjects(data, container);
+         })
+         .catch(error => {
+             console.error('Error fetching projects:', error);
+             container.innerHTML = `<p style="color: #f43f5e; text-align:center; font-size:0.9rem; padding: 20px 0;">프로젝트 정보를 불러오는 중 오류가 발생했습니다.</p>`;
+         });
+     }
+
+     /**
+      * [렌더링] 프로젝트 데이터를 받아 그리드 카드 HTML 동적 주입
+      */
+     function renderMyProjects(projects, targetContainer) {
+         if (!projects || projects.length === 0) {
+             targetContainer.innerHTML = `<div class="empty-msg" style="text-align: center; color: #94a3b8; padding: 40px 0; font-size: 0.9rem;">참여 중인 프로젝트가 없습니다.</div>`;
+             return;
+         }
+
+         let html = `<div class="project-card-grid">`;
+         const colorThemes = ['bg-blue', 'bg-orange', 'bg-green', 'bg-gray'];
+
+         projects.forEach((project, index) => {
+             const progress = project.taskProgress !== undefined ? project.taskProgress : 0;
+             const completed = project.completedTasks !== undefined ? project.completedTasks : 0;
+             const total = project.totalTasks !== undefined ? project.totalTasks : 0;
+             const themeClass = colorThemes[index % colorThemes.length];
+
+             html += `
+                 <a href="/project/detail/${project.projectId}" class="project-item-card">
+                     <div class="project-info-top">
+                         <h4>${escapeHtml(project.projectTitle)}</h4>
+                         <p>${escapeHtml(project.projectDescribe || '설명이 등록되지 않은 프로젝트입니다.')}</p>
+                     </div>
+                     
+                     <div class="project-progress-section">
+                         <div class="progress-bar-container">
+                             <div class="progress-bar-fill ${themeClass}" style="width: ${progress}%"></div>
+                         </div>
+                         <div class="progress-txt-container">
+                             <span class="progress-count">${completed}/${total} 완료</span>
+                             <span class="progress-percent">${progress}%</span>
+                         </div>
+                     </div>
+                 </a>
+             `;
+         });
+
+         html += `</div>`;
+         targetContainer.innerHTML = html;
+     }
+
+     /**
+      * [호출] 마감 임박 일감 데이터를 API로부터 Fetch
+      */
+     function loadUpcomingTasks() {
+         const container = document.querySelector("#upcoming-tasks-module .card-body");
+         if (!container) return;
+
+         fetch('/api/dashboard/upcoming-tasks', {
+             method: 'GET',
+             headers: { 'Content-Type': 'application/json' }
+         })
+         .then(response => {
+             if (!response.ok) throw new Error('일감 데이터를 가져오는 데 실패했습니다.');
+             return response.json();
+         })
+         .then(data => {
+             renderUpcomingTasks(data, container);
+         })
+         .catch(error => {
+             console.error('Error fetching tasks:', error);
+             container.innerHTML = `<p style="color: #f43f5e; text-align:center; font-size:0.9rem; padding: 20px 0;">일감 정보를 불러오는 중 오류가 발생했습니다.</p>`;
+         });
+     }
+
+    /**
+     * 3. 마감 임박 일감 데이터를 REST API(/api/dashboard/upcoming-tasks)로부터 호출
+     */
+    function loadUpcomingTasks() {
+        const container = document.querySelector("#upcoming-tasks-module .card-body");
+        if (!container) return;
+
+        fetch('/api/dashboard/upcoming-tasks', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('일감 데이터를 가져오는 데 실패했습니다.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // 일감 데이터 동적 렌더링 함수 호출
+            renderUpcomingTasks(data, container);
+        })
+        .catch(error => {
+            console.error('Error fetching tasks:', error);
+            container.innerHTML = `<p style="color: #f43f5e; text-align:center; font-size:0.9rem; padding: 20px 0;">일감 정보를 불러오는 중 오류가 발생했습니다.</p>`;
         });
+    }
 
-        /**
-         * 마감 임박 일감 데이터를 REST API로부터 가져와 DOM에 바인딩하는 함수
-         */
-        function loadUpcomingTasks() {
-            const container = document.querySelector("#upcoming-tasks-module .card-body");
-
-            fetch('/api/dashboard/upcoming-tasks', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('데이터 요청에 실패했습니다.');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // 데이터 바인딩 함수 호출
-                renderUpcomingTasks(data, container);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                container.innerHTML = `<p style="color: red; text-align:center;">데이터를 불러오는 중 오류가 발생했습니다.</p>`;
-            });
+    /**
+     * 4. 받아온 일감 데이터를 D-Day 배지형 카드 리스트로 동적 생성
+     */
+    function renderUpcomingTasks(tasks, targetContainer) {
+        if (!tasks || tasks.length === 0) {
+            targetContainer.innerHTML = `<div class="empty-msg" style="text-align: center; color: #94a3b8; padding: 40px 0; font-size: 0.9rem;">마감 예정인 일감이 없습니다. 🎉</div>`;
+            return;
         }
 
-        /**
-         * 받아온 JSON 데이터를 가공해 HTML 테이블 프래그먼트를 동적으로 생성하는 함수
-         */
-        function renderUpcomingTasks(tasks, targetContainer) {
-            if (!tasks || tasks.length === 0) {
-                targetContainer.innerHTML = `<p style="text-align: center; color: #858796; padding: 1.5rem 0;">마감 예정인 일감이 없습니다. 🎉</p>`;
-                return;
-            }
+        let html = `<div class="task-card-list">`;
 
-            let html = `
-                <table class="task-list-table">
-                    <thead>
-                        <tr>
-                            <th>프로젝트</th>
-                            <th>일감 제목</th>
-                            <th>우선순위</th>
-                            <th>마감일</th>
-                            <th>진척도</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            tasks.forEach(task => {
-                // 날짜 포맷 정리 (YYYY-MM-DD)
-                const dueDate = task.finishDate ? task.finishDate.substring(0, 10) : '-';
-                
-                html += `
-                    <tr>
-                        <td><strong>${escapeHtml(task.projectTitle)}</strong></td>
-                        <td><a href="/task/detail/${task.taskId}" style="color: #4e73df; text-decoration: none;">${escapeHtml(task.taskTitle)}</a></td>
-                        <td><span class="badge-priority">${escapeHtml(task.priority || '보통')}</span></td>
-                        <td style="color: #e74a3b; font-weight: bold;">${dueDate}</td>
-                        <td>
-                            <div style="display:flex; align-items:center; gap: 5px;">
-                                <progress value="${task.taskProgress}" max="100" style="width:60px;"></progress>
-                                <span>${task.taskProgress}%</span>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
+        tasks.forEach(task => {
+            const ddayText = calculateDDay(task.finishDate);
+            const badgeClass = getBadgeClass(ddayText);
 
             html += `
-                    </tbody>
-                </table>
+                <a href="/task/detail/${task.taskId}" class="task-item-card">
+                    <div class="dday-badge ${badgeClass}">${ddayText}</div>
+                    <div class="task-card-info">
+                        <div class="task-card-title">${escapeHtml(task.taskTitle)}</div>
+                        <div class="task-card-project">${escapeHtml(task.projectTitle)}</div>
+                    </div>
+                </a>
             `;
+        });
 
-            // HTML 교체하여 로딩 스피너 제거 및 리스트 출력
-            targetContainer.innerHTML = html;
-        }
+        html += `</div>`;
+        targetContainer.innerHTML = html;
+    }
 
-        // XSS 방지를 위한 HTML 이스케이프 함수
-        function escapeHtml(str) {
-            if(!str) return '';
-            return String(str).replace(/[&<>"']/g, function (m) {
-                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
-            });
-        }
-    </script>
+    /**
+     * [유틸] 마감일 날짜 문자열을 활용해 오늘 기준 D-Day 연산
+     */
+    function calculateDDay(finishDateStr) {
+        if (!finishDateStr) return 'D-?';
+        const today = new Date(); 
+        today.setHours(0, 0, 0, 0);
+        
+        const targetDate = new Date(finishDateStr.substring(0, 10)); 
+        targetDate.setHours(0, 0, 0, 0);
+        
+        const diffTime = targetDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) return 'D-Day';
+        return diffDays > 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`;
+    }
+
+    /**
+     * [유틸] 남은 일수 상황에 매칭할 CSS 클래스 추출
+     */
+    function getBadgeClass(ddayText) {
+        if (ddayText === 'D-Day') return 'badge-danger';
+        const days = parseInt(ddayText.replace('D-', ''));
+        if (isNaN(days)) return 'badge-info';
+        
+        if (days <= 2) return 'badge-danger';  // 마감 1~2일 전 (위험 레드)
+        if (days <= 5) return 'badge-warning'; // 마감 3~5일 전 (경고 오렌지)
+        return 'badge-info';                   // 마감 6일 이상 (안정 블루)
+    }
+
+    /**
+     * [보안] XSS(크로스 사이트 스크립팅) 방지용 HTML 이스케이프 처리
+     */
+    function escapeHtml(str) {
+        if(!str) return '';
+        return String(str).replace(/[&<>"']/g, function (m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+        });
+    }
+</script>
 </section>
 </body>
 </html>

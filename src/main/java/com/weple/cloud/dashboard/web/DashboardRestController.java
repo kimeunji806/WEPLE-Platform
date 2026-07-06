@@ -66,11 +66,10 @@ public class DashboardRestController {
     @GetMapping("/recent-activities")
     public ResponseEntity<?> getRecentActivities(
             @AuthenticationPrincipal LoginUserDetails loginUser,
-            @RequestParam(required = false) String projectId) {
+            @RequestParam(value = "projectId", required = false) String projectId,
+            @RequestParam(value = "limit", defaultValue = "10") int limit) {
         
-        String userCode = loginUser.getLoginUser().getUserCode();
-        List<WorkLogVO> activities = dashboardService.getRecentActivities(userCode, projectId);
-        
+        List<WorkLogVO> activities = dashboardService.getRecentActivities(loginUser.getLoginUser(), projectId, limit);
         return ResponseEntity.ok(activities);
     }
 }

@@ -18,7 +18,10 @@ public interface DashboardMapper {
     
     List<DashboardProjectDTO> selectAllProjectsForDashboard();
     
-    List<WorkLogVO> selectRecentActivities(Map<String, Object> params);
+    List<WorkLogVO> selectRecentActivities(
+            @Param("projectIds") List<Long> projectIds, 
+            @Param("limit") int limit
+        );
 
 	
 }

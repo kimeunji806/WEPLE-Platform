@@ -37,7 +37,7 @@ public class ProjectController {
         for (String[] m : new String[][]{
             {"b1",  "개요"},
             {"b2",  "작업내역"},
-            {"b3",  "마일스톤"},
+            {"b3",  "로드맵"},
             {"b4",  "일감"},
             {"b5",  "소요시간"},
             {"b6",  "간트차트"},

@@ -455,9 +455,10 @@
 			                    <div class="col-md-2">
 			                        <select id="filterPriority" class="form-select">
 			                            <option value="">-- 우선순위 --</option>
-			                            <option value="긴급">긴급</option>
-			                            <option value="높음">높음</option>
-			                            <option value="낮음">낮음</option>
+			                            <option th:each="priority : ${taskList}" 
+			                                    th:value="${priority.priority}" 
+			                                    th:text="${priority.priority}">
+			                            </option>
 			                        </select>
 			                    </div>
 			                    <div class="col-md-3">

@@ -9,7 +9,6 @@
 <body>
 
 	<section class="testcase-section">
-	<h3 style="color: #1e293b; font-weight: 700; margin-bottom: 20px;">테스트 케이스</h3>
 		<form id="searchForm"
 			th:action="${currentTab == 'coverage'} ? @{/project/coverage} : @{/project/testcase}"
 			method="get">

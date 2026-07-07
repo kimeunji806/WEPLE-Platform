@@ -44,6 +44,10 @@
         // 2. 무한 확장 대응: 5개 초과 시 '더보기' 버튼 동적 생성 로직
         // =======================================================
         document.querySelectorAll(".stat-toggle-content").forEach(function (content) {
+            if (content.querySelector(".stat-more-btn-wrap")) {
+                return;
+            }
+
             const rows = content.querySelectorAll(".stat-item-row");
             
             if (rows.length > 5) {
@@ -84,6 +88,7 @@
                 });
             }
         });
+    });
     </script>
 
     <div class="outline-page-header">

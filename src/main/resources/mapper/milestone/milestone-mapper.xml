@@ -173,7 +173,7 @@
                COUNT(*) AS totalCount,
                SUM(CASE WHEN task_status = 'e3' THEN 1 ELSE 0 END) AS closedCount
         FROM task
-        WHERE milestone_id = #{milestoneId} AND project_id = #{projectId} AND priority IS NOT NULL
+        WHERE milestone_id = #{milestoneId} AND project_id = #{projectId} AND priority IS NOT NULL AND deleted_yn = 'N'
         GROUP BY priority
     </select>
 
@@ -183,7 +183,7 @@
                SUM(CASE WHEN t.task_status = 'e3' THEN 1 ELSE 0 END) AS closedCount
         FROM task t
         JOIN task_types tp ON t.type_id = tp.type_id
-        WHERE t.milestone_id = #{milestoneId} AND project_id = #{projectId}
+        WHERE t.milestone_id = #{milestoneId} AND project_id = #{projectId} AND t.deleted_yn = 'N'
         GROUP BY tp.type_name, t.type_id
     </select>
 
@@ -193,7 +193,7 @@
                SUM(CASE WHEN t.task_status = 'e3' THEN 1 ELSE 0 END) AS closedCount
         FROM task t
         LEFT JOIN users u ON t.task_manager = u.user_code
-        WHERE t.milestone_id = #{milestoneId} AND t.project_id = #{projectId}
+        WHERE t.milestone_id = #{milestoneId} AND t.project_id = #{projectId} AND t.deleted_yn = 'N'
         GROUP BY u.user_name
     </select>
 

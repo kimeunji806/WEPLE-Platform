@@ -48,6 +48,8 @@ public interface TaskMapper {
     
     public List<TaskProjectSelectVO> myAllTasks(@Param("uCode") String uCode);
     
+    public List<TaskProjectSelectVO> findAllProjects();
+    
     public int updateTask(TaskVO taskVO);
     
     public void deleteTask(@Param("tId") String tId);

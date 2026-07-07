@@ -486,8 +486,17 @@ public class TaskController {
 	    // 목록 조회 및 총 개수 구하기
 	    List<TaskVO> list;
 	    int totalCount = 0;
+	    
+	    List<TaskProjectSelectVO> projectList;
+	    
 
-	    List<TaskProjectSelectVO> projectList = taskService.findMyProject(userCode);
+	    if (isAdminOrOwner) {
+	        // 관리자/오너인 경우: 전체 프로젝트 조회
+	        projectList = taskService.findAllProjects();
+	    } else {
+	        // 일반 사용자인 경우: 본인이 속한 프로젝트만 조회
+	        projectList = taskService.findMyProject(userCode);
+	    }
 	    List<TaskMemberVO> allMemberList = taskService.findAllMemberList();
 	    TaskPermissionVO taskPerms = taskService.getTaskPermissions(userCode, null);
 	   

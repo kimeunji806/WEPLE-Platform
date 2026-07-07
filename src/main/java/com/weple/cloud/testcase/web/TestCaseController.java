@@ -47,13 +47,16 @@ public class TestCaseController {
 	        return "weple/access-denide";
 	    }
 	    String userCode = loginUser.getLoginUser().getUserCode();
+	    Integer ownerYn = loginUser.getLoginUser().getOwnerYn();
+	    Integer adminYn = loginUser.getLoginUser().getAdminYn();
+	    boolean isAdminOrOwner = (ownerYn != null && ownerYn == 1) || (adminYn != null && adminYn == 1);
 	    
 	    List<TaskMemberVO> projMemberList = taskService.findMember(pId);
 
 	    boolean isProjectMember = projMemberList.stream()
 	            .anyMatch(member -> userCode.equals(member.getUserCode()));
 
-	    if (!isProjectMember) {
+	    if (!isProjectMember && !isAdminOrOwner) {
 	        return "weple/access-denide";
 	    }
 	    
@@ -111,12 +114,16 @@ public class TestCaseController {
 	        return "weple/access-denide";
 	    }
     	String userCode = loginUser.getLoginUser().getUserCode();
+	    Integer ownerYn = loginUser.getLoginUser().getOwnerYn();
+	    Integer adminYn = loginUser.getLoginUser().getAdminYn();
+	    boolean isAdminOrOwner = (ownerYn != null && ownerYn == 1) || (adminYn != null && adminYn == 1);
+	    
     	List<TaskMemberVO> projMemberList = taskService.findMember(pId);
 
 	    boolean isProjectMember = projMemberList.stream()
 	            .anyMatch(member -> userCode.equals(member.getUserCode()));
 
-	    if (!isProjectMember) {
+	    if (!isProjectMember && !isAdminOrOwner) {
 	        return "weple/access-denide";
 	    }
     	
@@ -166,13 +173,17 @@ public class TestCaseController {
 			return "weple/access-denide";
 		}
 		String userCode = loginUser.getLoginUser().getUserCode();
+	    Integer ownerYn = loginUser.getLoginUser().getOwnerYn();
+	    Integer adminYn = loginUser.getLoginUser().getAdminYn();
+	    boolean isAdminOrOwner = (ownerYn != null && ownerYn == 1) || (adminYn != null && adminYn == 1);
+		
 		List<TaskMemberVO> projMemberList = taskService.findMember(pId);
 
 		
 	    boolean isProjectMember = projMemberList.stream()
 	            .anyMatch(member -> userCode.equals(member.getUserCode()));
 
-	    if (!isProjectMember) {
+	    if (!isProjectMember && !isAdminOrOwner) {
 	        return "weple/access-denide";
 	    }
 		
@@ -259,7 +270,7 @@ public class TestCaseController {
 	    boolean isProjectMember = projMemberList.stream()
 	            .anyMatch(member -> userCode.equals(member.getUserCode()));
 
-	    if (!isProjectMember) {
+	    if (!isProjectMember && !isAdminOrOwner) {
 	        return "weple/access-denide";
 	    }
     	    
@@ -289,13 +300,16 @@ public class TestCaseController {
             return "weple/access-denide";
         }
         String userCode = loginUser.getLoginUser().getUserCode();
+    	Integer ownerYn = loginUser.getLoginUser().getOwnerYn();
+    	Integer adminYn = loginUser.getLoginUser().getAdminYn();
+    	boolean isAdminOrOwner = (ownerYn != null && ownerYn == 1) || (adminYn != null && adminYn == 1);
         
         List<TaskMemberVO> projMemberList = taskService.findMember(pId);
 
 	    boolean isProjectMember = projMemberList.stream()
 	            .anyMatch(member -> userCode.equals(member.getUserCode()));
 
-	    if (!isProjectMember ) {
+	    if (!isProjectMember && !isAdminOrOwner) {
 	        return "weple/access-denide";
 	    }
         

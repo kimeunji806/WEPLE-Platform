@@ -180,6 +180,12 @@ public class TaskServiceImpl implements TaskService {
 	public List<TaskProjectSelectVO> findMyProject(String uCode) {
 		return taskMapper.myAllTasks(uCode);
 	}
+	
+	@Override
+	public List<TaskProjectSelectVO> findAllProjects() {
+
+		return taskMapper.findAllProjects();
+	}
 
 	// 전달된 상태값(commonId)이 "완료" 상태인지 확인 -민지-
 	// (코드값 목록에서 defaultDescribe가 "완료"인 항목의 commonId와 비교)
@@ -450,5 +456,7 @@ public class TaskServiceImpl implements TaskService {
 
 		return taskMapper.taskTestCaseList(tId, pId);
 	}
+
+
 
 }

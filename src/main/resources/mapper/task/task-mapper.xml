@@ -414,7 +414,13 @@ END PR_INSERT_TASK;
 	WHERE m.user_code = #{uCode}
 </select>
 	
-	
+<!-- 관리자용 전체 프로젝트 -->	
+<select id="findAllProjects" resultType="TaskProjectSelectVO">
+    SELECT 
+        project_id, project_title
+    FROM 
+        project
+</select>	
 	
 <update id="updateTask" parameterType="TaskVO">
     UPDATE task

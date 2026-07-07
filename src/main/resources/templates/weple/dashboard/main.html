@@ -154,7 +154,10 @@
     transition: width 0.5s ease-in-out;
 }
 
-.dashboard-container .bg-blue { background-color: #4e73df; }
+.dashboard-container .bg-blue { background-color: #6D5EF7; }
+.dashboard-container .dashboard-progress-primary {
+    background-color: #6D5EF7;
+}
 
 .dashboard-container .progress-txt-container {
     display: flex;
@@ -164,7 +167,7 @@
 }
 
 .dashboard-container .progress-count { font-weight: 500; }
-.dashboard-container .progress-percent { font-weight: 700; color: #4e73df; }
+.dashboard-container .progress-percent { font-weight: 700; color: #6D5EF7; }
 
 .dashboard-container .task-card-list {
     display: flex;
@@ -204,7 +207,7 @@
 }
 .dashboard-container .badge-danger { background-color: #fff1f2; color: #f43f5e; }  
 .dashboard-container .badge-warning { background-color: #fffbeb; color: #d97706; } 
-.dashboard-container .badge-info { background-color: #eff6ff; color: #2563eb; }    
+.dashboard-container .badge-info { background-color: #eff6ff; color: #6D5EF7; }    
 
 .dashboard-container .task-card-info {
     display: flex;
@@ -572,7 +575,7 @@
                     
                     <div class="project-progress-section">
                         <div class="progress-bar-container">
-                            <div class="progress-bar-fill bg-blue" style="width: ${progress}%"></div>
+                            <div class="progress-bar-fill dashboard-progress-primary" style="width: ${progress}%"></div>
                         </div>
                         <div class="progress-txt-container">
                             <span class="progress-count">${completed}/${total} 완료</span>

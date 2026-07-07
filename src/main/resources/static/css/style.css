@@ -161,7 +161,7 @@ body.nav-sm .container.body .right_col {
 .top_nav,
 .top_nav .nav_menu,
 .nav_menu {
-    background: #ffffff !important;
+    background: #F8F6FF !important;
 }
 
 .top_nav {
@@ -177,8 +177,9 @@ body.nav-sm .container.body .right_col {
 }
 
 .top_nav .nav_menu {
-    border-bottom: 1px solid #EEE8FF !important;
-    box-shadow: 0 1px 0 rgba(74, 45, 138, 0.03) !important;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8F6FF 100%) !important;
+    border-bottom: 1px solid #E8E1FF !important;
+    box-shadow: 0 3px 14px rgba(74, 45, 138, 0.045) !important;
     margin-bottom: 0 !important;
     padding: 0 24px !important;
     height: 81px !important;
@@ -198,8 +199,16 @@ body.nav-sm .container.body .right_col {
 .header-profile-right {
     display: flex !important;
     align-items: center !important;
-    gap: 16px !important;
+    gap: 14px !important;
     height: 100% !important;
+}
+
+.header-profile-link {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: inherit !important;
+    text-decoration: none !important;
 }
 
 .header-profile-right .user-name {
@@ -222,6 +231,21 @@ body.nav-sm .container.body .right_col {
     font-size: 18px !important;
     transition: color 0.15s ease !important;
 }
+
+.notif-wrap #notifBellBtn {
+    width: 34px !important;
+    height: 34px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    transition: background-color 0.15s ease !important;
+}
+
+.notif-wrap #notifBellBtn:hover {
+    background: #F1EDFF !important;
+}
+
 .notif-wrap #notifBellBtn:hover i.fa-bell {
     color: #6B3FC0 !important;
 }
@@ -229,16 +253,27 @@ body.nav-sm .container.body .right_col {
 /* ★ 추가: 로그아웃 아이콘 - 사이드바 컬러로 통일 */
 .header-profile-right form button i.fa-sign-out {
     color: #4A2D8A !important;
-    font-size: 22px !important;
+    font-size: 20px !important;
     transition: color 0.15s ease !important;
 }
 .header-profile-right form button:hover i.fa-sign-out {
     color: #6B3FC0 !important;
 }
 .header-profile-right form button {
-    background: none !important;
+    width: 34px !important;
+    height: 34px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
     border: none !important;
+    border-radius: 50% !important;
     cursor: pointer !important;
+    transition: background-color 0.15s ease !important;
+}
+
+.header-profile-right form button:hover {
+    background: #F1EDFF !important;
 }
 
 /* 5. [중단 서브 메뉴바] - 활성 탭을 밑줄 대신 은은한 알약형 배경으로 (사이드바 활성 스타일과 통일감) */

@@ -26,139 +26,165 @@
 		</div>
 
 		<div class="filter-box">
-			<form id="searchForm" method="get" th:action="@{/task/all-list}">
-				<input type="hidden" id="pageInput" name="page"
-					th:value="${currentPage != null ? currentPage : 1}">
-				<div class="row" style="margin-bottom: 20px;">
-					<div class="col-md-4 col-md-offset-8">
-						<div class="input-group input-group-sm search-group">
-							<span class="input-group-addon">🔍</span> <input type="text"
-								class="form-control" name="searchKeyword" placeholder="일감명 검색"
-								th:value="${param.searchKeyword}">
-						</div>
-					</div>
-				</div>
+    <form id="searchForm" method="get" th:action="@{/task/all-list}">
+        <input type="hidden" id="pageInput" name="page"
+            th:value="${currentPage != null ? currentPage : 1}">
+        
+        <div class="row" style="margin-bottom: 20px;">
+            <div class="col-md-4 col-md-offset-8">
+                <div class="input-group input-group-sm search-group">
+                    <span class="input-group-addon">🔍</span> <input type="text"
+                        class="form-control" name="searchKeyword" placeholder="일감명 검색"
+                        th:value="${param.searchKeyword}">
+                </div>
+            </div>
+        </div>
 
-				<div class="filter-row">
-					<div class="filter-label label-project">프로젝트</div>
-					<div class="filter-options">
-						<label th:each="proj : ${projectList}"> <input
-							type="checkbox" name="projectIds" th:value="${proj.projectId}"
-							th:checked="${param.projectIds != null and #arrays.contains(param.projectIds, #strings.toString(proj.projectId))}">
-							<span   th:text="${proj.projectTitle}">프로젝트명</span>
-						</label>
-					</div>
-				</div>
+        <!-- 필터 항목들을 감싸는 래퍼 (접기/펴기 제어용) -->
+        <div id="filter-rows-wrapper">
+            <div class="filter-row">
+                <div class="filter-label label-project">프로젝트</div>
+                <div class="filter-options">
+                    <label th:each="proj : ${projectList}"> <input
+                        type="checkbox" name="projectIds" th:value="${proj.projectId}"
+                        th:checked="${param.projectIds != null and #arrays.contains(param.projectIds, #strings.toString(proj.projectId))}">
+                        <span th:text="${proj.projectTitle}">프로젝트명</span>
+                    </label>
+                </div>
+            </div>
 
-				<div class="filter-row">
-					<div class="filter-label label-type">일감유형</div>
-					<div class="filter-options">
-						<label th:each="type : ${typeList}"> <input
-							type="checkbox" name="typeIds" th:value="${type.typeId}"
-							th:checked="${param.typeIds != null and #arrays.contains(param.typeIds, #strings.toString(type.typeId))}">
-							<span th:text="${type.typeName}" >기능개발</span>
-						</label>
-					</div>
-				</div>
+            <div class="filter-row">
+                <div class="filter-label label-type">일감유형</div>
+                <div class="filter-options">
+                    <label th:each="type : ${typeList}"> <input
+                        type="checkbox" name="typeIds" th:value="${type.typeId}"
+                        th:checked="${param.typeIds != null and #arrays.contains(param.typeIds, #strings.toString(type.typeId))}">
+                        <span th:text="${type.typeName}" >기능개발</span>
+                    </label>
+                </div>
+            </div>
 
-				<div class="filter-row">
-					<div class="filter-label label-status">상태</div>
-					<div class="filter-options">
-						<label th:each="taskStatus : ${statusList}"> <input
-							type="checkbox" name="statusIds"
-							th:value="${taskStatus.commonId}"
-							th:checked="${param.statusIds != null and #arrays.contains(param.statusIds, #strings.toString(taskStatus.commonId))}">
-							<span th:text="${taskStatus.defaultDescribe}">신규</span>
-						</label>
-					</div>
-				</div>
+            <div class="filter-row">
+                <div class="filter-label label-status">상태</div>
+                <div class="filter-options">
+                    <label th:each="taskStatus : ${statusList}"> <input
+                        type="checkbox" name="statusIds"
+                        th:value="${taskStatus.commonId}"
+                        th:checked="${param.statusIds != null and #arrays.contains(param.statusIds, #strings.toString(taskStatus.commonId))}">
+                        <span th:text="${taskStatus.defaultDescribe}">신규</span>
+                    </label>
+                </div>
+            </div>
 
-				<div class="filter-row">
-					<div class="filter-label label-priority">우선순위</div>
-					<div class="filter-options">
-						<label th:each="priority : ${priorityList}"> <input
-							type="checkbox" name="priorityNames"
-							th:value="${priority.priorityName}"
-							th:checked="${param.priorityNames != null and #arrays.contains(param.priorityNames, priority.priorityName)}">
-							<span th:text="${priority.priorityName}">보통</span>
-						</label>
-					</div>
-				</div>
-				<div class="filter-row" th:if="${isAdminOrOwner}">
-					<div class="filter-label label-manager">담당자</div>
-					<div class="filter-options">
-						<select id="memberChoices" name="memberIds" multiple>
-							<option th:each="member : ${allMemberList}"
-								th:value="${member.userCode}"
-								th:text="|${member.userName} (${member.email})|"></option>
-						</select>
-					</div>
-				</div>
+            <div class="filter-row">
+                <div class="filter-label label-priority">우선순위</div>
+                <div class="filter-options">
+                    <label th:each="priority : ${priorityList}"> <input
+                        type="checkbox" name="priorityNames"
+                        th:value="${priority.priorityName}"
+                        th:checked="${param.priorityNames != null and #arrays.contains(param.priorityNames, priority.priorityName)}">
+                        <span th:text="${priority.priorityName}">보통</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- 권한에 따라 렌더링되는 담당자 영역 -->
+            <div class="filter-row" th:if="${isAdminOrOwner}">
+                <div class="filter-label label-manager">담당자</div>
+                <div class="filter-options">
+                    <select id="memberChoices" name="memberIds" multiple>
+                        <option th:each="member : ${allMemberList}"
+                            th:value="${member.userCode}"
+                            th:text="|${member.userName} (${member.email})|"></option>
+                    </select>
+                </div>
+            </div>
 
-				<div class="filter-row">
-					<div class="filter-label label-progress">진척도</div>
-					<div class="filter-options">
-						<label><input type="checkbox" name="progress" value="0"
-							th:checked="${param.progress != null and #arrays.contains(param.progress, '0')}">
-							0%</label> <label><input type="checkbox" name="progress"
-							value="1-25"
-							th:checked="${param.progress != null and #arrays.contains(param.progress, '1-25')}">
-							1~25%</label> <label><input type="checkbox" name="progress"
-							value="26-50"
-							th:checked="${param.progress != null and #arrays.contains(param.progress, '26-50')}">
-							26~50%</label> <label><input type="checkbox" name="progress"
-							value="51-75"
-							th:checked="${param.progress != null and #arrays.contains(param.progress, '51-75')}">
-							51~75%</label> <label><input type="checkbox" name="progress"
-							value="76-100"
-							th:checked="${param.progress != null and #arrays.contains(param.progress, '76-100')}">
-							76~100%</label>
-					</div>
-				</div>
+            <div class="filter-row">
+                <div class="filter-label label-progress">진척도</div>
+                <div class="filter-options">
+                    <label><input type="checkbox" name="progress" value="0"
+                        th:checked="${param.progress != null and #arrays.contains(param.progress, '0')}">
+                        0%</label> <label><input type="checkbox" name="progress"
+                        value="1-25"
+                        th:checked="${param.progress != null and #arrays.contains(param.progress, '1-25')}">
+                        1~25%</label> <label><input type="checkbox" name="progress"
+                        value="26-50"
+                        th:checked="${param.progress != null and #arrays.contains(param.progress, '26-50')}">
+                        26~50%</label> <label><input type="checkbox" name="progress"
+                        value="51-75"
+                        th:checked="${param.progress != null and #arrays.contains(param.progress, '51-75')}">
+                        51~75%</label> <label><input type="checkbox" name="progress"
+                        value="76-100"
+                        th:checked="${param.progress != null and #arrays.contains(param.progress, '76-100')}">
+                        76~100%</label>
+                </div>
+            </div>
 
-				<div class="filter-row">
-					<div class="filter-label label-date">등록일자</div>
-					<div class="filter-options">
-						<label><input type="checkbox" name="regDate" value="today"
-							th:checked="${param.regDate != null and #arrays.contains(param.regDate, 'today')}">
-							오늘</label> <label><input type="checkbox" name="regDate"
-							value="thisWeek"
-							th:checked="${param.regDate != null and #arrays.contains(param.regDate, 'thisWeek')}">
-							이번주</label> <label><input type="checkbox" name="regDate"
-							value="thisMonth"
-							th:checked="${param.regDate != null and #arrays.contains(param.regDate, 'thisMonth')}">
-							이번달</label>
-					</div>
-				</div>
+            <div class="filter-row">
+                <div class="filter-label label-date">등록일자</div>
+                <div class="filter-options">
+                    <label><input type="checkbox" name="regDate" value="today"
+                        th:checked="${param.regDate != null and #arrays.contains(param.regDate, 'today')}">
+                        오늘</label> <label><input type="checkbox" name="regDate"
+                        value="thisWeek"
+                        th:checked="${param.regDate != null and #arrays.contains(param.regDate, 'thisWeek')}">
+                        이번주</label> <label><input type="checkbox" name="regDate"
+                        value="thisMonth"
+                        th:checked="${param.regDate != null and #arrays.contains(param.regDate, 'thisMonth')}">
+                        이번달</label>
+                </div>
+            </div>
 
-				<div class="filter-row">
-					<div class="filter-label label-date">마감일자</div>
-					<div class="filter-options">
-						<label><input type="checkbox" name="dueDate" value="today"
-							th:checked="${param.dueDate != null and #arrays.contains(param.dueDate, 'today')}">
-							오늘</label> <label><input type="checkbox" name="dueDate"
-							value="thisWeek"
-							th:checked="${param.dueDate != null and #arrays.contains(param.dueDate, 'thisWeek')}">
-							이번주</label> <label><input type="checkbox" name="dueDate"
-							value="thisMonth"
-							th:checked="${param.dueDate != null and #arrays.contains(param.dueDate, 'thisMonth')}">
-							이번달</label>
-					</div>
-				</div>
+            <div class="filter-row">
+                <div class="filter-label label-date">마감일자</div>
+                <div class="filter-options">
+                    <label><input type="checkbox" name="dueDate" value="today"
+                        th:checked="${param.dueDate != null and #arrays.contains(param.dueDate, 'today')}">
+                        오늘</label> <label><input type="checkbox" name="dueDate"
+                        value="thisWeek"
+                        th:checked="${param.dueDate != null and #arrays.contains(param.dueDate, 'thisWeek')}">
+                        이번주</label> <label><input type="checkbox" name="dueDate"
+                        value="thisMonth"
+                        th:checked="${param.dueDate != null and #arrays.contains(param.dueDate, 'thisMonth')}">
+                        이번달</label>
+                </div>
+            </div>
+        </div>
+        <!-- // 필터 항목 끝 -->
 
-				<div
-					style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-					<div style="margin: 0 auto; margin-left: 47%;"></div>
-					<div style="display: flex; gap: 8px;">
+        <!-- 선택된 조건 칩 영역 (추가됨) -->
+        <div id="selectedConditionsWrap" class="selected-conditions-wrap">
+            <div class="selected-conditions-header">
+                <span id="selectedCount" class="selected-count">선택된 조건 0</span>
+                <a id="resetAllBtn" class="reset-all-btn">전체 초기화</a>
+            </div>
+            <div id="chipContainer" class="chip-container">
+                <!-- Javascript로 칩이 렌더링되는 영역 -->
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; margin-top: 20px;">
+
+
+					<div style="flex: 1;"></div>
+
+					<div style="flex: 1; display: flex; justify-content: center;">
+						<button type="button" id="toggleFilterBtn"
+							class="btn-toggle-filter">▲ 검색 필터 접기</button>
+					</div>
+
+					<div
+						style="flex: 1; display: flex; justify-content: flex-end; gap: 8px;">
 						<button type="button" class="btn-pill-light"
 							th:onclick="|location.href='@{/task/all-list}'|">지우기</button>
 						<button type="submit" class="btn-pill-primary"
 							onclick="document.getElementById('pageInput').value=1;">적용</button>
 					</div>
-				</div>
-			</form>
-		</div>
 
+				</div>
+    </form>
+</div>
 		<div class="table-container">
 			<table class="table table-hover custom-table"
 				style="font-size: 14px; text-align: center;">
@@ -318,7 +344,7 @@
 							data-dismiss="modal" style="border-radius: 6px; margin: 0;">취소</button>
 						<button type="button" class="btn btn-sm btn-primary"
 							onclick="redirectToInsertTask()"
-							style="background-color: #3b82f6; border: none; border-radius: 6px; margin: 0; padding: 5px 15px;">이동</button>
+							style="background-color: #5B4FEA; border: none; border-radius: 6px; margin: 0; padding: 5px 15px;">이동</button>
 					</div>
 				</div>
 			</div>

@@ -1,6 +1,6 @@
 .testcase-section {
 	padding: 20px;
-	background-color: #f8f9fc; /* 전체 배경색과 맞추기 */
+	background-color: #ffffff !important; 
 	font-family: 'Noto Sans KR', sans-serif;
 	width: 100%;
 	box-sizing: border-box;

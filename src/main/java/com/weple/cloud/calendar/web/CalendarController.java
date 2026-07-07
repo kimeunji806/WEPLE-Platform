@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.weple.cloud.auth.service.LoginUserDetails;
 import com.weple.cloud.calendar.service.CalendarService;
 import com.weple.cloud.project.service.ProjectService;
+import com.weple.cloud.task.service.TaskMemberVO;
+import com.weple.cloud.task.service.TaskService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,13 +27,36 @@ public class CalendarController {
 	
 	private final CalendarService calendarService;
 	private final ProjectService projectService;
+	private final TaskService taskService;
 	
 	@GetMapping("/project/calendar")
-    public String Calendar(@RequestParam("projectId") Long pId, Model model) {
-        model.addAttribute("currentMenu", "calendar");
+    public String Calendar(@RequestParam("projectId") Long pId, Model model,@AuthenticationPrincipal LoginUserDetails loginUser) {
+        
+		
+		Integer ownerYn = loginUser.getLoginUser().getOwnerYn();
+		Integer adminYn = loginUser.getLoginUser().getAdminYn();
+		String userCode = loginUser.getLoginUser().getUserCode();
+		boolean isAdminOrOwner = (ownerYn != null && ownerYn == 1) || (adminYn != null && adminYn == 1);
+
+		
+		//  프로젝트 구성원 확인
+		List<TaskMemberVO> memberList = taskService.findMember(pId);
+		boolean isProjectMember = memberList.stream()
+				.anyMatch(member -> userCode.equals(member.getUserCode()));
+		
+
+		if (!isProjectMember&& !isAdminOrOwner) {
+			
+			return "weple/access-denide";
+		}
+		
+		
+		model.addAttribute("currentMenu", "calendar");
         model.addAttribute("projectId", pId);
         model.addAttribute("project", projectService.findById(String.valueOf(pId)));
         model.addAttribute("sidebarMenu", "project");
+        
+        
         return "weple/calendar/project";
     }
     

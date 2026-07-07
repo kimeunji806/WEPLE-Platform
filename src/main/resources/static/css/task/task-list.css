@@ -408,6 +408,84 @@ div.choices .choices__list--multiple .choices__item .choices__button:hover {
 }
 
 .page-btn:hover:not(.active):not(.disabled) {
-    background: #F1EDFF;
-    color: #6D5EF7;
+    background: #eef4ff;
+    color: #5747E6;
 }
+
+
+/* 선택된 조건 칩 영역 스타일 */
+.selected-conditions-wrap {
+    background-color: #fafbfc;
+    border: 1px solid #e1e4e8;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 20px;
+    display: none; /* 조건이 없을 때는 숨김 */
+}
+
+.selected-conditions-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.selected-count {
+    color: #6D5EF7;
+    font-weight: 600;
+}
+
+.reset-all-btn {
+    color: #8b95a1;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.reset-all-btn:hover {
+    text-decoration: underline;
+}
+
+.chip-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* 개별 칩 스타일 */
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    background-color: #F1EDFF;
+    color: #6D5EF7;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.filter-chip .chip-close {
+    margin-left: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.filter-chip .chip-close:hover {
+    color: #4a3cce;
+}
+
+/* 필터 접기 버튼 스타일 */
+.btn-toggle-filter {
+    background: none;
+    border: none;
+    color: #4e5968;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.btn-toggle-filter:hover {
+    color: #191f28;
+}
+

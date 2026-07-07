@@ -247,7 +247,10 @@ body.nav-sm .container.body .right_col {
     border-bottom: 1px solid #EEE8FF !important;
     box-shadow: 0 2px 4px rgba(109, 94, 247, 0.02) !important;
     width: 100% !important;
-    overflow-x: auto !important;
+    overflow-x: auto !important; 
+    position: sticky !important;
+    top: 81px !important;
+    z-index: 998 !important; 
 }
 
 .sub_menu_nav ul {
@@ -289,7 +292,7 @@ body.nav-sm .container.body .right_col {
 
 /* 6. [메인 캔버스 영역] */
 .main_white_canvas_container {
-    background: #ffffff !important;
+    background: #FFFFFF !important;
     margin: 32px 24px !important;
     padding: 40px !important;
     border-radius: 14px !important;

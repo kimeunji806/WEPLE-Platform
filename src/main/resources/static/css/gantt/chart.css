@@ -58,13 +58,13 @@
 
 /* A. 최상위 버전 바 (📦) : 어두운 느낌을 빼고 진척도를 명확히 살린 선명한 프리미엄 로열 블루 */
 .gantt_task_line.version-bar {
-    background-color: #2A2475 !important; /* 확연히 어두운 딥 인디고로 변경 */
-    border: 1px solid #1D1854 !important;
+    background-color: #2648AB !important; /* 보라색 기운이 전혀 없는 깊고 선명한 클래식 네이비 */
+    border: 1px solid #172554 !important;
 }
 /* 버전 내부 진척도 채우기 영역 */
 .gantt_task_line.version-bar .gantt_task_progress {
-    background-color: #15113C !important;
-    opacity: 0.5; /* 대비를 위해 불투명도 살짝 상향 */
+    background-color: #231C70 !important; /* 밝고 청량한 스카이 블루로 진척도를 대비시킴 */
+    opacity: 0.9; /* 배경 네이비와 확실하게 격차를 두기 위해 선명도 극대화 */
 }
 
 /* B. 하위 마일스톤 바 (📌) : 화사하고 선명하게 눈에 띄는 메인 포인트 보라색 */

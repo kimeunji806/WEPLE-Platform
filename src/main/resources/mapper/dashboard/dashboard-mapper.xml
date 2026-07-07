@@ -10,7 +10,7 @@
         p.project_title AS projectTitle
     FROM task t
     INNER JOIN project p ON t.project_id = p.project_id
-    WHERE t.task_manager = #{userCode}
+    WHERE t.task_manager = #{userCode} AND t.deleted_yn = 'N'
       AND t.finish_date &gt;= TRUNC(SYSDATE)
       AND t.finish_date &lt; TRUNC(SYSDATE) + 8
     ORDER BY t.finish_date ASC
@@ -33,7 +33,7 @@
         FROM project p
         INNER JOIN members m ON p.project_id = m.project_id
         LEFT JOIN task t ON p.project_id = t.project_id
-        WHERE m.user_code = #{userCode}
+        WHERE m.user_code = #{userCode} AND t.deleted_yn = 'N'
         GROUP BY 
             p.project_id, p.project_title, p.project_describe, p.created_at, p.finish_date
         ORDER BY p.created_at DESC, p.project_id DESC
@@ -55,6 +55,7 @@
             END AS taskProgress
         FROM project p
         LEFT JOIN task t ON p.project_id = t.project_id
+        WHERE t.deleted_yn = 'N'
         GROUP BY 
             p.project_id, p.project_title, p.project_describe, p.created_at, p.finish_date
         ORDER BY p.created_at DESC, p.project_id DESC

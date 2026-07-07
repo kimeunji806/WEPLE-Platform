@@ -40,7 +40,7 @@
     FROM task t
     LEFT JOIN task_types tp ON t.type_id = tp.type_id
     LEFT JOIN users u ON t.task_manager = u.user_code
-    WHERE t.project_id = #{projectId}
+    WHERE t.project_id = #{projectId} AND t.deleted_yn = 'N'
 </select>
 
 <select id="isModuleActive" parameterType="map" resultType="int">

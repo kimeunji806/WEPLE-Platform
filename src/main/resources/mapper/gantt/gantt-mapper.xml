@@ -4,7 +4,7 @@
 	<select id="selectTaskAll" resultType="TaskVO">
 		SELECT * 
 		FROM task 
-		WHERE project_id = #{projectId}
+		WHERE project_id = #{projectId} AND deleted_yn = 'N'
 	</select>
 	
 	

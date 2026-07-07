@@ -373,7 +373,7 @@ body {
 
 .col-group-name { width: 20%; font-weight: 600; }
 .col-count { width: 15%; color: #4b5563; font-weight: 500;}
-.col-names { width: 65%; color: #111827; line-height: 1.5; }
+.col-names { width: 65%; color: #4b5563; font-weight: 500; line-height: 1.5; }
 
 .group-tag {
     background-color: #f0f4ff;

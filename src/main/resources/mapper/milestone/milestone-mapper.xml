@@ -75,7 +75,7 @@
 	        COUNT(CASE WHEN task_progress = 100 THEN 1 END) AS closedTaskCount,
 	        ROUND(AVG(NVL(task_progress, 0)))               AS progressPercentage
 	    FROM task
-	    WHERE project_id = #{projectId} AND milestone_id IS NOT NULL
+	    WHERE project_id = #{projectId} AND milestone_id IS NOT NULL AND deleted_yn = 'N'
 	    GROUP BY milestone_id
 	</select>
 
@@ -116,7 +116,7 @@
                 SUM(NVL(estimated_time, 0)) AS total_estimated,
                 SUM(NVL(spent_hours_sum, 0)) AS total_spent
             FROM task
-            WHERE milestone_id = #{milestoneId} AND project_id = #{projectId}
+            WHERE milestone_id = #{milestoneId} AND project_id = #{projectId} AND deleted_yn = 'N'
             GROUP BY milestone_id
         ) stats ON m.milestone_id = stats.milestone_id
         WHERE m.milestone_id = #{milestoneId} AND m.project_id = #{projectId}
@@ -142,7 +142,7 @@
 	            FROM (
 	                SELECT task_id, task_title, task_status, task_progress, task_manager, type_id
 	                FROM task
-	                WHERE milestone_id = #{milestoneId} AND project_id = #{projectId}
+	                WHERE milestone_id = #{milestoneId} AND project_id = #{projectId} AND deleted_yn = 'N'
 	                ORDER BY created_at DESC, task_id DESC
 	            ) a WHERE ROWNUM &lt;= #{endRow}
 	        ) t
@@ -319,7 +319,7 @@
 	    FROM task t
 	    LEFT OUTER JOIN users u      ON t.task_manager = u.user_code
 	    LEFT OUTER JOIN task_types tt ON t.type_id = tt.type_id
-	    WHERE t.project_id = #{projectId}
+	    WHERE t.project_id = #{projectId} AND t.deleted_yn = 'N'
 	      AND (t.milestone_id IS NULL 
 	          <if test="milestoneId != null">
 	          OR t.milestone_id = #{milestoneId}
@@ -357,7 +357,7 @@
 	            FROM task t
 	            LEFT OUTER JOIN users u      ON t.task_manager = u.user_code
 	            LEFT OUTER JOIN task_types tt ON t.type_id = tt.type_id
-	            WHERE t.project_id = #{projectId}
+	            WHERE t.project_id = #{projectId} AND t.deleted_yn = 'N'
 	              AND (t.milestone_id IS NULL 
 	                  <if test="milestoneId != null">
 	                  OR t.milestone_id = #{milestoneId}
@@ -421,7 +421,7 @@
 	    FROM task t
 	    LEFT OUTER JOIN users u      ON t.task_manager = u.user_code
 	    LEFT OUTER JOIN task_types tt ON t.type_id = tt.type_id
-	    WHERE t.milestone_id = #{milestoneId}
+	    WHERE t.milestone_id = #{milestoneId} AND t.deleted_yn = 'N'
 	    ORDER BY t.created_at DESC
 	</select>
 

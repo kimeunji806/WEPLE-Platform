@@ -30,9 +30,10 @@ public class WorkLogController {
     private final UserService userService;
     private final TaskTypeService taskTypeService;
 
-    // 뱃지 색상 순환용 (고정 5색을 순서대로 순환 적용)
+    // 뱃지 색상 순환용 (CSS에 정의된 10색을 순서대로 순환 적용)
     private static final String[] TYPE_COLOR_CLASSES = {
-            "type-color-1", "type-color-2", "type-color-3", "type-color-4"
+            "type-color-1", "type-color-2", "type-color-3", "type-color-4", "type-color-5",
+            "type-color-6", "type-color-7", "type-color-8", "type-color-9", "type-color-10"
     };
 
     @Autowired

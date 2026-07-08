@@ -8,9 +8,9 @@ public interface DashboardService {
 
 	List<TaskVO> getTasksDueWithinAWeek(String userCode);
 
-	List<DashboardProjectDTO> getProjectsForDashboard(String userCode, boolean isManager);
-	
 	List<WorkLog2VO> getRecentActivities(com.weple.cloud.auth.service.LoginUserVO loginUser, String projectId, int limit);
+
+	List<DashboardProjectDTO> getProjectsForDashboard(String userCode, String companyId, boolean isManager);
 	
 
 	

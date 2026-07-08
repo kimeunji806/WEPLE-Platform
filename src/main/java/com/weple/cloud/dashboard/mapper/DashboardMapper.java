@@ -15,7 +15,7 @@ public interface DashboardMapper {
     
     List<DashboardProjectDTO> selectProjectsByMember(@Param("userCode") String userCode);
     
-    List<DashboardProjectDTO> selectAllProjectsForDashboard();
+    List<DashboardProjectDTO> selectAllProjectsForDashboard(@Param("companyId") String companyId);
     
     List<WorkLog2VO> selectRecentActivities(
             @Param("projectIds") List<Long> projectIds, 

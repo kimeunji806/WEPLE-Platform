@@ -28,10 +28,10 @@ public class DashboardServiceImpl implements DashboardService {
     }
     
     @Override
-    public List<DashboardProjectDTO> getProjectsForDashboard(String userCode, boolean isManager) {
+    public List<DashboardProjectDTO> getProjectsForDashboard(String userCode, String companyId, boolean isManager) {
         if (isManager) {
-            // 🌟 최고 관리자라면 전체 프로젝트 통계 조회
-            return dashboardMapper.selectAllProjectsForDashboard();
+            // 🌟 최고 관리자라면 해당 회사의 전체 프로젝트 통계 조회 (companyId 전달)
+            return dashboardMapper.selectAllProjectsForDashboard(companyId);
         } else {
             // 일반 사용자라면 참여 중인 프로젝트 통계만 조회
             return dashboardMapper.selectProjectsByMember(userCode);

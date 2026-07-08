@@ -52,12 +52,13 @@ public class DashboardRestController {
         
         com.weple.cloud.auth.service.LoginUserVO user = loginUser.getLoginUser();
         String userCode = user.getUserCode();
+        // 🌟 대시보드용 소속 회사 ID 추출
+        String companyId = String.valueOf(user.getCompanyId()); 
         
-        // 🌟 참조 코드의 권한 체크 흐름 적용
         boolean isManager = isCompanyManager(user);
         
-        // 권한 분기가 반영된 서비스 메서드 호출
-        List<DashboardProjectDTO> projects = dashboardService.getProjectsForDashboard(userCode, isManager);
+        // 🌟 서비스 호출 시 companyId 함께 전달
+        List<DashboardProjectDTO> projects = dashboardService.getProjectsForDashboard(userCode, companyId, isManager);
         
         return ResponseEntity.ok(projects);
     }

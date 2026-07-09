@@ -158,16 +158,19 @@ src/main/resources
 
 
 실행 방법
+
 1. 환경 변수 설정
 실행 환경에 맞게 필요한 값을 설정합니다.
 JASYPT_PASSWORD
 GITHUB_API_TOKEN
 AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
+
 2. 애플리케이션 실행
 ./mvnw spring-boot:run
 Windows 환경에서는 다음 명령을 사용할 수 있습니다.
 mvnw.cmd spring-boot:run
+
 3. 빌드
 ./mvnw clean package
 배포 구조
@@ -179,13 +182,14 @@ GitHub push
 → Docker Image Build
 → DockerHub Push
 → 운영 EC2에서 Docker Image Pull & Run
+
 팀 구성
-이름	주요 담당
-방진영	일감, 테스트 케이스, 캘린더
-김병완	인증, 사용자관리, 저장소 연동, 배포
-김은지	프로젝트, 위키, 알림, 마이페이지, 칸반보드
-김민지	그룹, 코드값, 소요시간, 파일관리
-송민규	공통 UI, 프로젝트 보조 기능
+이름	  주요 담당
+방진영	  일감, 테스트 케이스, 캘린더
+김병완	  로그인 및 인증, 사용자관리, 저장소 연동, 배포
+김은지	  프로젝트, 위키, 알림, 마이페이지, 칸반보드
+김민지	  그룹, 코드값, 소요시간, 파일관리
+송민규	  공통 UI, 프로젝트 보조 기능
 
 프로젝트 목표
 WEPLE은 프로젝트 수행에 필요한 업무 관리, 일정 관리, 산출물 관리, 협업 기능을 하나의 플랫폼에서 제공하는 것을 목표로 합니다.

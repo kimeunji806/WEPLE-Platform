@@ -31,75 +31,75 @@ WEPLE은 프로젝트 수행 과정에서 발생하는 일정, 일감, 산출물
  
 ## 팀 구성 및 역할
  
-<table>
+<table align="center">
   <tr>
-    <td align="left">
+    <td align="center">
       <a href="https://github.com/time1014">
         <img src="https://avatars.githubusercontent.com/u/64236748?v=4" width="100px;" alt="방진영"/><br />
-        <sub><b style="font-size:16px;">방진영</b></sub>
+        <sub><b style="font-size:17px;">방진영</b></sub>
       </a>
     </td>
-    <td align="left">
+    <td align="center">
       <a href="https://github.com/crescentia0011">
         <img src="https://avatars.githubusercontent.com/u/254889839?v=4" width="100px;" alt="김병완"/><br />
-        <sub><b style="font-size:16px;">김병완</b></sub>
+        <sub><b style="font-size:17px;">김병완</b></sub>
       </a>
     </td>
-    <td align="left">
+    <td align="center">
       <a href="https://github.com/kimeunji806">
         <img src="https://avatars.githubusercontent.com/u/258710580?v=4" width="100px;" alt="김은지"/><br />
-        <sub><b style="font-size:16px;">⭐ 김은지 (본인)</b></sub>
+        <sub><b style="font-size:17px;">⭐ 김은지 (본인)</b></sub>
       </a>
     </td>
-    <td align="left">
+    <td align="center">
       <a href="https://github.com/kimminji28">
         <img src="https://github.com/kimminji28.png" width="100px;" alt="김민지"/><br />
-        <sub><b style="font-size:16px;">김민지</b></sub>
+        <sub><b style="font-size:17px;">김민지</b></sub>
       </a>
     </td>
-    <td align="left">
+    <td align="center">
       <a href="https://github.com/smk412">
         <img src="https://github.com/smk412.png" width="100px;" alt="송민규"/><br />
-        <sub><b style="font-size:16px;">송민규</b></sub>
+        <sub><b style="font-size:17px;">송민규</b></sub>
       </a>
     </td>
   </tr>
   <tr>
-    <th align="left" style="font-size:16px;">팀장</th>
-    <th align="left" style="font-size:16px;">부팀장</th>
-    <th align="left" style="font-size:16px;">팀원</th>
-    <th align="left" style="font-size:16px;">팀원</th>
-    <th align="left" style="font-size:16px;">팀원</th>
+    <th align="center">팀장</th>
+    <th align="center">부팀장</th>
+    <th align="center">팀원</th>
+    <th align="center">팀원</th>
+    <th align="center">팀원</th>
   </tr>
   <tr>
-    <td align="left" style="font-size:15px;">프로젝트 총괄</td>
-    <td align="left" style="font-size:15px;">배포</td>
-    <td align="left" style="font-size:15px;">Git</td>
-    <td align="left" style="font-size:15px;">개발환경</td>
-    <td align="left" style="font-size:15px;">DB</td>
+    <td align="center">프로젝트 총괄</td>
+    <td align="center">배포</td>
+    <td align="center">Git</td>
+    <td align="center">개발환경</td>
+    <td align="center">DB</td>
   </tr>
   <tr>
-    <td align="left" style="font-size:15px;">
+    <td align="center">
       일감 관리<br />
       테스트 케이스<br />
       캘린더
     </td>
-    <td align="left" style="font-size:15px;">
+    <td align="center">
       로그인/인증<br />
       사용자 관리<br />
       저장소 관리
     </td>
-    <td align="left" style="font-size:15px;">
+    <td align="center">
       프로젝트, 작업내역<br />
       위키, 알림<br />
       마이페이지, 칸반보드
     </td>
-    <td align="left" style="font-size:15px;">
+    <td align="center">
       그룹, 코드값<br />
       소요시간<br />
       파일관리
     </td>
-    <td align="left" style="font-size:15px;">
+    <td align="center">
       대시보드<br />
       간트차트<br />
       보조 기능

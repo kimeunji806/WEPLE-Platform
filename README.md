@@ -1,10 +1,33 @@
 # WEPLE : 함께 만드는 연결된 협업 플랫폼
- 
+
 WEPLE은 프로젝트 수행 과정에서 발생하는 일정, 일감, 산출물, 커뮤니케이션, 저장소 이력을 **하나의 흐름으로 관리할 수 있는 웹 기반 협업 플랫폼**입니다.
- 
+
 팀 단위 프로젝트를 진행하면서 구성원, 역할, 권한, 일감, 파일, 위키, 알림, 저장소 정보를 통합적으로 관리하는 것을 목표로 개발되었습니다.
- 
+
 본 프로젝트는 여러 협업 도구를 오가며 발생하는 비효율을 해소하고, 실무자 관점에서의 기능 설계를 적용하여 프로젝트 관리 업무를 보다 체계적이고 효율적으로 처리할 수 있도록 개발되었습니다.
+
+---
+
+## 프로젝트 개요
+
+- **프로젝트명**: WEPLE
+- **프로젝트 유형**: 팀 프로젝트 (5인)
+- **개발 기간**: 2026.06.08 ~ 2026.07.14 (약 5주)
+- **개발 목적**
+  - 프로젝트·일정·산출물 관리 업무 통합 및 전산화
+  - 역할 및 권한 기반 접근 제어 구현
+  - 일감/저장소/위키 등 협업 도구 분산 문제 해소
+  - GitHub 연동을 통한 커밋-일감 추적 체계 구축
+
+---
+
+## 기여 요약
+
+- **프로젝트, 작업내역, 위키, 알림, 마이페이지, 칸반보드 기능 풀스택 구현**
+- **Git 브랜치 전략 수립 및 팀 협업 규칙 관리**
+- 프로젝트 생성부터 구성원·모듈·마일스톤·로드맵까지 이어지는 프로젝트 관리 흐름 설계
+- 일감 진행 상황을 시각적으로 보여주는 칸반보드 및 알림 연동 구현
+- MyBatis 기반 매퍼 설계 및 Spring Security 권한 처리 로직 구현
 
 ---
 
@@ -27,7 +50,7 @@ WEPLE은 프로젝트 수행 과정에서 발생하는 일정, 일감, 산출물
     <td align="center">
       <a href="https://github.com/kimeunji806">
         <img src="https://avatars.githubusercontent.com/u/258710580?v=4" width="100px;" alt="김은지"/><br />
-        <sub><b>김은지</b></sub>
+        <sub><b>⭐ 김은지 (본인)</b></sub>
       </a>
     </td>
     <td align="center">
@@ -88,37 +111,175 @@ WEPLE은 프로젝트 수행 과정에서 발생하는 일정, 일감, 산출물
 
 ---
 
-## 프로젝트 미리보기
+## 기술 스택
 
-### 메인 화면
-<img width="1920" height="945" alt="메인화면" src="https://github.com/user-attachments/assets/2ab4bf2b-ef1f-4a08-aa0d-4b9ba5b9a59d" />
+**Backend**
+- Java 21
+- Spring Boot 3.5.16
+- Spring MVC
+- Spring Security
+- MyBatis
+- Oracle Database
+- Jasypt
 
-### 시스템 구성도
-<img width="3600" height="1920" alt="weple_system_architecture_v2" src="https://github.com/user-attachments/assets/3a764766-5fc7-45cf-9f60-b080eba3e473" />
+**Frontend**
+- Thymeleaf
+- JavaScript
+- HTML5
+- CSS3
 
-### 자료 흐름도
-<img width="2720" height="2000" alt="weple_dfd_v2_white_bg" src="https://github.com/user-attachments/assets/3230e7e4-c6f0-4313-8028-587dd1ee870a" />
+**External / Infra**
+- GitHub REST API
+- AWS S3
+- AWS EC2
+- Docker
+- Jenkins
+- GitHub Actions
 
-### ERD
-<img width="1011" height="593" alt="image" src="https://github.com/user-attachments/assets/509ba48a-520c-416c-a47c-350e2c5e8619" />
+**Dev Tools**
+- IntelliJ IDEA
+- Oracle SQL Developer
 
+**Collaboration**
+- Git
+- GitHub
 
 ---
 
-## 프로젝트 개요
+## 기술 스택 시각화
 
-- **프로젝트명**: WEPLE
-- **프로젝트 유형**: 팀 프로젝트 (5인)
-- **개발 기간**: 2026.06.08 ~ 2026.07.14 (약 5주)
-- **개발 목적**
-  - 프로젝트·일정·산출물 관리 업무 통합 및 전산화
-  - 역할 및 권한 기반 접근 제어 구현
-  - 일감/저장소/위키 등 협업 도구 분산 문제 해소
-  - GitHub 연동을 통한 커밋-일감 추적 체계 구축
+| 구분 | 사용 기술 |
+|------|----------|
+| Frontend | ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black) ![Thymeleaf](https://img.shields.io/badge/Thymeleaf-005F0F?style=for-the-badge&logo=Thymeleaf&logoColor=white) |
+| Backend | ![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=openjdk&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white) ![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white) |
+| Data & ORM | ![Oracle](https://img.shields.io/badge/Oracle-F00000?style=for-the-badge&logo=oracle&logoColor=white) ![MyBatis](https://img.shields.io/badge/MyBatis-000000?style=for-the-badge) |
+| Cloud & Storage | ![AWS S3](https://img.shields.io/badge/Amazon_S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white) ![AWS EC2](https://img.shields.io/badge/Amazon_EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white) |
+| Dev Tools | ![IntelliJ IDEA](https://img.shields.io/badge/IntelliJIDEA-000000.svg?style=for-the-badge&logo=intellij-idea&logoColor=white) |
+| Collaboration | ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white) |
+| Deployment | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Jenkins](https://img.shields.io/badge/Jenkins-D24939?style=for-the-badge&logo=jenkins&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white) |
 
 ---
 
-## 주요 기능
+## 내가 담당한 기능
+
+Frontend(Thymeleaf / JavaScript) + Backend(Spring Boot / MyBatis) 풀스택 구현과 팀 Git 운영을 담당하였습니다.
+
+### 📁 프로젝트 관리
+- 프로젝트 생성 / 조회 / 수정 화면 및 API 구현
+- 프로젝트 구성원 등록 및 권한 코드(permission code) 기반 접근 제어 구현
+- 프로젝트별 사용 모듈(위키, 칸반보드, 저장소 등) On/Off 설정 화면 및 기능 구현
+
+### 📝 작업내역
+- 일감 상태·내용 변경 시 작업내역(이력) 자동 등록 및 조회 화면 구현
+- 프로젝트 / 기간 / 작업자 등 다중 조건 필터링 조회 UI 및 API 구현
+- 작업내역과 소요시간(work_time) 데이터를 연동해 조건별 총 소요시간 합계 표시
+
+### 📚 위키
+- 위키 문서 등록 / 조회 / 수정 / 삭제 화면 및 API 구현 (Toast UI Editor 기반 마크다운 에디터 연동)
+- 프로젝트별 위키 문서를 상위-하위 계층(트리) 구조로 관리하는 화면 구현
+- 문서 수정 시 이전 버전을 이력으로 보존하고 비교 조회할 수 있는 버전 관리 기능 구현
+- 동시 편집 방지를 위한 편집 잠금 UI 및 로직 구현
+
+### 🔔 알림
+- 일감 배정, 상태 변경, 댓글 등록 등 이벤트 발생 시 관련 구성원에게 알림 발송
+- 사용자별 알림 수신 범위 설정에 따라 알림 생성 여부를 서버에서 필터링
+- 실시간 폴링 기반 토스트 알림 UI, 알림 목록 조회, 읽음 처리, 미확인 개수 표시 기능 구현
+
+### 👤 마이페이지
+- 개인 정보 조회 및 알림 수신 범위 설정 화면 및 기능 구현
+
+### 📌 칸반보드
+- 일감 상태별 칸반보드 UI 및 API 구현
+- 드래그 앤 드롭으로 변경한 상태를 모아뒀다가 일괄 저장하는 배치 처리 UI/API 구현
+- 저장하지 않은 변경사항이 있을 때 이탈을 방지하는 UX 로직 구현
+- 사용자 권한(관리자/담당자)에 따른 상태 변경 가능 범위 제어
+
+### 🔧 Git 관리
+- 팀원별 개인 브랜치 + develop + main 구조의 브랜치 전략 수립
+- 커밋 메시지 및 병합 컨벤션 정의, PR 리뷰를 통한 코드 품질 관리
+
+---
+
+## 프로젝트 구조
+
+```bash
+WEPLE/
+├── src/main/java/com/weple/cloud
+│   ├── auth          # 인증 관련 기능
+│   ├── system         # 시스템 및 관리자 기능
+│   ├── project        # 프로젝트 관련 기능 (담당)
+│   ├── task            # 작업내역 관련 기능 (담당)
+│   ├── wiki            # 위키 기능 (담당)
+│   ├── notification    # 알림 기능 (담당)
+│   ├── mypage          # 마이페이지 기능 (담당)
+│   ├── kanban          # 칸반보드 기능 (담당)
+│   ├── repository     # 저장소 연동 기능
+│   └── ...            # 일감, 파일 등 그 외 협업 기능
+│
+├── src/main/resources
+│   ├── mapper          # MyBatis Mapper XML
+│   ├── static           # CSS, JavaScript, 이미지 등 정적 리소스
+│   └── templates        # Thymeleaf 화면 템플릿
+│
+├── docs/
+│   ├── main.png
+│   ├── system_flow.png
+│   ├── data_flow.png
+│   └── erd.png
+│
+└── README.md
+```
+
+---
+
+## 시스템설계
+
+<!-- 프로세스 구성도 이미지 삽입 -->
+<img width="1160" height="673" alt="image" src="https://github.com/user-attachments/assets/cd264f25-ed85-449a-8599-06c1da9a91b3" />
+
+<!-- 업무 흐름도 이미지 삽입 -->
+<img width="1152" height="656" alt="image" src="https://github.com/user-attachments/assets/39dab699-8e5c-41ef-9a54-6f64e4ba4f3c" />
+
+<!-- ERD 이미지 삽입 -->
+<img width="1011" height="593" alt="image" src="https://github.com/user-attachments/assets/52ac9018-2cdb-4c08-ad46-eb1645d0fe32" />
+
+---
+
+## 메인 화면
+
+### 대시보드
+<img width="1920" height="1032" alt="image" src="https://github.com/user-attachments/assets/1881a76e-eb9c-4087-b8ff-5a4c5240ee46" />
+
+### 프로젝트
+<img width="1920" height="945" alt="image" src="https://github.com/user-attachments/assets/863bf79d-cca5-4376-95b2-ff04cb99f506" />
+
+### 일감
+<img width="1920" height="945" alt="image" src="https://github.com/user-attachments/assets/585f1c37-5182-458f-8571-f5b6544d4d35" />
+
+### 로드맵
+<img width="1920" height="945" alt="image" src="https://github.com/user-attachments/assets/6fc2fd8a-7121-4edb-b2d5-248b21afddf5" />
+
+### 소요시간
+<img width="1920" height="945" alt="image" src="https://github.com/user-attachments/assets/110ab4a9-8570-4052-bec9-1191c534830f" />
+
+### 저장소
+<img width="1920" height="945" alt="image" src="https://github.com/user-attachments/assets/0a5b941c-f8d7-4327-a531-1a96f68efc82" />
+
+### 칸반보드
+<img width="1920" height="945" alt="image" src="https://github.com/user-attachments/assets/f67639cb-4d4e-4216-8591-ab2712a5c455" />
+
+### 위키
+<img width="1920" height="945" alt="image" src="https://github.com/user-attachments/assets/65667f5b-38f3-43c4-983f-7ca0313df73a" />
+
+### 작업내역
+<img width="1920" height="945" alt="image" src="https://github.com/user-attachments/assets/ec19ac61-b147-4907-9467-b3dd6b1050bd" />
+
+### 알림
+<img width="1920" height="945" alt="image" src="https://github.com/user-attachments/assets/2528d725-3760-4571-9479-6069af356b95" />
+
+---
+
+## 전체 주요 기능
 
 ### 관리
 - 회사별 사용자 가입승인
@@ -173,79 +334,3 @@ WEPLE은 프로젝트 수행 과정에서 발생하는 일정, 일감, 산출물
 5. 관련 문서와 지식은 위키로 등록·관리됩니다.
 6. GitHub 커밋 메시지를 통해 일감과 저장소 이력이 자동으로 연결됩니다.
 7. 각 단계의 변경사항은 알림을 통해 관련 구성원에게 실시간으로 전달됩니다.
-
----
-
-## 기술 스택
-
-### Backend
-- Java 21
-- Spring Boot 3.5.16
-- Spring MVC
-- Spring Security
-- MyBatis
-- Oracle Database
-- Jasypt
-
-### Frontend
-- Thymeleaf
-- JavaScript
-- HTML5
-- CSS3
-
-### External / Infra
-- GitHub REST API
-- AWS S3
-- AWS EC2
-- Docker
-- Jenkins
-- GitHub Actions
-
-### Dev Tools
-- IntelliJ IDEA
-- Oracle SQL Developer
-
-### Collaboration
-- Git
-- GitHub
-
----
-
-## 기술 스택 시각화
-
-| 구분 | 사용 기술 |
-|------|----------|
-| Frontend | ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black) ![Thymeleaf](https://img.shields.io/badge/Thymeleaf-005F0F?style=for-the-badge&logo=Thymeleaf&logoColor=white) |
-| Backend | ![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=openjdk&logoColor=white) ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white) ![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=spring-security&logoColor=white) |
-| Data & ORM | ![Oracle](https://img.shields.io/badge/Oracle-F00000?style=for-the-badge&logo=oracle&logoColor=white) ![MyBatis](https://img.shields.io/badge/MyBatis-000000?style=for-the-badge) |
-| Cloud & Storage | ![AWS S3](https://img.shields.io/badge/Amazon_S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white) ![AWS EC2](https://img.shields.io/badge/Amazon_EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white) |
-| Dev Tools | ![IntelliJ IDEA](https://img.shields.io/badge/IntelliJIDEA-000000.svg?style=for-the-badge&logo=intellij-idea&logoColor=white) |
-| Collaboration | ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white) |
-| Deployment | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Jenkins](https://img.shields.io/badge/Jenkins-D24939?style=for-the-badge&logo=jenkins&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white) |
-
----
-
-## 프로젝트 구조
-
-```bash
-WEPLE/
-├── src/main/java/com/weple/cloud
-│   ├── auth          # 인증 관련 기능
-│   ├── system         # 시스템 및 관리자 기능
-│   ├── project        # 프로젝트 관련 기능
-│   ├── repository     # 저장소 연동 기능
-│   └── ...            # 일감, 파일, 위키, 알림 등 협업 기능
-│
-├── src/main/resources
-│   ├── mapper          # MyBatis Mapper XML
-│   ├── static           # CSS, JavaScript, 이미지 등 정적 리소스
-│   └── templates        # Thymeleaf 화면 템플릿
-│
-├── docs/
-│   ├── main.png
-│   ├── system_flow.png
-│   ├── data_flow.png
-│   └── erd.png
-│
-└── README.md
-```

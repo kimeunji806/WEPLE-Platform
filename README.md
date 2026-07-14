@@ -100,7 +100,8 @@ WEPLE은 프로젝트 수행 과정에서 발생하는 일정, 일감, 산출물
 <img width="2720" height="2000" alt="weple_dfd_v2_white_bg" src="https://github.com/user-attachments/assets/3230e7e4-c6f0-4313-8028-587dd1ee870a" />
 
 ### ERD
-<img width="4780" height="3042" alt="3 논리 ERD 캡처" src="https://github.com/user-attachments/assets/631fc03f-8743-4c79-b42e-71bba9af3556" />
+<img width="1011" height="593" alt="image" src="https://github.com/user-attachments/assets/509ba48a-520c-416c-a47c-350e2c5e8619" />
+
 
 ---
 

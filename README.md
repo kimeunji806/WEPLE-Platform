@@ -1,15 +1,15 @@
 # WEPLE : 함께 만드는 연결된 협업 플랫폼
-
+ 
 WEPLE은 프로젝트 수행 과정에서 발생하는 일정, 일감, 산출물, 커뮤니케이션, 저장소 이력을 **하나의 흐름으로 관리할 수 있는 웹 기반 협업 플랫폼**입니다.
-
+ 
 팀 단위 프로젝트를 진행하면서 구성원, 역할, 권한, 일감, 파일, 위키, 알림, 저장소 정보를 통합적으로 관리하는 것을 목표로 개발되었습니다.
-
+ 
 본 프로젝트는 여러 협업 도구를 오가며 발생하는 비효율을 해소하고, 실무자 관점에서의 기능 설계를 적용하여 프로젝트 관리 업무를 보다 체계적이고 효율적으로 처리할 수 있도록 개발되었습니다.
-
+ 
 ---
-
+ 
 ## 프로젝트 개요
-
+ 
 - **프로젝트명**: WEPLE
 - **프로젝트 유형**: 팀 프로젝트 (5인)
 - **개발 기간**: 2026.06.08 ~ 2026.07.14 (약 5주)
@@ -18,101 +18,98 @@ WEPLE은 프로젝트 수행 과정에서 발생하는 일정, 일감, 산출물
   - 역할 및 권한 기반 접근 제어 구현
   - 일감/저장소/위키 등 협업 도구 분산 문제 해소
   - GitHub 연동을 통한 커밋-일감 추적 체계 구축
-
 ---
-
+ 
 ## 기여 요약
-
+ 
 - **프로젝트, 작업내역, 위키, 알림, 마이페이지, 칸반보드 기능 풀스택 구현**
 - **Git 브랜치 전략 수립 및 팀 협업 규칙 관리**
 - 프로젝트 생성부터 구성원·모듈·마일스톤·로드맵까지 이어지는 프로젝트 관리 흐름 설계
 - 일감 진행 상황을 시각적으로 보여주는 칸반보드 및 알림 연동 구현
 - MyBatis 기반 매퍼 설계 및 Spring Security 권한 처리 로직 구현
-
 ---
-
+ 
 ## 팀 구성 및 역할
-
-<table align="center">
+ 
+<table>
   <tr>
-    <td align="center">
+    <td align="left">
       <a href="https://github.com/time1014">
         <img src="https://avatars.githubusercontent.com/u/64236748?v=4" width="100px;" alt="방진영"/><br />
-        <sub><b>방진영</b></sub>
+        <sub><b style="font-size:16px;">방진영</b></sub>
       </a>
     </td>
-    <td align="center">
+    <td align="left">
       <a href="https://github.com/crescentia0011">
         <img src="https://avatars.githubusercontent.com/u/254889839?v=4" width="100px;" alt="김병완"/><br />
-        <sub><b>김병완</b></sub>
+        <sub><b style="font-size:16px;">김병완</b></sub>
       </a>
     </td>
-    <td align="center">
+    <td align="left">
       <a href="https://github.com/kimeunji806">
         <img src="https://avatars.githubusercontent.com/u/258710580?v=4" width="100px;" alt="김은지"/><br />
-        <sub><b>⭐ 김은지 (본인)</b></sub>
+        <sub><b style="font-size:16px;">⭐ 김은지 (본인)</b></sub>
       </a>
     </td>
-    <td align="center">
+    <td align="left">
       <a href="https://github.com/kimminji28">
         <img src="https://github.com/kimminji28.png" width="100px;" alt="김민지"/><br />
-        <sub><b>김민지</b></sub>
+        <sub><b style="font-size:16px;">김민지</b></sub>
       </a>
     </td>
-    <td align="center">
+    <td align="left">
       <a href="https://github.com/smk412">
         <img src="https://github.com/smk412.png" width="100px;" alt="송민규"/><br />
-        <sub><b>송민규</b></sub>
+        <sub><b style="font-size:16px;">송민규</b></sub>
       </a>
     </td>
   </tr>
   <tr>
-    <th align="center">팀장</th>
-    <th align="center">부팀장</th>
-    <th align="center">팀원</th>
-    <th align="center">팀원</th>
-    <th align="center">팀원</th>
+    <th align="left" style="font-size:16px;">팀장</th>
+    <th align="left" style="font-size:16px;">부팀장</th>
+    <th align="left" style="font-size:16px;">팀원</th>
+    <th align="left" style="font-size:16px;">팀원</th>
+    <th align="left" style="font-size:16px;">팀원</th>
   </tr>
   <tr>
-    <td align="center">프로젝트 총괄</td>
-    <td align="center">배포</td>
-    <td align="center">Git</td>
-    <td align="center">개발환경</td>
-    <td align="center">DB</td>
+    <td align="left" style="font-size:15px;">프로젝트 총괄</td>
+    <td align="left" style="font-size:15px;">배포</td>
+    <td align="left" style="font-size:15px;">Git</td>
+    <td align="left" style="font-size:15px;">개발환경</td>
+    <td align="left" style="font-size:15px;">DB</td>
   </tr>
   <tr>
-    <td align="center">
+    <td align="left" style="font-size:15px;">
       일감 관리<br />
       테스트 케이스<br />
       캘린더
     </td>
-    <td align="center">
+    <td align="left" style="font-size:15px;">
       로그인/인증<br />
       사용자 관리<br />
       저장소 관리
     </td>
-    <td align="center">
+    <td align="left" style="font-size:15px;">
       프로젝트, 작업내역<br />
       위키, 알림<br />
       마이페이지, 칸반보드
     </td>
-    <td align="center">
+    <td align="left" style="font-size:15px;">
       그룹, 코드값<br />
       소요시간<br />
       파일관리
     </td>
-    <td align="center">
+    <td align="left" style="font-size:15px;">
       대시보드<br />
       간트차트<br />
       보조 기능
     </td>
   </tr>
 </table>
-
 ---
-
+ 
 ## 기술 스택
-
+ 
 **Backend**
 - Java 21
 - Spring Boot 3.5.16
@@ -121,13 +118,11 @@ WEPLE은 프로젝트 수행 과정에서 발생하는 일정, 일감, 산출물
 - MyBatis
 - Oracle Database
 - Jasypt
-
 **Frontend**
 - Thymeleaf
 - JavaScript
 - HTML5
 - CSS3
-
 **External / Infra**
 - GitHub REST API
 - AWS S3
@@ -135,19 +130,16 @@ WEPLE은 프로젝트 수행 과정에서 발생하는 일정, 일감, 산출물
 - Docker
 - Jenkins
 - GitHub Actions
-
 **Dev Tools**
 - IntelliJ IDEA
 - Oracle SQL Developer
-
 **Collaboration**
 - Git
 - GitHub
-
 ---
-
+ 
 ## 기술 스택 시각화
-
+ 
 | 구분 | 사용 기술 |
 |------|----------|
 | Frontend | ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black) ![Thymeleaf](https://img.shields.io/badge/Thymeleaf-005F0F?style=for-the-badge&logo=Thymeleaf&logoColor=white) |
@@ -157,69 +149,62 @@ WEPLE은 프로젝트 수행 과정에서 발생하는 일정, 일감, 산출물
 | Dev Tools | ![IntelliJ IDEA](https://img.shields.io/badge/IntelliJIDEA-000000.svg?style=for-the-badge&logo=intellij-idea&logoColor=white) |
 | Collaboration | ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white) |
 | Deployment | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Jenkins](https://img.shields.io/badge/Jenkins-D24939?style=for-the-badge&logo=jenkins&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white) |
-
+ 
 ---
-
+ 
 ## 내가 담당한 기능
-
+ 
 Frontend(Thymeleaf / JavaScript) + Backend(Spring Boot / MyBatis) 풀스택 구현과 팀 Git 운영을 담당하였습니다.
-
+ 
 ### 📁 프로젝트 관리
 - 프로젝트 생성 / 조회 / 수정 화면 및 API 구현
 - 프로젝트 구성원 등록 및 권한 코드(permission code) 기반 접근 제어 구현
 - 프로젝트별 사용 모듈(위키, 칸반보드, 저장소 등) On/Off 설정 화면 및 기능 구현
-
 ### 📝 작업내역
 - 일감 상태·내용 변경 시 작업내역(이력) 자동 등록 및 조회 화면 구현
 - 프로젝트 / 기간 / 작업자 등 다중 조건 필터링 조회 UI 및 API 구현
 - 작업내역과 소요시간(work_time) 데이터를 연동해 조건별 총 소요시간 합계 표시
-
 ### 📚 위키
 - 위키 문서 등록 / 조회 / 수정 / 삭제 화면 및 API 구현 (Toast UI Editor 기반 마크다운 에디터 연동)
 - 프로젝트별 위키 문서를 상위-하위 계층(트리) 구조로 관리하는 화면 구현
 - 문서 수정 시 이전 버전을 이력으로 보존하고 비교 조회할 수 있는 버전 관리 기능 구현
 - 동시 편집 방지를 위한 편집 잠금 UI 및 로직 구현
-
 ### 🔔 알림
 - 일감 배정, 상태 변경, 댓글 등록 등 이벤트 발생 시 관련 구성원에게 알림 발송
 - 사용자별 알림 수신 범위 설정에 따라 알림 생성 여부를 서버에서 필터링
 - 실시간 폴링 기반 토스트 알림 UI, 알림 목록 조회, 읽음 처리, 미확인 개수 표시 기능 구현
-
 ### 👤 마이페이지
 - 개인 정보 조회 및 알림 수신 범위 설정 화면 및 기능 구현
-
 ### 📌 칸반보드
 - 일감 상태별 칸반보드 UI 및 API 구현
 - 드래그 앤 드롭으로 변경한 상태를 모아뒀다가 일괄 저장하는 배치 처리 UI/API 구현
 - 저장하지 않은 변경사항이 있을 때 이탈을 방지하는 UX 로직 구현
 - 사용자 권한(관리자/담당자)에 따른 상태 변경 가능 범위 제어
-
 ### 🔧 Git 관리
 - 팀원별 개인 브랜치 + develop + main 구조의 브랜치 전략 수립
 - 커밋 메시지 및 병합 컨벤션 정의, PR 리뷰를 통한 코드 품질 관리
-
 ---
-
+ 
 ## 프로젝트 구조
-
+ 
 ```bash
 WEPLE/
 ├── src/main/java/com/weple/cloud
-│   ├── auth          # 인증 관련 기능
-│   ├── system         # 시스템 및 관리자 기능
-│   ├── project        # 프로젝트 관련 기능 (담당)
-│   ├── task            # 작업내역 관련 기능 (담당)
-│   ├── wiki            # 위키 기능 (담당)
-│   ├── notification    # 알림 기능 (담당)
-│   ├── mypage          # 마이페이지 기능 (담당)
-│   ├── kanban          # 칸반보드 기능 (담당)
-│   ├── repository     # 저장소 연동 기능
-│   └── ...            # 일감, 파일 등 그 외 협업 기능
+│   ├── auth           # 인증 관련 기능
+│   ├── system          # 시스템 및 관리자 기능
+│   ├── project         # 프로젝트 관련 기능 (담당)
+│   ├── task             # 작업내역 관련 기능 (담당)
+│   ├── wiki             # 위키 기능 (담당)
+│   ├── notification     # 알림 기능 (담당)
+│   ├── mypage           # 마이페이지 기능 (담당)
+│   ├── kanban           # 칸반보드 기능 (담당)
+│   ├── repository      # 저장소 연동 기능
+│   └── ...             # 일감, 파일 등 그 외 협업 기능
 │
 ├── src/main/resources
-│   ├── mapper          # MyBatis Mapper XML
-│   ├── static           # CSS, JavaScript, 이미지 등 정적 리소스
-│   └── templates        # Thymeleaf 화면 템플릿
+│   ├── mapper           # MyBatis Mapper XML
+│   ├── static            # CSS, JavaScript, 이미지 등 정적 리소스
+│   └── templates         # Thymeleaf 화면 템플릿
 │
 ├── docs/
 │   ├── main.png
@@ -229,7 +214,7 @@ WEPLE/
 │
 └── README.md
 ```
-
+ 
 ---
 
 ## 시스템설계
@@ -280,53 +265,47 @@ WEPLE/
 ---
 
 ## 전체 주요 기능
-
+ 
 ### 관리
 - 회사별 사용자 가입승인
 - 사용자 등록 및 계정 상태 관리
 - 그룹 관리
 - 역할 및 권한 관리
 - 코드값 및 서비스 설정 관리
-
 ### 프로젝트
 - 프로젝트 생성 및 관리
 - 프로젝트 구성원 등록 및 관리
 - 프로젝트별 모듈 설정
 - 버전 및 마일스톤 관리
 - 로드맵 관리
-
 ### 일감 / 테스트
 - 일감 등록, 조회, 수정, 삭제
 - 일감 댓글 및 작업내역 관리
 - 일감 유형, 우선순위, 상태 관리
 - 테스트 케이스 관리
 - 요구사항 커버리지 확인
-
 ### 일정 / 현황
 - 통합 캘린더 및 프로젝트 캘린더
 - 작업 시간 등록 및 소요시간 관리
 - 간트차트
 - 칸반보드
 - 프로젝트 진행 현황 확인
-
 ### 협업 / 산출물
 - 위키 등록 및 관리
 - 게시판
 - 파일 업로드 및 다운로드
 - 다운로드 이력 조회
 - 알림 및 마이페이지
-
 ### 저장소
 - GitHub 저장소 등록 및 관리
 - 저장소 파일트리 및 파일 내용 조회
 - 커밋 내역 조회
 - 커밋 상세 및 변경 내역 확인
 - 커밋 메시지 기반 일감 연결
-
 ---
-
+ 
 ## 업무 흐름
-
+ 
 1. 관리자가 프로젝트를 생성하고 구성원과 역할·권한을 설정합니다.
 2. 구성원이 일감을 등록하고 담당자를 지정합니다.
 3. 담당자가 일감을 진행하며 소요시간과 작업내역을 기록합니다.

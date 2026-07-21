@@ -232,7 +232,7 @@ WEPLE/
 ## 메인 화면
 
 ### 대시보드
-<img width="1920" height="1032" alt="image" src="https://github.com/user-attachments/assets/1881a76e-eb9c-4087-b8ff-5a4c5240ee46" />
+<img width="1920" height="945" alt="image" src="https://github.com/user-attachments/assets/adaf85e6-b183-43a1-a5a0-e8c032ae8396" />
 
 ### 프로젝트
 <img width="1920" height="945" alt="image" src="https://github.com/user-attachments/assets/863bf79d-cca5-4376-95b2-ff04cb99f506" />
